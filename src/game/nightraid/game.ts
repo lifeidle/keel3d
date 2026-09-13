@@ -903,12 +903,50 @@ export class Game {
     // retained as a no-op shell until A12; QualityAutoSystem owns the logic
   }
 
-  /** Present the frame + diagnostics. */
-  hostPresent(ft: number) {
-    // After WebGPURenderer.init(), three r186 uses the sync render() path
-    // (renderAsync is deprecated and raced with rAF — froze the camera).
+  /** Present the frame + diagnostics → RenderPresentSystem (A3). */
+  hostPresent(_ft: number) {
+    // retained as a no-op shell until A12; RenderPresentSystem owns present+diag
+  }
+
+  /** Sync WebGPU present (three r186 sync render path). */
+  presentFrame(): void {
     this.engine.renderer.render(this.engine.scene, this.engine.camera);
-    this.updateDiagnostics(ft, performance.now());
+  }
+
+  /** FPS EMA sample written by RenderPresentSystem. */
+  noteFps(instant: number): void {
+    this.fps += (instant - this.fps) * 0.1;
+  }
+
+  /** React to QualityController render-scale change while playing. */
+  syncRenderScale(): void {
+    if (this.state === 'playing' && this.qualityCtrl.renderScale !== this.lastRenderScale) {
+      this.lastRenderScale = this.qualityCtrl.renderScale;
+      this.onResize();
+    }
+  }
+
+  get diagPanel(): HTMLElement | null {
+    return this.diagEl;
+  }
+
+  /** Counters for the diagnostics overlay. */
+  diagCounts(): { bodies: number; colliders: number; fx: number; enemiesAlive: number; enemiesTotal: number; state: string } {
+    const w = this.physics.world;
+    return {
+      bodies: w.bodies.len(),
+      colliders: w.colliders.len(),
+      fx: this.effects.count(),
+      enemiesAlive: this.enemies.aliveCount(),
+      enemiesTotal: this.enemies.getEnemies().length,
+      state: this.state,
+    };
+  }
+
+  noteSlowFrame(slow: boolean): void {
+    if (slow) this.slowStreak++;
+    else this.slowStreak = 0;
+    if (this.slowStreak >= 4 && this.diagEl) this.diagEl.style.display = 'block';
   }
 
   // ---------- screens ----------
@@ -2408,39 +2446,7 @@ export class Game {
     document.getElementById('fullmap')?.classList.toggle('hidden', !this.fullmapOpen);
   }
 
-  /** Live perf/object counters; reveals itself automatically on a sustained stall. */
-  private fpsElT = 0;
-
-  private updateDiagnostics(ft: number, _now: number) {
-    const inst = ft > 0 ? 1 / ft : 60;
-    this.fps += (inst - this.fps) * 0.1;
-    // Dynamic resolution is sampled by the Engine host (single QualityController).
-    // Here we only react to scale changes so the drawing buffer resizes.
-    if (this.state === 'playing' && this.qualityCtrl.renderScale !== this.lastRenderScale) {
-      this.lastRenderScale = this.qualityCtrl.renderScale;
-      this.onResize();
-    }
-    // transparent FPS readout beside the language toggle (0.5s cadence)
-    this.fpsElT -= ft;
-    if (this.fpsElT <= 0) {
-      this.fpsElT = 0.5;
-      const el = document.getElementById('fps-counter');
-      if (el) {
-        el.textContent = `${this.fps.toFixed(0)} FPS`;
-        el.classList.remove('hidden');
-      }
-    }
-    if (ft > 0.25) this.slowStreak++;
-    else this.slowStreak = 0;
-    if (this.slowStreak >= 4 && this.diagEl) this.diagEl.style.display = 'block';
-    if (!this.diagEl || this.diagEl.style.display === 'none') return;
-    const w = this.physics.world;
-    this.diagEl.textContent =
-      `FPS ${this.fps.toFixed(0)}  frame ${(ft * 1000).toFixed(1)}ms\n` +
-      `bodies ${w.bodies.len()}  colliders ${w.colliders.len()}\n` +
-      `fx ${this.effects.count()}  enemies ${this.enemies.aliveCount()}/${this.enemies.getEnemies().length}\n` +
-      `state ${this.state}`;
-  }
+  // updateDiagnostics / fpsElT moved to RenderPresentSystem (A3)
 
   /** Surface a loop exception as an on-screen banner instead of a silent freeze. */
   private reportLoopError(err: unknown) {
