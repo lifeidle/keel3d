@@ -865,11 +865,6 @@ export class Game {
     };
   }
 
-  /** Pooled VFX + ballistic debris → EffectsSystem (A4). */
-  hostEffectsFrame(_ft: number) {
-    // no-op shell until A12
-  }
-
   /** VFX collaborators for EffectsSystem. */
   get vfx() {
     return {
@@ -878,11 +873,6 @@ export class Game {
       plumes: this.map.plumes,
       casings: this.casings,
     };
-  }
-
-  /** Weather + muzzle/flare light decay → AtmosphereSystem (A5). */
-  hostAtmosphereFrame(_ft: number, _playing: boolean) {
-    // no-op shell until A12
   }
 
   /** Atmosphere collaborators for AtmosphereSystem. */
@@ -894,18 +884,6 @@ export class Game {
       muzzleLights: this.muzzleLights,
       nightClouds: this.nightClouds,
     };
-  }
-
-  // fadeMuzzleLights lives on AtmosphereSystem (A5)
-
-  /** Tier auto-downgrade handled by QualityAutoSystem (A2). */
-  hostQualityAuto(_ft: number) {
-    // retained as a no-op shell until A12; QualityAutoSystem owns the logic
-  }
-
-  /** Present the frame + diagnostics → RenderPresentSystem (A3). */
-  hostPresent(_ft: number) {
-    // retained as a no-op shell until A12; RenderPresentSystem owns present+diag
   }
 
   /** Sync WebGPU present (three r186 sync render path). */
@@ -2179,12 +2157,7 @@ export class Game {
     }
 
     this.hostGameplayFrame(ft);
-    this.hostEffectsFrame(ft);
-    this.hostAtmosphereFrame(ft, this.state === 'playing');
-    if (this.state === 'playing') {
-      this.hostQualityAuto(ft);
-    }
-    this.hostPresent(ft);
+    // effects / atmosphere / quality / present run on Engine systems (A12)
     } catch (err) {
       this.reportLoopError(err);
     }

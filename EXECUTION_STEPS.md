@@ -297,7 +297,7 @@ DOM id：`#bootFill #bootTxt #btnPlay #btnNet #btnNetHost #btnNetJoin #btnNetGo 
 | A8 Movement | git | ✅ | player.update 入 System | 2026-09-13 |
 | A9 Combat | git | ✅ | probe 敌我正常 | 2026-09-13 |
 | A10 Vehicle | git | ✅ | regress 0 错误 | 2026-09-13 |
-| A11 Net | | | | |
+| A11 Net | git | ✅ | 单机回归 0 错误；e2e 待跑 | 2026-09-13 |
 | A12 收尾 | | | | |
 | B1–B9 | | | | |
 | C1–C4 | | | | |
