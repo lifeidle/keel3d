@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Yexi Game Framework — 选品类 · 配基底 · 做游戏</title>
+  <meta name="description" content="WebGPU 3D 游戏框架：选择 FPS / 塔防 / 开放世界 / 飞行 / 赛车等形式，查看对应开发基底与可玩样例。" />
+  <meta name="theme-color" content="#0b1220" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b1220'/%3E%3Cpath d='M18 40 L32 16 L46 40 Z' fill='none' stroke='%236ec8ff' stroke-width='3'/%3E%3Ccircle cx='32' cy='36' r='4' fill='%23ffd27a'/%3E%3C/svg%3E" />
+  <style>
+    :root {
+      --bg: #0b1220;
+      --bg2: #121a2b;
+      --card: #162033;
+      --card2: #1c2940;
+      --line: #2a3a55;
+      --ink: #e8eef7;
+      --muted: #8fa3bc;
+      --accent: #6ec8ff;
+      --accent2: #ffd27a;
+      --ok: #5dcea0;
+      --warn: #f0a86a;
+      --danger: #e07070;
+      --radius: 14px;
+      --font: "Segoe UI", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+      --mono: ui-monospace, "Cascadia Code", Consolas, monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      font-family: var(--font);
+      background: radial-gradient(1200px 600px at 20% -10%, #1a2a48 0%, var(--bg) 55%);
+      color: var(--ink);
+      line-height: 1.55;
+      min-height: 100%;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 36px 22px 80px; }
+
+    header.hero { margin-bottom: 28px; }
+    .eyebrow {
+      display: inline-block;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+      border: 1px solid var(--line);
+      padding: 4px 10px;
+      border-radius: 999px;
+      margin-bottom: 14px;
+    }
+    h1 {
+      font-size: clamp(26px, 4vw, 38px);
+      font-weight: 650;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+      margin-bottom: 10px;
+    }
+    .lede { color: var(--muted); max-width: 52em; font-size: 15px; }
+    .lede strong { color: var(--ink); font-weight: 600; }
+
+    .flow {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 18px 0 8px;
+    }
+    .flow-step {
+      background: var(--bg2);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .flow-step b { color: var(--accent2); font-weight: 600; margin-right: 6px; }
+
+    h2.section {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 32px 0 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    h2.section::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--line);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 14px;
+    }
+    .card {
+      background: linear-gradient(180deg, var(--card) 0%, var(--card2) 100%);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 16px 16px 14px;
+      cursor: pointer;
+      transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+      text-align: left;
+      color: inherit;
+      font: inherit;
+      width: 100%;
+    }
+    .card:hover, .card:focus-visible {
+      border-color: var(--accent);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+      outline: none;
+    }
+    .card.active {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent), 0 10px 28px rgba(110,200,255,0.12);
+    }
+    .card .icon {
+      width: 42px; height: 42px;
+      border-radius: 10px;
+      display: grid; place-items: center;
+      font-size: 20px;
+      margin-bottom: 12px;
+      background: rgba(110,200,255,0.1);
+      border: 1px solid var(--line);
+    }
+    .card h3 { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+    .card p { font-size: 13px; color: var(--muted); margin-bottom: 10px; min-height: 2.6em; }
+    .tags { display: flex; flex-wrap: wrap; gap: 6px; }
+    .tag {
+      font-size: 11px;
+      color: var(--muted);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 2px 8px;
+      background: rgba(0,0,0,0.15);
+    }
+
+    .detail {
+      margin-top: 18px;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .detail-head {
+      padding: 18px 20px 12px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: flex-start;
+      justify-content: space-between;
+    }
+    .detail-head h3 { font-size: 20px; margin-bottom: 4px; }
+    .detail-head .sub { color: var(--muted); font-size: 13px; }
+    .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 10px;
+      padding: 9px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      border: 1px solid var(--line);
+      background: var(--bg2);
+      color: var(--ink);
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .btn:hover { text-decoration: none; border-color: var(--accent); }
+    .btn.primary {
+      background: linear-gradient(180deg, #3d9fd4, #2a7fb8);
+      border-color: transparent;
+      color: #fff;
+    }
+    .btn.primary:hover { filter: brightness(1.08); }
+    .btn code {
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .detail-body {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 0;
+    }
+    @media (max-width: 800px) {
+      .detail-body { grid-template-columns: 1fr; }
+    }
+    .panel {
+      padding: 16px 20px 20px;
+    }
+    .panel + .panel { border-left: 1px solid var(--line); }
+    @media (max-width: 800px) {
+      .panel + .panel { border-left: none; border-top: 1px solid var(--line); }
+    }
+    .panel h4 {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+    .kv { display: grid; gap: 8px; }
+    .kv-row {
+      display: grid;
+      grid-template-columns: 88px 1fr;
+      gap: 10px;
+      font-size: 13px;
+      padding: 8px 0;
+      border-bottom: 1px dashed rgba(42,58,85,0.7);
+    }
+    .kv-row:last-child { border-bottom: none; }
+    .kv-row dt { color: var(--muted); }
+    .kv-row dd { color: var(--ink); }
+
+    .block-list { list-style: none; display: grid; gap: 8px; }
+    .block-list li {
+      font-size: 13px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: rgba(0,0,0,0.18);
+      border: 1px solid var(--line);
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+    .block-list li b {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--accent);
+      min-width: 7.5em;
+    }
+    .block-list li span { color: var(--muted); flex: 1; }
+
+    .cmd {
+      margin-top: 12px;
+      background: #0a101c;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: #b8e0a8;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+    .cmd .copy-hint {
+      float: right;
+      color: var(--muted);
+      font-family: var(--font);
+      font-size: 11px;
+      margin-left: 12px;
+    }
+
+    .note {
+      margin-top: 16px;
+      font-size: 12px;
+      color: var(--muted);
+      border-left: 3px solid var(--line);
+      padding-left: 12px;
+    }
+    .note strong { color: var(--warn); font-weight: 600; }
+
+    footer {
+      margin-top: 40px;
+      padding-top: 18px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 20px;
+      justify-content: space-between;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: #1a283f;
+      border: 1px solid var(--accent);
+      color: var(--ink);
+      padding: 10px 18px;
+      border-radius: 999px;
+      font-size: 13px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s, transform 0.2s;
+      z-index: 50;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero">
+      <div class="eyebrow">Yexi Game Framework · WebGPU</div>
+      <h1>选游戏形式 → 配开发基底 → 做出你的游戏</h1>
+      <p class="lede">
+        框架提供<strong>循环 / 物理 / 渲染 / 输入 / 地图 / 相机 / 积木</strong>；
+        你只需要选一种<strong>游戏形式</strong>，下面会列出该形式的<strong>基底配置</strong>（视角、地图、可拼积木），
+        以及可玩样例与脚手架命令。不用的功能不会进入你的包。
+      </p>
+      <div class="flow">
+        <div class="flow-step"><b>1</b>选择形式</div>
+        <div class="flow-step"><b>2</b>查看基底与积木</div>
+        <div class="flow-step"><b>3</b>试玩样例或 npm run new-game</div>
+        <div class="flow-step"><b>4</b>只 import 你需要的模块</div>
+      </div>
+    </header>
+
+    <h2 class="section">游戏形式</h2>
+    <div class="grid" id="genre-grid" role="listbox" aria-label="游戏形式"></div>
+
+    <div class="detail" id="detail" aria-live="polite">
+      <div class="detail-head">
+        <div>
+          <h3 id="d-title">—</h3>
+          <div class="sub" id="d-sub"></div>
+        </div>
+        <div class="actions" id="d-actions"></div>
+      </div>
+      <div class="detail-body">
+        <div class="panel">
+          <h4>开发基底（GameSpec）</h4>
+          <dl class="kv" id="d-spec"></dl>
+          <div class="cmd" id="d-cmd" title="点击复制"></div>
+          <p class="note" id="d-note"></p>
+        </div>
+        <div class="panel">
+          <h4>建议拼装的积木（按需 import）</h4>
+          <ul class="block-list" id="d-blocks"></ul>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="section">通用基底（所有形式都带）</h2>
+    <div class="grid">
+      <div class="card" style="cursor:default">
+        <div class="icon">⚙️</div>
+        <h3>L1 内核</h3>
+        <p>WebGPU 渲染 · 固定步长物理 · 输入 · 画质动态分辨率 · 资产/音频</p>
+        <div class="tags"><span class="tag">Engine</span><span class="tag">Rapier</span><span class="tag">Quality</span></div>
+      </div>
+      <div class="card" style="cursor:default">
+        <div class="icon">🧱</div>
+        <h3>L2 积木</h3>
+        <p>Pool · Path · Steering · GridAStar · CameraRig · Unit · ChunkWorld · MapBuilder</p>
+        <div class="tags"><span class="tag">按需 import</span><span class="tag">零自动注册</span></div>
+      </div>
+      <div class="card" style="cursor:default">
+        <div class="icon">🚀</div>
+        <h3>脚手架</h3>
+        <p><code style="font-family:var(--mono);font-size:12px">npm run new-game &lt;id&gt;</code> 生成目录并注册路由</p>
+        <div class="tags"><span class="tag">registry</span><span class="tag">defineGame</span></div>
+      </div>
+    </div>
+
+    <footer>
+      <span>MIT · 需 WebGPU 浏览器（Chrome / Edge 新版，Safari 17+）</span>
+      <span>
+        <a href="./README.md">README</a> ·
+        <a href="./docs/QUICKSTART.md">Quickstart</a> ·
+        <a href="./docs/BLOCKS.md" id="blocks-doc">积木手册</a>
+      </span>
+    </footer>
+  </div>
+
+  <div class="toast" id="toast">已复制</div>
+
+  <script>
+    /** @type {Array<any>} */
+    const GENRES = [
+      {
+        id: 'fps',
+        icon: '🎯',
+        title: '第一人称射击',
+        blurb: '步行战斗、任务目标、可选 P2P 联机。夜袭为完整样例。',
+        tags: ['seeded 地图', 'fps 相机', '联机可选'],
+        demo: './index.html',
+        sample: 'nightraid',
+        spec: {
+          camera: "'fps'",
+          map: "kind: 'seeded'（同 seed 同图，联机友好）",
+          player: "physics: 'ground' + createUnitBody",
+          daylight: 'false（夜战氛围；可改 true）',
+        },
+        cmd: "npm run new-game myfps -- --title \"My FPS\" --html",
+        note: '完整战役/联机逻辑在 Sample A 内容包，可参考接线；新 FPS 建议从 template 起步。',
+        blocks: [
+          ['Unit / createUnitBody', '角色胶囊体'],
+          ['CameraRig fps', '第一人称'],
+          ['MapBuilder seeded', '程序化地图'],
+          ['Steering', '敌人小队转向'],
+          ['Pool', '特效/灯光对象池'],
+          ['net/（可选）', 'P2P 快照与事件'],
+        ],
+      },
+      {
+        id: 'td',
+        icon: '🏰',
+        title: '塔防',
+        blurb: '固定路线、放塔、波次与经济。demo-tower 为完整最小样例。',
+        tags: ['fixed 地图', 'orbit 相机', 'Path'],
+        demo: './tower.html',
+        sample: 'tower',
+        spec: {
+          camera: "'orbit'（斜俯视）",
+          map: "kind: 'fixed' + 手工图 / Path 车道",
+          autoPlay: 'true（world.playing）',
+          daylight: 'true（演示白天）',
+        },
+        cmd: "npm run new-game mytd -- --title \"My TD\" --html",
+        note: '波次/经济/放置可用 V3 积木拼装（WaveDirector / Economy / PlaceGrid），未用不进包。',
+        blocks: [
+          ['Path', '敌人沿车道走'],
+          ['CameraRig orbit', '俯视整图'],
+          ['Pool', '敌人池'],
+          ['（V3）WaveDirector', '按表刷怪'],
+          ['（V3）Economy', '金币收支'],
+          ['（V3）PlaceGrid', '网格放塔'],
+        ],
+      },
+      {
+        id: 'open',
+        icon: '🌄',
+        title: '开放世界 / 多视角',
+        blurb: 'chunk 流式、第一/第三人称/俯视切换。demo-cultivation 为样例。',
+        tags: ['stream 地图', '1/2/3 切视角', 'ChunkWorld'],
+        demo: './cultivation.html',
+        sample: 'cultivation',
+        spec: {
+          camera: "{ default:'chase', allow:['fps','chase','orbit'] }",
+          map: "kind: 'stream' + ChunkWorld 环加载",
+          player: "第三人称 ground",
+          daylight: 'true',
+        },
+        cmd: "npm run new-game myworld -- --title \"My World\" --html",
+        note: '键盘 1/2/3 调 CameraRig.setMode；妖兽可用 Path + Steering + GridAStar。',
+        blocks: [
+          ['ChunkWorld', '按焦点加载/卸载 chunk'],
+          ['CameraRig setMode', '运行时切视角'],
+          ['Steering + GridAStar', '游荡与绕障'],
+          ['Path', '巡逻路线'],
+          ['createSeededTerrain', '可选地形高度场'],
+          ['applyDaylight', '演示光照'],
+        ],
+      },
+      {
+        id: 'flight',
+        icon: '✈️',
+        title: '飞行',
+        blurb: '零重力、追尾相机、空中机动。骨架可直接扩展。',
+        tags: ['gravity 0', 'chase 相机', 'air'],
+        demo: './?game=flight',
+        sample: 'flight',
+        spec: {
+          camera: "'chase'",
+          map: "kind: 'seeded'（空域/岛屿）",
+          player: "physics: 'air'",
+          config: '{ gravity: 0 }',
+        },
+        cmd: "npm run new-game myflight -- --title \"My Flight\" --html",
+        note: '飞行手感写在你的 System；框架不绑死飞机模型。',
+        blocks: [
+          ['CameraRig chase', '跟机'],
+          ['MapBuilder seeded', '程序化空域'],
+          ['Pool', '尾迹/子弹'],
+          ['Path', '航线/巡逻'],
+        ],
+      },
+      {
+        id: 'race',
+        icon: '🏎️',
+        title: '赛车',
+        blurb: '固定赛道、圈速、载具物理占位。骨架可直接扩展。',
+        tags: ['fixed 赛道', 'vehicle', 'chase/orbit'],
+        demo: './?game=race',
+        sample: 'race',
+        spec: {
+          camera: "{ default:'chase', allow:['chase','orbit'] }",
+          map: "kind: 'fixed' 赛道 Path",
+          player: "physics: 'vehicle'",
+        },
+        cmd: "npm run new-game myrace -- --title \"My Race\" --html",
+        note: '圈速/排名可用 Scoreboard 积木；赛道用 Path 采样。',
+        blocks: [
+          ['Path', '赛道中心线'],
+          ['CameraRig chase', '跟车'],
+          ['（V3）Scoreboard', '圈数/用时'],
+          ['MapBuilder fixed', '多赛道图包'],
+        ],
+      },
+      {
+        id: 'blank',
+        icon: '📦',
+        title: '空白模板',
+        blurb: '最少代码：一块地面、一个相机。从这里长出任意玩法。',
+        tags: ['seeded', 'orbit 默认', '可改任意'],
+        demo: './?game=template',
+        sample: 'template',
+        spec: {
+          camera: "{ default:'orbit', allow:[...] }",
+          map: "kind: 'seeded' 占位",
+          create: '返回 { systems, dispose }',
+        },
+        cmd: "npm run new-game mygame -- --title \"My Game\" --html",
+        note: '推荐起点：new-game → 改 create() → 只 import 需要的积木。',
+        blocks: [
+          ['CameraRig', '任意视角'],
+          ['MapBuilder', '三种地图任选'],
+          ['Pool / Path / …', '按需加'],
+        ],
+      },
+    ];
+
+    const grid = document.getElementById('genre-grid');
+    const toast = document.getElementById('toast');
+    let current = 0;
+
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.classList.add('show');
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => toast.classList.remove('show'), 1600);
+    }
+
+    async function copyCmd(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+        showToast('命令已复制');
+      } catch {
+        showToast(text);
+      }
+    }
+
+    function renderCards() {
+      grid.innerHTML = '';
+      GENRES.forEach((g, i) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'card' + (i === current ? ' active' : '');
+        btn.setAttribute('role', 'option');
+        btn.setAttribute('aria-selected', i === current ? 'true' : 'false');
+        btn.innerHTML =
+          `<div class="icon">${g.icon}</div>` +
+          `<h3>${g.title}</h3><p>${g.blurb}</p>` +
+          `<div class="tags">${g.tags.map((t) => `<span class="tag">${t}</span>`).join('')}</div>`;
+        btn.addEventListener('click', () => {
+          current = i;
+          renderCards();
+          renderDetail();
+          document.getElementById('detail').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        });
+        grid.appendChild(btn);
+      });
+    }
+
+    function renderDetail() {
+      const g = GENRES[current];
+      document.getElementById('d-title').textContent = `${g.icon} ${g.title}`;
+      document.getElementById('d-sub').textContent = g.blurb;
+
+      const actions = document.getElementById('d-actions');
+      actions.innerHTML = '';
+      const play = document.createElement('a');
+      play.className = 'btn primary';
+      play.href = g.demo;
+      play.textContent = '试玩样例 →';
+      actions.appendChild(play);
+      const copy = document.createElement('button');
+      copy.type = 'button';
+      copy.className = 'btn';
+      copy.innerHTML = '复制脚手架命令';
+      copy.addEventListener('click', () => copyCmd(g.cmd));
+      actions.appendChild(copy);
+
+      const spec = document.getElementById('d-spec');
+      spec.innerHTML = Object.entries(g.spec)
+        .map(
+          ([k, v]) =>
+            `<div class="kv-row"><dt>${k}</dt><dd><code style="font-family:var(--mono);font-size:12px">${v}</code></dd></div>`,
+        )
+        .join('');
+
+      const cmd = document.getElementById('d-cmd');
+      cmd.innerHTML = `${g.cmd}<span class="copy-hint">点击复制</span>`;
+      cmd.onclick = () => copyCmd(g.cmd);
+
+      document.getElementById('d-note').innerHTML = `<strong>注意</strong> · ${g.note}`;
+
+      const blocks = document.getElementById('d-blocks');
+      blocks.innerHTML = g.blocks
+        .map(
+          ([n, d]) =>
+            `<li><b>${n}</b><span>${d}</span></li>`,
+        )
+        .join('');
+    }
+
+    renderCards();
+    renderDetail();
+  </script>
+</body>
+</html>

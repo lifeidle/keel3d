@@ -60,6 +60,7 @@ npm run dev              # http://localhost:5173
 
 | 入口 | 内容 |
 |---|---|
+| **`/hub.html`** | **框架选型页：选游戏形式 → 看基底与积木 → 试玩 / 脚手架** |
 | `/` 或 `index.html` | Sample A 夜袭（完整 FPS） |
 | `/tower.html` | Sample B 塔防 |
 | `/cultivation.html` | Sample C 修仙（1/2/3 切视角） |
