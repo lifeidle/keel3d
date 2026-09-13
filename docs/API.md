@@ -28,6 +28,8 @@
 | `MapBuilder` | `buildMap(spec, {seeded,fixed,stream}, ctx)` |
 | `createSeededTerrain` | 通用地形高度场 + 可选物理 trimesh |
 | `applyDaylight` / `addSunDisc` | 演示白天光照（非FPS 骨架样例用） |
+| `Magazine` | `canFire/consume/startReload/tick` 弹匣状态机 |
+| `Arsenal` | `update(dt,held,clicked)→FireOutcome` · `reload/switchTo/reset/refillAll` |
 
 ## L3 契约 `src/content/`
 

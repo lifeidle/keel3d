@@ -5,7 +5,7 @@
 import * as THREE from 'three';
 import { defineGame, type BaseRecipeOpts } from '../content/defineGame';
 import { Pool } from '../blocks/Pool';
-import { Cooldown } from '../blocks/combat/Cooldown';
+import { Arsenal } from '../blocks/combat/Arsenal';
 import { pickTarget } from '../blocks/combat/Targeting';
 import { Scoreboard } from '../blocks/gameplay/Scoreboard';
 import { Health } from '../blocks/gameplay/Health';
@@ -19,13 +19,16 @@ import type { System, EngineWorld } from '../engine/types';
 export interface FpsArenaOpts extends BaseRecipeOpts {
   moveSpeed?: number;
   lookSpeed?: number;
-  fireCd?: number;
   bulletDamage?: number;
   targetHp?: number;
   playerHp?: number;
   spawnEvery?: number;
   arena?: number;
   eyeHeight?: number;
+  magSize?: number;
+  reserve?: number;
+  reloadTime?: number;
+  fireRate?: number;
 }
 
 export function createFpsArena(
@@ -35,13 +38,23 @@ export function createFpsArena(
   const { scene, camera } = deps;
   const moveSpeed = opts.moveSpeed ?? 7;
   const lookSpeed = opts.lookSpeed ?? 2.2;
-  const fireCd = new Cooldown(opts.fireCd ?? 0.2);
   const bulletDamage = opts.bulletDamage ?? 25;
   const targetHp = opts.targetHp ?? 50;
   const playerHpMax = opts.playerHp ?? 100;
   const spawnEvery = opts.spawnEvery ?? 2.5;
   const arena = opts.arena ?? 30;
   const eye = opts.eyeHeight ?? 1.65;
+
+  const arsenal = new Arsenal([
+    {
+      key: 'carbine',
+      magSize: opts.magSize ?? 24,
+      reserve: opts.reserve ?? 72,
+      reloadTime: opts.reloadTime ?? 1.4,
+      fireRate: opts.fireRate ?? 6,
+      auto: false,
+    },
+  ]);
 
   const root = new THREE.Group();
   scene.add(root);
@@ -99,10 +112,12 @@ export function createFpsArena(
   let yaw = 0;
   let pitch = 0;
   let spawnT = 1;
+  let fireClicked = false;
 
   function onDn(e: KeyboardEvent) {
     keys.add(e.code);
-    if (e.code === 'Space' || e.code === 'KeyJ') shoot();
+    if (e.code === 'Space' || e.code === 'KeyJ') fireClicked = true;
+    if (e.code === 'KeyR') arsenal.reload();
   }
   function onUp(e: KeyboardEvent) {
     keys.delete(e.code);
@@ -127,8 +142,7 @@ export function createFpsArena(
 
   const playerPos = new THREE.Vector3(0, eye, 0);
 
-  function shoot() {
-    if (status !== 'playing' || !fireCd.tryFire()) return;
+  function hitscan() {
     const list = targets.units
       .filter((x) => x.alive)
       .map((x) => ({
@@ -177,8 +191,12 @@ export function createFpsArena(
     {
       name: `${opts.id}.sim`,
       update(ft: number, world: EngineWorld) {
+        const fireHeld = keys.has('Space') || keys.has('KeyJ');
         if (world.playing && status === 'playing') {
-          fireCd.update(ft);
+          const outcome = arsenal.update(ft, fireHeld, fireClicked);
+          if (outcome === 'fired') hitscan();
+          fireClicked = false;
+
           score.tick(ft);
           spawnT -= ft;
           if (spawnT <= 0) {
@@ -211,7 +229,6 @@ export function createFpsArena(
           camera.rotation.order = 'YXZ';
           camera.rotation.set(pitch, yaw, 0);
 
-          // targets shoot back when in range
           targets.units.forEach((tg) => {
             if (!tg.alive) return;
             const d = tg.root.position.distanceTo(playerPos);
@@ -226,12 +243,17 @@ export function createFpsArena(
               }
             }
           });
+        } else {
+          fireClicked = false;
         }
 
         hpBar.setHp(playerHealth.hp, playerHpMax);
+        const ammo = arsenal.reloading
+          ? '换弹中…'
+          : `${arsenal.mag}/${arsenal.reserve}`;
         hud.setText(
           `FPS 骨架 · 击杀 ${score.kills} · 目标 ${targets.activeCount} · HP ${playerHealth.hp}\n` +
-            `WASD 移动 · 鼠标/方向键转向 · 空格/J 射击（点击画面锁定指针）`,
+            `弹药 ${ammo} · WASD 移动 · 空格/J 射击 · R 换弹（点击画面锁定指针）`,
         );
       },
     },
@@ -254,7 +276,14 @@ export function createFpsArena(
       cross?.remove();
       cross = null;
     },
-    stats: () => ({ kills: score.kills, targets: targets.activeCount, hp: playerHealth.hp, status }),
+    stats: () => ({
+      kills: score.kills,
+      targets: targets.activeCount,
+      hp: playerHealth.hp,
+      status,
+      mag: arsenal.mag,
+      reserve: arsenal.reserve,
+    }),
   };
 }
 

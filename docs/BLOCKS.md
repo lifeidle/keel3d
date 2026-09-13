@@ -110,6 +110,8 @@ gems.update(player.x, player.z);
 | 模块 | 用途 |
 |---|---|
 | `Cooldown` | 技能/射击间隔 |
+| `Magazine` | 弹匣/备用弹/换弹计时（纯逻辑） |
+| `Arsenal` | 多槽武器簿记：弹药、冷却、切枪、后坐 |
 | `pickTarget` | 最近 / 范围内选敌 |
 | `Projectile` + `stepProjectiles` | 弹道与命中 |
 | `areaHits` / `ringHits` | AOE / 环形伤害 |
@@ -157,7 +159,7 @@ gems.update(player.x, player.z);
 |---|---|
 | **arpg** | Health · Scoreboard · Economy · RunState · Cooldown · pickTarget · Projectile · **areaHits(旋风斩 K)** · Pickup · Steering · ButtonBar · QuestTracker · **HudPanel** · **HealthBar** · **DamageNumber** · **WorldBar** · **EndOverlay** · BgmLayers |
 | **tower-defense** | Path · Pool · Economy · WaveDirector · Health · **PlaceGrid** · **Timers** · **BuildSystem/BuildCatalog(放塔+升级)** · **HudPanel** · **EndOverlay** · **Toast** |
-| **fps-arena** | Pool · Cooldown · pickTarget · Scoreboard · **Health** · **HudPanel** · **HealthBar** · **DamageNumber** · **EndOverlay** · kitHumanoid |
+| **fps-arena** | Pool · **Arsenal(弹匣/换弹)** · pickTarget · Scoreboard · **Health** · **HudPanel** · **HealthBar** · **DamageNumber** · **EndOverlay** · kitHumanoid |
 | **dungeon** | Interactable · TriggerZone · Health · Scoreboard · **LevelTable** · **HudPanel** · **Toast** · **EndOverlay** · **MinimapDots** |
 | **collect** | Pickup · TriggerZone · Scoreboard · **RunState** · **HudPanel** · **Toast** · **EndOverlay** |
 | **survival** | Pool · Health · Economy · Scoreboard · WaveDirector · **Spawner** · **Timers** · Steering · **HudPanel** · **EndOverlay** |
