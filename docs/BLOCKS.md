@@ -54,8 +54,9 @@ hud.setText(`金币 ${eco.balance}`);
 
 ## 配方 recipes
 
-- towerDefenseRecipe + npm run new-game --recipe td
-- 见 src/recipes/tower-defense.ts
+- `towerDefenseRecipe` · `npm run new-game x -- --recipe td`
+- `survivalRecipe` · `npm run new-game x -- --recipe survival`
+- 源码：`src/recipes/`
 
 ## 不同游戏要配多少？
 
