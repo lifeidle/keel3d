@@ -17,6 +17,28 @@
 
 ---
 
+## 0.5 硬约束：按需装配，效率最高（用户定调）
+
+> **功能要多，但默认不绑死。** 用户要哪块就装哪块；没用到的 **不进包、不进帧循环、不占内存**。
+
+| 原则 | 落地手段 |
+|---|---|
+| **默认零负担** | 积木独立文件；**禁止**在 `blocks/index.ts` 做全量 `export *` 诱导入整包——按路径 `from '../../blocks/gameplay/WaveDirector'` 精确 import |
+| **不自动注册** | 只有 `create()` 里 **手动** `new` 并 `systems.push` 的积木才会跑；宿主不注入任何玩法 System |
+| **可 tree-shake** | 模块无顶层副作用；`package.json` 倾向 `sideEffects: false`（确认 three/rapier 排除） |
+| **可选依赖** | UI 积木不进纯逻辑积木；配方文件可整份拷走改写，无强制基类 |
+| **运行时可关** | ChunkWorld / 重型对象支持不创建或 `enabled=false` 即零开销 |
+| **帧循环干净** | 未 push 的 System 零调用；不用的 Pool 不预分配 |
+| **验收** | 新积木必带单测；样例 build 后抽查：未引用模块不应出现在产物 |
+
+**反模式（禁止）**
+
+- Engine / host 隐式 `new` 一堆玩法系统  
+- FPS 样例 import 整包 `blocks` 把 Wave/HUD 拖进来  
+- 「以后可能用」的空 System 挂在热路径  
+
+---
+
 ## 1. 成功标准
 
 | 标准 | 验收 |
@@ -26,6 +48,7 @@
 | 配置驱动 | 单位表、塔表、波次表用 **数据**（JSON/TS 对象）描述，少写类 |
 | 可复用 HUD | 血条 / 击杀播报 / 资源数 / 任务条 作为 L2 UI 积木 |
 | 自己也好用 | 你做新游戏时优先 **拼积木**，只在必要时写专属 System |
+| **按需付费** | 不用的积木不进 bundle / 不进帧循环（§0.5） |
 | 质量不倒退 | typecheck / 26+ 测 / 夜袭 regress / 样例全开 |
 
 **非目标**：完整 ECS 编辑器、资产商店、真 MMO、可视化蓝图。
@@ -113,6 +136,16 @@ const UNITS: UnitTable = {
 ---
 
 ## 5. 实施阶段（可执行步骤）
+
+### Phase W0 — 导出策略锁定（半天内，先做）
+
+1. 审查 `blocks/index.ts`：去掉会拖大包的全量 re-export；保留类型与最常用件；文档改为「按文件路径 import」。
+2. 确认 `mountSampleGame` 不注册任何玩法积木（已满足则写进注释）。
+3. 抽查 `dist`：夜袭包不应含 Wave/Economy 源码（若尚未存在积木则记基线体积）。
+
+**验收**：文档与 index 策略一致；build 体积不劣化。
+
+---
 
 ### Phase W1 — Health + Events（地基）
 
