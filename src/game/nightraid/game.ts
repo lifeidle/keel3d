@@ -876,12 +876,19 @@ export class Game {
     }
   }
 
-  /** Pooled VFX + ballistic debris. */
-  hostEffectsFrame(ft: number) {
-    this.effects.update(ft);
-    this.map.fires.update(ft);
-    this.map.plumes.update(ft);
-    this.casings.update(ft);
+  /** Pooled VFX + ballistic debris → EffectsSystem (A4). */
+  hostEffectsFrame(_ft: number) {
+    // no-op shell until A12
+  }
+
+  /** VFX collaborators for EffectsSystem. */
+  get vfx() {
+    return {
+      effects: this.effects,
+      fires: this.map.fires,
+      plumes: this.map.plumes,
+      casings: this.casings,
+    };
   }
 
   /** Weather + muzzle/flare light decay. */
