@@ -111,6 +111,7 @@ export default defineConfig({
         collect: 'collect.html',
         rally: 'rally.html',
         dungeon: 'dungeon.html',
+        'flight-arena': 'flight-arena.html',
       },
       output: {
         manualChunks(id) {

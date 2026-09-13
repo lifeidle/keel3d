@@ -1,22 +1,352 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FPS Skeleton — KeeL 3D</title>
+﻿<!DOCTYPE html>
+<html lang="zh-CN" data-page-node-id="WDDtVr1Qu9eJPU0Os695gf">
+  <head data-page-node-id="nVSFabn1ulY3SUvEQ2pcWo">
+    <meta charset="UTF-8" data-page-node-id="fSZCoqnPt80oW3FTIBvant" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" data-page-node-id="lVwp4LaENeI1dyHEm5DD0G" />
+    <title>夜袭 Night Raid — 免费 3D 夜战 FPS 网页游戏 · 联机合作 / 对战</title>
+    <meta name="description" content="夜袭（Night Raid）是一款免费、无需安装的网页 3D 第一人称射击游戏：夜战潜行、种子化随机战场、AI 队友协同、联机合作与猎杀对战模式，桌面与手机浏览器即开即玩。" />
     <meta name="theme-color" content="#0a0e16" />
-    <link rel="icon" href="data:," />
-    <link rel="stylesheet" href="./src/styles.css" />
+    <link rel="canonical" href="https://yexi.org/" />
+    <meta property="og:site_name" content="夜袭 Night Raid" />
+    <meta name="description" content="夜袭（Night Raid）是一款免费、无需安装的网页 3D 第一人称射击游戏：夜战潜行、种子化随机战场、AI 队友协同、联机合作与猎杀对战模式，桌面与手机浏览器即开即玩。" data-page-node-id="SQzOG35e1h3NyzPUDGGxFl" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Crect%20width='64'%20height='64'%20rx='14'%20fill='%230a0e16'/%3E%3Ccircle%20cx='40'%20cy='27'%20r='14'%20fill='%23bfd4ff'/%3E%3Ccircle%20cx='46'%20cy='22'%20r='13'%20fill='%230a0e16'/%3E%3C/svg%3E" data-page-node-id="CHPKtTnZakSrgj1fM0ub86" />
+    <link rel="icon" type="image/png" sizes="256x256" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/favicon.png" />
+    <!-- Open Graph / share card.
+         Default assumes the Cloudflare Pages auto-subdomain <project>.pages.dev.
+         If you bind a CUSTOM domain, replace both URLs below with the absolute
+         https://your-domain/... form (the .pages.dev one still works otherwise). -->
+    <meta property="og:type" content="website" data-page-node-id="FqzBrKh6f7UQTi9zHEvLFm" />
+    <meta property="og:url" content="https://yexi.org/" data-page-node-id="EbBMYLBHSVCCziZmeyOXfB" />
+    <meta property="og:title" content="夜袭 / Night Raid" data-page-node-id="03mBZuPrNZli8dC0lfElUH" />
+    <meta property="og:description" content="离线可玩的 Three.js 夜战 FPS：种子化随机战场、任务目标、可破坏掩体、动态天气。 | An offline, seeded night-raid FPS." data-page-node-id="WezaRu6zeQwouAr4HF3tzy" />
+    <meta property="og:locale" content="zh_CN" data-page-node-id="SKnOSpCBfIU3mGpR5Nv1gv" />
+    <meta property="og:locale:alternate" content="en_US" data-page-node-id="FeZHRx6MDRjSiZCGxHopvl" />
+    <meta property="og:image" content="https://yexi.org/og-image.jpg" data-page-node-id="88Qice7R6I35d1ySWwmaI0" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta name="twitter:card" content="summary_large_image" data-page-node-id="19CFZHPT5bfunmUpfkO7A9" />
+    <meta name="twitter:title" content="夜袭 / Night Raid" data-page-node-id="WH9S46urYJfiXeCaidOB4x" />
+    <meta name="twitter:description" content="离线可玩的 Three.js 夜战 FPS。 | An offline, seeded night-raid FPS." data-page-node-id="jm6SFG9KCMoCpVlBkSG8zI" />
+    <meta name="twitter:image" content="https://yexi.org/og-image.jpg" data-page-node-id="oUy7KNyucnM1OKHERkR16q" />
+    <link rel="stylesheet" href="./src/styles.css" data-page-node-id="ZSQsN63spZaHJcwisdILOu" />
     <script>window.__GAME_ID__ = 'nightraid';</script>
   </head>
-  <body>
-    <div id="app"></div>
-    <div id="boot">
-      <div class="bootLogo">FPS</div>
-      <div class="bootSub">KeeL 3D · FPS SKELETON</div>
-      <div class="bootBarWrap"><div id="bootFill"></div></div>
-      <div id="bootTxt">Loading…</div>
+  <body data-page-node-id="9LknICCy0jI3cT8UgqYbP5">
+    <div id="app" data-page-node-id="ls4uEdYBtGRG7dAD0KhFBE"></div>
+    <!-- WeChat link-card crawler picks the first large <img> on the page -->
+
+    <!-- cheap screen-space dressing: vignette + animated film grain (no post pipeline) -->
+    <div id="fx" data-page-node-id="V23YPAFE8bwocPpqBHM7uy"></div>
+
+    <!-- ===== HUD ===== -->
+    <div id="hud" data-page-node-id="UIybs3FfbNc6wZV9Kbod4c">
+      <div id="crosshair" data-page-node-id="lqFmktZ5noJ2Rox9diArmC">
+        <span class="ch ch-t" data-page-node-id="aDvVDyt8huZMrZ4irAQnbq"></span>
+        <span class="ch ch-b" data-page-node-id="8XS93hhohGHCEHHVGnOR4L"></span>
+        <span class="ch ch-l" data-page-node-id="8p5zjTjQ30JsMKj1c2ZAaX"></span>
+        <span class="ch ch-r" data-page-node-id="RLr48Qc4eqGelaOFXwQCHA"></span>
+      </div>
+      <div id="hitmarker" data-page-node-id="LLyxaqvf8Xf6g6DFDBQSHY"></div>
+      <div id="scope" class="hidden"><span class="scope-line scope-h"></span><span class="scope-line scope-v"></span></div>
+      <div id="fullmap" class="hidden">
+        <canvas id="fullmap-canvas"></canvas>
+        <div id="fullmap-hint">M 关闭地图 · M to close</div>
+      </div>
+      <div id="kill-badge"><span data-i18n="hud.kill">击 杀</span></div>
+      <div id="dmg-dir" data-page-node-id="kYC8OKJcj1FLz5tSaNHVdt"><span class="dmg-arc" data-page-node-id="OiVQR9HANUBgfOZonLwAOf"></span></div>
+      <div id="fire-dir"><span class="fire-arc"></span></div>
+
+      <canvas id="compass" class="hidden" width="720" height="68" data-page-node-id="HoMYXCDFzTqcimYBegCAoT"></canvas>
+      <canvas id="minimap" class="hidden" width="360" height="360" data-page-node-id="EmOBJgWni1cPv9qkv8hXdi"></canvas>
+
+      <div id="killfeed" data-page-node-id="vMTCXNRILllrNAcolhxXLD"></div>
+
+      <div id="objective" class="hud-panel hidden" data-page-node-id="ThevYRbx21MnqS2FRwO1HH">
+        <div id="obj-head" data-page-node-id="77Qu006gyFyTEeaKIaiZW4">
+          <span id="obj-title" data-page-node-id="cxSSbQSbEI96DwSHy27PIT">清 剿</span>
+          <span id="obj-timer" class="hidden" data-page-node-id="5WPtZ7I5zMxbDZEB83hGqj">02:30</span>
+        </div>
+        <div id="obj-desc" data-page-node-id="aL3RfYsGaw4yg2YVg42TJT">消灭战区内全部敌军</div>
+        <div id="obj-progress" data-page-node-id="GsHSV4c8Bnt7uagsA7rR5X">0 / 4</div>
+      </div>
+
+      <div id="status-wrap" class="hud-panel" data-page-node-id="8M1dQ1MXjBtHjHgpHE79dF">
+        <div class="sq-cols" data-page-node-id="VY0u74DvFjCXyE7R1QUfSA">
+          <div data-page-node-id="brNBBWOJlQRLEUW4rDODKE">
+            <div data-i18n="hud.enemies" data-page-node-id="6b6FiGbvA19ngv2LA1Ue4S">敌军剩余</div>
+            <div id="enemy-count" data-page-node-id="eCpULP4F0QDqNQor4iuBh2">0</div>
+          </div>
+          <div data-page-node-id="xPiAur2oFHoA07T5zdSbbL">
+            <div data-i18n="hud.squad" data-page-node-id="ZLgctLQ7AB8ybiOu6lCxLj">小队</div>
+            <div id="squad-count" data-page-node-id="QVqHLEHQ3hGJDLLANzv2XQ">3</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="health-wrap" class="hud-panel" data-page-node-id="Jg1mmwwMMnJViLqG9CqYTn">
+        <div id="health-label" data-i18n="hud.health" data-page-node-id="4UD2VUIaAeyPGyYS28osAC">生命</div>
+        <div id="health-bar" data-page-node-id="HqDDzE65b0Mby8s8SsiUIv"><div id="health-fill" data-page-node-id="2iYEMgp0JjPiHKyR5eJHZI"></div></div>
+      </div>
+
+      <div id="ammo-wrap" class="hud-panel" data-page-node-id="dhRpZMYHETUOnbztsxQGxV">
+        <div id="weapon-name" data-page-node-id="jzrWCXLmH2K1tDNGFBSHFJ">步枪</div>
+        <div id="ammo-line" data-page-node-id="CaGhQcYcW3uz6w1agnlC3o"><span id="ammo-mag" data-page-node-id="9rfCDa6mhbFMOWN0HcwHDq">30</span><span id="ammo-reserve" data-page-node-id="7ln0LfzL676lID3ljsA4Ni"> / 90</span></div>
+        <div id="reload-status" class="hidden" data-i18n="hud.reload" data-page-node-id="HE3IhzzbspB6EYd9ACF5kl">换弹</div>
+      </div>
+
+      <div id="hint" class="hidden" data-page-node-id="zOqGxKxksd4qvxoyCm66EE"></div>
     </div>
+
+    <div id="damage-flash" data-page-node-id="JIHxGGA3zDU3f02Hv3ED1k"></div>
+    <div id="lowhp" data-page-node-id="A6EgL7mKbFGnz58Ge6DTWM"></div>
+
+    <div id="device-note" class="hidden" data-page-node-id="tiHrq6fuXXprpQUQGDYAHc"></div>
+
+    <!-- 竖屏提示：手机上提示横屏（仅触屏设备的竖屏方向显示） -->
+    <div id="rotate-note" data-page-node-id="0bdWZWfxBkzRJVWjg2cQtF">
+      <svg class="rotate-ico" viewBox="0 0 24 24" aria-hidden="true" data-page-node-id="8oy0ryPIMhCRaxPnKWRqWk">
+        <rect x="7" y="2" width="10" height="20" rx="2" data-page-node-id="QLUAToTnXf2n3XpD26rZGw" />
+        <path d="M11 18.5h2" data-page-node-id="kdpjgLrEEA0dBCNCAFMNW3" />
+        <path d="M15 8l3.5-3.5M18.5 4.5H15M18.5 4.5V8" data-page-node-id="9PDFTRI6SAeOYFb31oSdwD" />
+      </svg>
+      <div data-i18n="rotate.hint" data-page-node-id="HASVbhI0yyauZASvCiBil8">请横屏游玩</div>
+    </div>
+
+    <!-- 全屏角标：右上角常驻，旁边浅字提示；点击进入 / 退出全屏 -->
+    <div id="fs-wrap" class="hidden">
+      <button id="fs-btn" type="button" aria-label="Fullscreen">
+        <svg class="fs-ico fs-enter" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />
+        </svg>
+        <svg class="fs-ico fs-exit" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" />
+        </svg>
+      </button>
+      <span class="fs-tip" id="fs-tip" data-i18n="fs.tip">全 屏</span>
+    </div>
+
+    <!-- 进入页面时的全屏邀请：透明轻浮条，不遮菜单 -->
+    <div id="fs-prompt" class="hidden">
+      <span class="fs-q" data-i18n="fs.q">进入全屏体验更佳？</span>
+      <button id="fs-yes" class="fs-mini" data-i18n="fs.enter">进入全屏</button>
+      <button id="fs-no" class="fs-mini fs-skip" data-i18n="fs.skip">暂不需要</button>
+    </div>
+
+    <button id="lang-toggle" data-i18n="lang.toggle" data-page-node-id="2GVzNFBhTSV0QTglp7oM1U">EN</button>
+    <div id="fps-counter" class="hidden">-- FPS</div>
+
+    <!-- ===== 主菜单 ===== -->
+    <div id="menu" class="screen hidden" data-page-node-id="S0GHDybQcKRctmZ7UazUgs">
+      <div class="panel" data-page-node-id="iSGoCc41IpDKwDYL7iFdJg">
+        <div class="gameLogo" data-i18n="menu.logo" data-page-node-id="PpGLxb5pxxzRllCNHUxYGe">夜 袭</div>
+        <div class="gameLogoSub" data-i18n="menu.sub" data-page-node-id="ZVjfFnxyhCvE0THfZNcgoQ">夜战行动</div>
+        <div class="subtitle" data-i18n="menu.tagline" data-page-node-id="osVq8biuHfHVlcaHeebN4D">—— 夜战行动 ——</div>
+        <div class="secLabel menuTimeLabel" data-i18n="menu.time" data-page-node-id="ZBtraifFSCGxa2BKadVj3r">时 段</div>
+        <div class="rowFlex menuTimeRow" data-page-node-id="m9shp2I0xlSpt4UFGrqT1q">
+          <button class="optBtn timeBtn" data-t="night" data-i18n="time.night" data-page-node-id="35l9912TfWX3aAiGpfrdRP">黑 夜</button>
+          <button class="optBtn timeBtn" data-t="day" data-i18n="time.day" data-page-node-id="q5cxKd7T1LT5P5C8oKSb1u">白 天</button>
+        </div>
+        <div class="secLabel menuTimeLabel" data-i18n="menu.scale" data-page-node-id="qRa1jpAGI3ivHoo5f195AC">规 模</div>
+        <div class="rowFlex menuTimeRow" data-page-node-id="icH7exJtAsLpfhPHz7Pupx">
+          <button class="optBtn scaleBtn" data-s="patrol" data-i18n="scale.patrol" data-page-node-id="chzbBmEeWHTD0WskpMtm4L">巡 侦</button>
+          <button class="optBtn scaleBtn" data-s="standard" data-i18n="scale.standard" data-page-node-id="RlNeMG39Wkxd3PDG8pAgWx">标 准</button>
+          <button class="optBtn scaleBtn" data-s="grand" data-i18n="scale.grand" data-page-node-id="punTZIS2CHn78pCMjmkE8W">会 战</button>
+        </div>
+        <div class="rowFlex menuTimeRow" id="scaleDetail" data-page-node-id="gDguttMDANeIDLgxdFePdP">
+          <span class="scaleHint" data-i18n="scale.patrol.hint" data-page-node-id="XEZOVm59AimB19UhclIFvs">敌 6 · 友 2</span>
+        </div>
+        <div class="menuNav" data-page-node-id="EXZaZIfp1zT2WOraf2pXCW">
+          <button id="btnPlay" class="bigBtn" data-i18n="menu.play" data-page-node-id="338CnLXQmjTIMR5cJheYrC">单 人 游 戏</button>
+          <button id="btnNet" class="bigBtn" data-i18n="menu.net">联 机 对 战</button>
+          <button id="btnSettings" class="bigBtn" data-i18n="menu.settings" data-page-node-id="EK6qzC0q5Ugl0Ijur7mboV">游 戏 设 置</button>
+          <button id="btnHelp" class="bigBtn" data-i18n="menu.help">操 作 说 明</button>
+        </div>
+        <div id="menuVer" data-page-node-id="ARQOvC7qEUNVni0EhrBnzW">© 2026 夜袭 Night Raid · yexi.org · <span id="seedLabel" data-page-node-id="CyROqGb0LsuFIRzuDbLnGC">SEED —</span></div>
+      </div>
+    </div>
+
+    <!-- ===== 设置 ===== -->
+            <div id="net" class="screen hidden">
+      <div class="panel netPanel">
+        <h2 class="mSubTitle" data-i18n="net.title">联 机 合 作</h2>
+        <div class="rowFlex" id="net-choice">
+          <button class="optBtn modeBtn sel" data-pvp="0" data-i18n="net.coop">合 作</button>
+          <button class="optBtn modeBtn" data-pvp="1" data-i18n="net.hunt">猎 杀</button>
+        </div>
+        <div class="rowFlex" id="net-choice">
+          <button class="optBtn" id="btnNetHost" data-i18n="net.host">创 建 房 间</button>
+          <button class="optBtn" id="btnNetJoin" data-i18n="net.join">加 入 房 间</button>
+        </div>
+        <div id="net-host-ui" class="hidden">
+          <div class="netCode" id="net-code">----</div>
+          <div class="netStatus" id="net-status" data-i18n="net.waiting">等待玩家加入…</div>
+        </div>
+        <div id="net-join-ui" class="hidden">
+          <input id="net-code-input" class="netInput" maxlength="4" placeholder="XXXX" autocomplete="off" />
+          <div class="rowFlex"><button class="optBtn" id="btnNetGo" data-i18n="net.go">连 接</button></div>
+        </div>
+        <div class="netStatus" id="net-msg"></div>
+        <div class="rowFlex"><button class="optBtn" id="btnNetBack" data-i18n="help.back">返 回</button></div>
+      </div>
+    </div>
+<div id="help" class="screen hidden">
+      <div class="panel helpPanel">
+        <h2 class="mSubTitle" data-i18n="help.title">操 作 说 明</h2>
+        <div class="helpBody">
+          <div class="helpSec">
+            <h3 data-i18n="help.goal">任务目标</h3>
+            <p data-i18n="help.goalText">消灭战区内全部敌军即可获胜。敌军会分路推进，留意左上角小队数量与 M 键战术地图。</p>
+          </div>
+          <div class="helpSec">
+            <h3 data-i18n="help.keys">键位操作</h3>
+            <div class="keysGrid">
+              <span>WASD</span><span data-i18n="keys.move">移动</span>
+              <span>Shift</span><span data-i18n="keys.run">奔跑</span>
+              <span>Space</span><span data-i18n="keys.jump">跳跃</span>
+              <span>Ctrl</span><span data-i18n="keys.crouch">蹲下（按住）</span>
+              <span>Z</span><span data-i18n="keys.prone">趴下（切换）</span>
+              <span>LMB</span><span data-i18n="keys.fire">开火</span>
+              <span>RMB</span><span data-i18n="keys.ads">开镜（切换）</span>
+              <span>R</span><span data-i18n="keys.reload">换弹</span>
+              <span>1-6</span><span data-i18n="keys.weap">武器</span>
+              <span>F</span><span data-i18n="keys.inter">互动（载具/补给/救援）</span>
+              <span>X</span><span data-i18n="keys.cmd">小队指令</span>
+              <span>M</span><span data-i18n="keys.map">战术地图</span>
+              <span>G</span><span data-i18n="keys.flare">信号弹</span>
+            </div>
+          </div>
+          <div class="helpSec">
+            <h3 data-i18n="help.squad">小队协同</h3>
+            <ul>
+              <li data-i18n="help.squad1">X 键切换小队指令：跟随我 / 向敌推进 / 原地据守。</li>
+              <li data-i18n="help.squad2">你开枪时会向附近队友共享火力方向——他们会主动支援。</li>
+              <li data-i18n="help.squad3">队友倒地后会呼救（25 秒窗口），靠近按 F 扶起；倒地再挨打会阵亡。</li>
+              <li data-i18n="help.squad4">弹药堆（青色菱形标记）可一次性补满全部备弹，每处限用一次。</li>
+            </ul>
+          </div>
+          <div class="helpSec">
+            <h3 data-i18n="help.field">战场须知</h3>
+            <ul>
+              <li data-i18n="help.field1">夜间敌军视距下降 45%——潜伏接近更安全；但探照灯会暴露你的位置。</li>
+              <li data-i18n="help.field2">敌人有 5 种兵种：步枪 / 冲锋枪 / 狙击（红激光预警）/ 机枪压制 / RPG（火箭可躲）。</li>
+              <li data-i18n="help.field3">红色油桶可以引爆——敌人躲在后面时，射桶不射人。</li>
+              <li data-i18n="help.field4">蹲下（Ctrl）和趴下（Z）能大幅缩小你的暴露轮廓。</li>
+              <li data-i18n="help.field5">敌营边缘和基地附近各有一处弹药补给；M 键随时打开战术地图。</li>
+            </ul>
+          </div>
+          <div class="helpSec">
+            <h3 data-i18n="help.credits">素材与致谢</h3>
+            <p data-i18n="help.creditsText">游戏源代码以 MIT 许可发布。音频与纹理来自 OpenGameArt、Kenney、incompetech 与 AmbientCG 等开放素材库（CC0 / CC-BY），其中 CC-BY 素材的必需署名如下：</p>
+            <div class="creditBlock">
+              <p>Gun sounds by Vincent Sevedge — CC-BY 3.0</p>
+              <p>"Radio Soldier" announcer lines by SoundBiterSFX — CC-BY-SA 4.0</p>
+              <p>Soldier voice acting by Bigz1983 (OpenGameArt) — CC-BY 3.0</p>
+              <p>"Crypto" &amp; "Long Note Two" by Kevin MacLeod (incompetech.com) — CC-BY 4.0</p>
+            </div>
+            <p data-i18n="help.creditsTail">其余素材为 CC0 或本项目自有（中文语音为本地合成）。完整许可清单见仓库 docs/THIRD_PARTY_NOTICES.md。</p>
+          </div>
+          <div class="helpSec">
+            <h3 data-i18n="help.disclaimer">免责声明</h3>
+            <p data-i18n="help.disclaimerText">本游戏按"现状"提供，不附带任何明示或默示的保证。游戏内容纯属虚构，与任何现实人物、组织或事件无关。使用者需自行承担运行本游戏所产生的设备与数据风险，作者与分发者对任何直接或间接损失概不负责。各第三方素材依其原始许可条款提供。</p>
+          </div>
+        </div>
+        <button class="optBtn" id="btnHelpBack" data-i18n="help.back">返 回</button>
+      </div>
+    </div>
+<div id="settings" class="screen hidden" data-page-node-id="1l4fl4jJnnqsEK7WA9DCb9">
+      <div class="panel" data-page-node-id="Kakamnq87JqrfemMGoc6bH">
+        <h2 class="mSubTitle" data-i18n="set.title" data-page-node-id="EaJtGaUCJCNsc58w7bIV7O">游 戏 设 置</h2>
+        <div class="secLabel" data-i18n="set.language" data-page-node-id="woEpQC4CJpB5QFU6obf472">语言 / LANGUAGE</div>
+        <div class="rowFlex" data-page-node-id="OQ1oZlZzV27kRSG0eSqzTE">
+          <button class="optBtn langBtn sel" data-lang="zh" data-page-node-id="LGKa5jIztcQ5dNwhjJAM9S">中文</button>
+          <button class="optBtn langBtn" data-lang="en" data-page-node-id="EWWcmvvSxQxmlas4NamBvr">English</button>
+        </div>
+        <div class="secLabel mouse-only" data-i18n="set.sens" data-page-node-id="p6amhStEEn7KeFk6f9WIHU">鼠标灵敏度 / SENSITIVITY</div>
+        <div class="sliderRow mouse-only" data-page-node-id="JHQPYAx6k359KKXTW0oeXQ">
+          <input type="range" id="sensRange" min="20" max="200" value="100" data-page-node-id="RMvw3eDL3urgQM8qsWNDyZ" />
+          <span class="val" id="sensVal" data-page-node-id="fB4LN80nIWgrT4O2n0bMlw">1.0</span>
+        </div>
+        <div class="touch-only">
+          <div class="secLabel" data-i18n="set.sensTouch">触屏灵敏度 / TOUCH SENSITIVITY</div>
+          <div class="sliderRow">
+            <input type="range" id="sensTouchRange" min="30" max="200" value="100" />
+            <span class="val" id="sensTouchVal">1.0</span>
+          </div>
+          <div class="secLabel" data-i18n="set.gyro">陀螺仪瞄准 / GYRO AIM</div>
+          <div class="rowFlex">
+            <button class="optBtn gyroBtn sel" data-g="on" data-i18n="set.gyroOn">开 启</button>
+            <button class="optBtn gyroBtn" data-g="off" data-i18n="set.gyroOff">关 闭</button>
+          </div>
+          <div class="secLabel" data-i18n="set.sensGyro">陀螺仪灵敏度 / GYRO SENSITIVITY</div>
+          <div class="sliderRow">
+            <input type="range" id="sensGyroRange" min="30" max="200" value="100" />
+            <span class="val" id="sensGyroVal">1.0</span>
+          </div>
+          <div class="secLabel" data-i18n="set.btnSize">按钮大小 / BUTTON SIZE</div>
+          <div class="rowFlex">
+            <button class="optBtn sizeBtn" data-bs="0.8" data-i18n="set.btnSmall">小</button>
+            <button class="optBtn sizeBtn sel" data-bs="1" data-i18n="set.btnMid">中</button>
+            <button class="optBtn sizeBtn" data-bs="1.2" data-i18n="set.btnLarge">大</button>
+          </div>
+        </div>
+        <div class="secLabel" data-i18n="set.toggles">声音开关 / SOUND TOGGLES</div>
+        <div class="rowFlex">
+          <button class="optBtn bgmBtn sel" data-m="on" data-i18n="set.bgmOn">音乐 开</button>
+          <button class="optBtn bgmBtn" data-m="off" data-i18n="set.bgmOff">音乐 关</button>
+          <button class="optBtn sfxBtn sel" data-s="on" data-i18n="set.sfxOn">音效 开</button>
+          <button class="optBtn sfxBtn" data-s="off" data-i18n="set.sfxOff">音效 关</button>
+        </div>
+        <div class="secLabel" data-i18n="set.volume" data-page-node-id="NmJHaEYjFpSvH8QnK87t4C">总音量 / VOLUME</div>
+        <div class="sliderRow" data-page-node-id="i719qalmw6Ha4RGhxP2s9Y">
+          <input type="range" id="volRange" min="0" max="100" value="80" data-page-node-id="di8wjkXQswR7wG7blNOqe8" />
+          <span class="val" id="volVal" data-page-node-id="L2fHY01mfyWeKk1FlqRGf1">80</span>
+        </div>
+        <div class="secLabel" data-i18n="set.quality" data-page-node-id="ZpipVuXMFXyvns4pMljjzG">画质 / QUALITY</div>
+        <div class="rowFlex" data-page-node-id="Tzs8Fpz4JuAYffD5xGVEhf">
+          <button class="optBtn qualBtn" data-q="low" data-i18n="quality.low" data-page-node-id="OCcbTTQXV8Ez0dt7MwNbYa">低</button>
+          <button class="optBtn qualBtn" data-q="med" data-i18n="quality.med" data-page-node-id="1ODAD9rBfRoS8ovTJTtnvz">中</button>
+          <button class="optBtn qualBtn" data-q="high" data-i18n="quality.high" data-page-node-id="7mGARvU9dFwbvB0sCZciqv">高</button>
+        </div>
+        <div class="center" style="margin-top: 18px" data-page-node-id="WiKOjK2EzeaybeHRrc70ky">
+          <button id="setBack" class="bigBtn" data-i18n="menu.back" data-page-node-id="ztprBCOQ51rOqK0XxBAuTB">返 回</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 暂停 ===== -->
+    <div id="pause" class="screen hidden" data-page-node-id="kMDBp5qLFIX2WLWQFxpbiq">
+      <div class="panel" data-page-node-id="l8DyC9HG1PLNZ4JtE6NUIe">
+        <h1 class="mSubTitle" data-i18n="pause.title" data-page-node-id="1z1BSE91kwqFf6LCiaNaiD">暂 停</h1>
+        <div class="menuNav" data-page-node-id="9WXfGzXFou8c9BlDX3d0t4">
+          <button id="btnResume" class="bigBtn" data-i18n="pause.resume" data-page-node-id="hMamifl3IWIYp4QH7tZcwe">继 续 战 斗</button>
+          <button id="btnPauseSettings" class="bigBtn" data-i18n="pause.settings" data-page-node-id="8qR9yrgLslK5l9co83Nkn1">游 戏 设 置</button>
+          <button id="btnQuit" class="bigBtn" data-i18n="pause.quit" data-page-node-id="fzUAcWveuo5s5yzcV97RA0">退 出 战 役</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 结算 ===== -->
+    <div id="end" class="screen hidden" data-page-node-id="YEuDZPQseT9IbVIs5gJwk6">
+      <div class="panel" data-page-node-id="r1aQEVFrQGhwlGTct8suHf">
+        <div id="endTitle" data-page-node-id="3KDu4ycZ20vbsfaG7r9iJ1">✔ 任务完成</div>
+        <div id="endStats" data-page-node-id="0NFDvnzLAFxR2y7NSxbE3J"></div>
+        <div class="menuNav" data-page-node-id="CLiu5HznppOIgaHPcer2fV">
+          <button id="btnAgain" class="bigBtn" data-i18n="end.again" data-page-node-id="2jkazV1qpCk5nSVJ4hRETR">再 来 一 局</button>
+          <button id="btnEndMenu" class="bigBtn" data-i18n="end.menu" data-page-node-id="p3HjpTQO3rNtvpbdEDHWdE">返 回 主 菜 单</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 启动加载屏 ===== -->
+    <div id="boot" data-page-node-id="mMZZ5uH9soTFm8lTGclCNK">
+      <div class="bootLogo" data-page-node-id="rtdG6vG6EOSRpnekb9HDBT">夜 袭</div>
+      <div class="bootSub" data-i18n="menu.sub" data-page-node-id="nTZOwjAiFPls6VRBsglFQn">NIGHT RAID · 夜战行动</div>
+      <div class="bootBarWrap" data-page-node-id="mcghnqQa5XBxZcvL9qOUmM"><div id="bootFill" data-page-node-id="zHw1xoHMDbDAGGnUNT1plL"></div></div>
+      <div id="bootTxt" data-i18n="boot.loading" data-page-node-id="bT1YAhEH5xq7AO3vHhsEaH">正在初始化战场…</div>
+    </div>
+
     <script type="module" src="./src/main.ts"></script>
   </body>
 </html>

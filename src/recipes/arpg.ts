@@ -14,6 +14,7 @@ import { pickTarget } from '../blocks/combat/Targeting';
 import { Projectile, stepProjectiles } from '../blocks/combat/Projectile';
 import { Pickup, PickupField } from '../blocks/interact/Pickup';
 import * as Steering from '../blocks/Steering';
+import { kitScatter } from '../blocks/kit/placeholders';
 import type { System, EngineWorld } from '../engine/types';
 
 export interface ArpgRecipeOpts {
@@ -55,6 +56,7 @@ export function createArpgGame(
   ground.rotation.x = -Math.PI / 2;
   ground.receiveShadow = true;
   root.add(ground);
+  root.add(kitScatter(18, arena * 0.85));
 
   const player = new THREE.Mesh(
     new THREE.CapsuleGeometry(0.45, 1, 4, 8),

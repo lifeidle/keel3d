@@ -84,7 +84,7 @@ src/game/*      内容包（互不 import）
 
 ## 文档
 
-- [使用指南](docs/USER_GUIDE.md) · [Quickstart](docs/QUICKSTART.md)  
+- [使用指南](docs/USER_GUIDE.md) · [配方](docs/RECIPES.md) · [Quickstart](docs/QUICKSTART.md)  
 - [API](docs/API.md) · [积木](docs/BLOCKS.md) · [目录](docs/STRUCTURE.md)  
 - [法律与商用](docs/LEGAL.md) · [第三方版权](docs/THIRD_PARTY_NOTICES.md)  
 

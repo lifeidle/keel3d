@@ -24,7 +24,9 @@
     "site-audit": "node scripts/site-audit.mjs",
     "assets:webp": "node scripts/assets-webp.mjs",
     "assets:encode": "node scripts/assets-encode.mjs",
-    "new-game": "node scripts/new-game.mjs"
+    "new-game": "node scripts/new-game.mjs",
+    "probe:all": "node scripts/probe-all.mjs",
+    "demo": "npm run build && npm run preview"
   },
   "dependencies": {
     "@dimforge/rapier3d": "^0.20.0",
