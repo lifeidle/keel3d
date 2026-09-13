@@ -164,5 +164,3 @@ node scripts/game_regress.mjs http://localhost:4173/
 | `docs/API.md` | L1/L2/L3 契约 |
 | `docs/ADAPT.md` | 各品类一页纸 |
 | `docs/STRUCTURE.md` | 目录与铁律 |
-| `FRAMEWORK_PLAN.md` | 架构决策与验收标准 |
-| `PROGRESS.md` | 进度与已知边界 |

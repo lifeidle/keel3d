@@ -8,9 +8,6 @@
 
 | 路径 | 用途 |
 |---|---|
-| `FRAMEWORK_PLAN.md` | 战略规划（真相源） |
-| `EXECUTION_STEPS.md` | 分步施工单 |
-| `PROGRESS.md` | 进度真相源 |
 | `README.md` · `LICENSE` | 说明与许可 |
 | `hub.html` | 选型页（游戏形式 → 基底） |
 | `index.html` | Sample A 入口（FPS 骨架） |

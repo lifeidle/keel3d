@@ -1,4 +1,4 @@
-﻿node_modules/
+node_modules/
 dist/
 _snapshots/
 shots/
@@ -11,3 +11,12 @@ dev-server.log
 .DS_Store
 assets_new/
 
+
+# Internal planning — local only, do not publish
+FRAMEWORK_PLAN.md
+EXECUTION_STEPS.md
+FRAMEWORK_V2_PLAN.md
+FRAMEWORK_V3_PLAN.md
+PROGRESS.md
+docs/REMAINING.md
+docs/RELEASE_v0.2.0.en.md
