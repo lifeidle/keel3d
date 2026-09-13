@@ -1,0 +1,11 @@
+﻿node_modules/
+dist/
+_snapshots/
+shots/
+.tmp/
+.wrangler/
+.workbuddy/
+tools/blender-*/
+*.log
+dev-server.log
+.DS_Store

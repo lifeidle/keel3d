@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><link rel="icon" href="data:,"><title>坦克模型预览</title>
+<style>body{margin:0;background:#0a0e16;overflow:hidden}#info{position:fixed;top:10px;left:10px;color:#8fa3b8;font:13px monospace}</style>
+</head>
+<body><div id="info">坦克 GLB 预览 — 自动转台</div>
+<script type="importmap">
+{ "imports": { "three": "/vendor/three.module.js", "three/addons/": "/vendor/addons/" } }
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0a0e16);
+scene.fog = new THREE.Fog(0x0a0e16, 30, 90);
+const cam = new THREE.PerspectiveCamera(50, innerWidth/innerHeight, 0.1, 200);
+const ren = new THREE.WebGLRenderer({antialias:true});
+ren.setSize(innerWidth, innerHeight);
+ren.shadowMap.enabled = true;
+document.body.appendChild(ren.domElement);
+scene.add(new THREE.HemisphereLight(0x9db8d8, 0x1a2230, 1.2));
+const key = new THREE.DirectionalLight(0xfff2d8, 2.2);
+key.position.set(8, 14, 6);
+key.castShadow = false; // shadow-acne made the model pitch black
+key.shadow.camera.left = -15; key.shadow.camera.right = 15;
+key.shadow.camera.top = 15; key.shadow.camera.bottom = -15;
+scene.add(key);
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(120,120), new THREE.MeshStandardMaterial({color:0x2a3038, roughness:1}));
+ground.rotation.x = -Math.PI/2; ground.receiveShadow = true;
+scene.add(ground);
+const loader = new GLTFLoader();
+loader.load('/models/tank.glb', (gltf) => {
+  const root = gltf.scene;
+  root.scale.setScalar(0.4);
+  root.traverse((o)=>{ const m = o; if (m.isMesh){ m.castShadow = true; m.receiveShadow = true; } });
+  // the model's pivot is offset ~4m from its visual center — recenter to origin
+  const box = new THREE.Box3().setFromObject(root);
+  const center = box.getCenter(new THREE.Vector3());
+  root.position.sub(center.multiplyScalar(root.scale.x));
+  scene.add(root);
+  const mixer = new THREE.AnimationMixer(root);
+  const fwd = THREE.AnimationClip.findByName(gltf.animations, 'TankArmature|TankArmature|Tank_Forward');
+  if (fwd) mixer.clipAction(fwd).play();
+  window.__tankLoaded = true;
+  let t = 0;
+  const clock = new THREE.Clock();
+  (function loop(){
+    requestAnimationFrame(loop);
+    const dt = clock.getDelta(); t += dt;
+    root.rotation.y = t * 0.35;
+    mixer.update(dt);
+    cam.position.set(Math.sin(t*0.15)*14, 6, Math.cos(t*0.15)*14);
+    cam.lookAt(0, 1.2, 0);
+    ren.render(scene, cam);
+  })();
+  document.getElementById('info').textContent = '坦克 GLB 预览 — 加载成功（转台展示中）';
+}, undefined, (err)=>{
+  document.getElementById('info').textContent = '加载失败: ' + (err && err.message ? err.message : err);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+﻿import { chromium } from 'playwright';
+const errors = [];
+const b = await chromium.launch({ channel: 'chrome' });
+const page = await b.newPage({ viewport: { width: 1280, height: 720 } });
+page.on('pageerror', (e) => errors.push('[pageerror] ' + String(e).slice(0, 200)));
+page.on('console', (m) => { if (m.type() === 'error') errors.push('[console] ' + m.text().slice(0, 200)); });
+await page.goto('http://localhost:4188/?debug=1', { waitUntil: 'networkidle', timeout: 60000 });
+await page.waitForTimeout(1200);
+await page.click('#btnPlay');
+await page.waitForTimeout(15000);
+const probe = await page.evaluate(() => (window.__sfProbe ? window.__sfProbe() : 'no-probe'));
+console.log('PROBE:', JSON.stringify(probe, null, 1).slice(0, 2200));
+console.log('ERRORS:', errors.length ? errors.slice(0, 5).join('||') : 'none');
+await page.screenshot({ path: 'shots/probe_game.png' });
+await b.close();
