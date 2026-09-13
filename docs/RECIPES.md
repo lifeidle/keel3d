@@ -100,7 +100,8 @@ WASD 移动 · 鼠标（点击锁定）或方向键转向 · 空格/J 射击。�
 | 字段 | 含义 |
 |---|---|
 | `moveSpeed` / `lookSpeed` | 移动与视角 |
-| `fireCd` / `bulletDamage` | 射击 |
+| `fireRate` / `bulletDamage` | 射击（发/秒） |
+| `magSize` / `reserve` / `reloadTime` | 弹匣与换弹 |
 | `targetHp` / `spawnEvery` / `arena` | 靶场 |
 
 ## flight-arena（空战）

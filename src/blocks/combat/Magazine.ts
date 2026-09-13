@@ -1,14 +1,18 @@
-// Pure per-slot magazine state machine (no engine deps) — unit-testable.
-// Tracks rounds / reserve / reload and the timed refill. Weapon delegates here
-// so the ammo accounting can be exercised without a renderer or physics world.
-
+/**
+ * Magazine — pure per-slot ammo state machine. Opt-in; no engine deps.
+ * Tracks rounds / reserve / reload and the timed refill.
+ */
 export class Magazine {
   rounds: number;
   reserve: number;
   reloading = false;
   private timer = 0;
 
-  constructor(public magSize: number, rounds: number, reserve: number) {
+  constructor(
+    public magSize: number,
+    rounds: number,
+    reserve: number,
+  ) {
     this.rounds = rounds;
     this.reserve = reserve;
   }

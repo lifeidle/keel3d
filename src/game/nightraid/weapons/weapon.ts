@@ -1,19 +1,25 @@
-// Weapon system: 4-slot arsenal, firing, hit resolution, per-weapon ammo,
-// reload, recoil kick. Semi-auto weapons consume a click edge; autos hold.
+// Weapon system: hitscan + hit resolution + effects/audio.
+// Slot/mag/cooldown/recoil bookkeeping lives in blocks/combat/Arsenal.
 import * as THREE from 'three';
 import { CONFIG } from '../../../config';
-import type { WeaponDef } from '../../../config';import { PhysicsWorld } from '../../../physics/world';
+import type { WeaponDef } from '../../../config';
+import { PhysicsWorld } from '../../../physics/world';
 import { Player } from '../player/player';
 import { Effects } from '../effects';
 import { Audio } from '../audio/audio';
-import { Enemy } from '../ai/enemy';
-import { Magazine } from '../weapons/magazine';
+import { Arsenal } from '../../../blocks/combat/Arsenal';
 
 export class Weapon {
-  cur = 0;
-  private mags: Magazine[] = CONFIG.weapons.map((w) => new Magazine(w.magSize, w.magSize, w.reserve));
-  private cooldown = 0;
-  private recoil = 0;
+  private arsenal = new Arsenal(
+    CONFIG.weapons.map((w) => ({
+      key: w.key,
+      magSize: w.magSize,
+      reserve: w.reserve,
+      reloadTime: w.reloadTime,
+      fireRate: w.fireRate,
+      auto: w.auto,
+    })),
+  );
   onAmmoChange: ((mag: number, reserve: number, reloading: boolean) => void) | null = null;
   onFire: (() => void) | null = null;
   onSwitch: ((def: WeaponDef) => void) | null = null;
@@ -30,21 +36,24 @@ export class Weapon {
     private getEnemies: () => unknown[] // unused: hits resolve via collider userData
   ) {}
 
+  get cur(): number {
+    return this.arsenal.index;
+  }
   get def(): WeaponDef {
-    return CONFIG.weapons[this.cur];
+    return CONFIG.weapons[this.arsenal.index];
   }
-  get mag() {
-    return this.mags[this.cur].rounds;
+  get mag(): number {
+    return this.arsenal.mag;
   }
-  get reserve() {
-    return this.mags[this.cur].reserve;
+  get reserve(): number {
+    return this.arsenal.reserve;
   }
-  get reloading() {
-    return this.mags[this.cur].reloading;
+  get reloading(): boolean {
+    return this.arsenal.reloading;
   }
   /** Current recoil magnitude (drives the dynamic crosshair spread). */
-  get recoilLevel() {
-    return this.recoil;
+  get recoilLevel(): number {
+    return this.arsenal.recoil;
   }
   /** Aim-down-sights (held RMB). Narrowed spread + steadier aim. */
   ads = false;
@@ -53,15 +62,12 @@ export class Weapon {
 
   /** Resupply point: top every slot's reserve back to its initial allocation. */
   refillAllReserves() {
-    CONFIG.weapons.forEach((w, i) => this.mags[i].refillReserve(w.reserve));
+    this.arsenal.refillAll();
     this.onAmmoChange?.(this.mag, this.reserve, this.reloading);
   }
 
   reload() {
-    const d = this.def;
-    const mag = this.mags[this.cur];
-    mag.startReload(d.reloadTime);
-    if (mag.reloading) {
+    if (this.arsenal.reload()) {
       this.audio.playReload();
       this.onAmmoChange?.(this.mag, this.reserve, true);
     }
@@ -69,13 +75,7 @@ export class Weapon {
 
   /** Switch slot (wraps). Cancels reload, brief swap cooldown. */
   switchTo(slot: number) {
-    const n = CONFIG.weapons.length;
-    const idx = ((slot % n) + n) % n;
-    if (idx === this.cur) return;
-    this.mags[this.cur].cancelReload();
-    this.cur = idx;
-    this.cooldown = 0.25; // swap time
-    this.recoil = 0;
+    if (!this.arsenal.switchTo(slot)) return;
     this.audio.playSwitch();
     this.onSwitch?.(this.def);
     this.onAmmoChange?.(this.mag, this.reserve, false);
@@ -83,19 +83,15 @@ export class Weapon {
 
   /** Full reset for a new operation: all mags topped, back to slot 1. */
   reset() {
-    this.mags = CONFIG.weapons.map((w) => new Magazine(w.magSize, w.magSize, w.reserve));
-    this.cur = 0;
-    this.cooldown = 0;
-    this.recoil = 0;
+    this.arsenal.reset();
     this.onSwitch?.(this.def);
     this.onAmmoChange?.(this.mag, this.reserve, false);
   }
 
+  /** Hitscan + effects; ammo already consumed by Arsenal.update. */
   private fire() {
     const d = this.def;
-    this.mags[this.cur].consume();
-    this.cooldown = 1 / d.fireRate;
-    this.recoil += d.recoil * (this.ads ? Weapon.ADS_RECOIL : 1);
+    this.arsenal.addRecoil(d.recoil * (this.ads ? Weapon.ADS_RECOIL : 1));
     this.audio.playWeaponShot(d.sound);
 
     const eye = this.player.getEye();
@@ -117,7 +113,6 @@ export class Weapon {
       const body = hit.collider.parent();
       const ud = body?.userData as any;
       if (ud?.type === 'ally') {
-        // ignore the friendly and keep casting past them
         hit = this.physics.raycast(
           { x: eye.x, y: eye.y, z: eye.z },
           { x: dir.x, y: dir.y, z: dir.z },
@@ -144,28 +139,23 @@ export class Weapon {
         if (killed) this.audio.playKillConfirm();
         this.onHit?.(killed);
       } else if (ud && ud.type === 'barrel' && ud.barrel) {
-        // drums take bullet damage and cook off when their HP runs out
         this.effects.spark(end);
         this.audio.playEnemyHit();
         ud.barrel.hit(d.damage);
       } else if (ud && ud.type === 'crate' && ud.rec) {
-        // wooden cover chips away and shatters when its HP runs out
         this.effects.spark(end);
         const smashed = ud.rec.hit(d.damage);
         if (smashed) this.audio.playWoodCrack();
         else this.audio.playHit();
       } else if (ud && ud.type === 'jeep' && ud.jeep) {
-        // unarmoured: bullets chew the jeep up at full damage
         this.effects.spark(end);
         this.audio.playArmorClank();
         ud.jeep.damage(d.damage);
       } else if (ud && ud.type === 'tank' && ud.tank) {
-        // small arms can't penetrate armour — spark + clank, micro damage only
         this.effects.spark(end);
         this.audio.playArmorClank();
         ud.tank.damage(d.damage * CONFIG.tank.bulletArmor);
       } else {
-        // hit world/obstacle — spark, a puff of dirt, and a lasting bullet hole
         this.effects.spark(end);
         this.effects.dust(end);
         this.effects.decal(
@@ -198,38 +188,27 @@ export class Weapon {
   }
 
   update(dt: number, fireDown: boolean, fireClicked: boolean, camera: THREE.PerspectiveCamera) {
-    if (this.cooldown > 0) this.cooldown -= dt;
+    const wasReloading = this.arsenal.reloading;
+    const outcome = this.arsenal.update(dt, fireDown, fireClicked);
 
-    const mag = this.mags[this.cur];
-    if (mag.reloading) {
-      const wasReloading = mag.reloading;
-      mag.tick(dt);
-      if (wasReloading && !mag.reloading) {
-        this.onAmmoChange?.(this.mag, this.reserve, false);
-      }
-    } else {
-      const trigger = this.def.auto ? fireDown : fireClicked;
-      if (trigger && this.cooldown <= 0) {
-        if (this.mag <= 0) {
-          // empty: auto-reload if there's any reserve (FPS standard). The old
-          // behaviour clicked forever while the trigger stayed held — that
-          // read as "gunfire keeps going after I stopped".
-          if (this.reserve > 0) {
-            this.reload();
-          } else {
-            this.audio.playEmpty();
-            this.cooldown = 0.5;
-          }
-        } else {
-          this.fire();
-        }
-      }
+    if (outcome === 'fired') {
+      this.fire();
+    } else if (outcome === 'empty' && this.arsenal.reloading && !wasReloading) {
+      // auto-reload just started — notify HUD + play SFX
+      this.audio.playReload();
+      this.onAmmoChange?.(this.mag, this.reserve, true);
+    } else if (outcome === 'empty' && !this.arsenal.reloading) {
+      // dry — no reserve left
+      this.audio.playEmpty();
+      this.onAmmoChange?.(this.mag, this.reserve, false);
+    } else if (wasReloading && !this.arsenal.reloading) {
+      this.onAmmoChange?.(this.mag, this.reserve, false);
     }
 
     // recoil kick (cosmetic, applied after player.update set the camera)
-    if (this.recoil > 0) {
-      camera.rotation.x += this.recoil;
-      this.recoil = Math.max(0, this.recoil - dt * 0.12);
+    if (this.arsenal.recoil > 0) {
+      camera.rotation.x += this.arsenal.recoil;
+      this.arsenal.decayRecoil(dt, 0.12);
     }
   }
 }

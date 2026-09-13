@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { Magazine } from '../src/game/nightraid/weapons/magazine';
+import { Magazine } from '../src/blocks/combat/Magazine';
 
 test('fires consume rounds and report empty at zero', () => {
   const m = new Magazine(5, 2, 10);
