@@ -5,6 +5,10 @@ import { Pickup, PickupField } from '../src/blocks/interact/Pickup';
 import { Interactable } from '../src/blocks/interact/Interactable';
 import { SaveSlot, BestScoreSlot } from '../src/blocks/progress/SaveSlot';
 import { RunState } from '../src/blocks/progress/RunState';
+import { QuestTracker } from '../src/blocks/ui/QuestTracker';
+import { ButtonBar } from '../src/blocks/ui/ButtonBar';
+import { BgmLayers } from '../src/blocks/audio/BgmLayers';
+import { SfxPlayer } from '../src/blocks/audio/SfxPlayer';
 
 test('TriggerZone enter/exit/stay', () => {
   const log: string[] = [];
@@ -84,4 +88,28 @@ test('RunState snapshot', () => {
   assert.equal(r.get('waves'), 3);
   r.reset();
   assert.equal(r.kills, 0);
+});
+
+test('QuestTracker and ButtonBar safe without DOM crash', () => {
+  const q = new QuestTracker();
+  q.setItems([{ id: 'a', title: 'Test', done: false }]);
+  q.complete('a');
+  q.dispose();
+  const b = new ButtonBar();
+  b.setSlots([{ id: 'x', label: 'X' }]);
+  b.setActive('x');
+  b.dispose();
+  assert.ok(true);
+});
+
+test('BgmLayers intensity clamp and SfxPlayer no-context', () => {
+  const bgm = new BgmLayers();
+  bgm.setIntensity(0.5);
+  assert.equal(bgm.getIntensity(), 0.5);
+  bgm.setIntensity(2);
+  assert.equal(bgm.getIntensity(), 1);
+  assert.equal(bgm.attached, false);
+  const fakeAudio = { context: null, load: async () => null, playBuffer: () => null };
+  const sfx = new SfxPlayer(fakeAudio as never);
+  assert.equal(sfx.play(null), false);
 });

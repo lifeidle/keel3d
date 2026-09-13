@@ -26,7 +26,8 @@
     "assets:encode": "node scripts/assets-encode.mjs",
     "new-game": "node scripts/new-game.mjs",
     "probe:all": "node scripts/probe-all.mjs",
-    "demo": "npm run build && npm run preview"
+    "demo": "npm run build && npm run preview",
+    "bundle:report": "node scripts/bundle-report.mjs"
   },
   "dependencies": {
     "@dimforge/rapier3d": "^0.20.0",
