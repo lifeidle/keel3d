@@ -8,6 +8,9 @@ import { defineGame } from '../../content/defineGame';
 import { CameraRig } from '../../blocks/CameraRig';
 import { Path } from '../../blocks/Path';
 import { Pool } from '../../blocks/Pool';
+import { Economy } from '../../blocks/gameplay/Economy';
+import { WaveDirector } from '../../blocks/gameplay/WaveDirector';
+import { Health } from '../../blocks/gameplay/Health';
 import type { System, EngineWorld } from '../../engine/types';
 import type { FixedMapDef } from '../../content/define';
 
@@ -46,6 +49,7 @@ interface EnemyMesh {
   hp: number;
   speed: number;
   alive: boolean;
+  health?: Health;
 }
 
 interface TowerMesh {
@@ -132,17 +136,24 @@ export function createTowerGame(deps: TowerDeps) {
   const rig = new CameraRig(camera, { defaultMode: 'orbit', blend: 0.25 });
 
   let baseHp = 20;
-  let money = 100;
-  let wave = 0;
-  let waveT = 0;
-  let spawnT = 0;
-  let toSpawn = 0;
+  const eco = new Economy({ start: 100 });
   let t = 0;
   let selected: TowerKind = 'rapid';
   let hudEl: HTMLElement | null = null;
   let endEl: HTMLElement | null = null;
   let status: 'playing' | 'win' | 'lose' = 'playing';
   const towers: TowerMesh[] = [];
+
+  const waves = [0, 1, 2, 3, 4].map((i) => ({
+    count: 3 + (i + 1) * 2,
+    interval: 0.55,
+    delay: i === 0 ? 2 : 4,
+    unit: 'grunt',
+  }));
+  const director = new WaveDirector({
+    waves,
+    spawnFn: () => spawnEnemy(),
+  });
 
   function ensureHud() {
     if (hudEl || typeof document === 'undefined') return;
@@ -169,9 +180,9 @@ export function createTowerGame(deps: TowerDeps) {
     if (!hudEl) return;
     const alive = enemyPool.activeCount;
     hudEl.textContent =
-      `金钱 ${money} · 波次 ${wave}/5 · 基地 ${baseHp}\n` +
+      `金钱 ${eco.balance} · 波次 ${director.waveNumber}/${director.totalWaves} · 基地 ${baseHp}\n` +
       `选塔 1速射/2重炮/3减速 (${selected}) · 点击空塔位放置\n` +
-      `场上敌人 ${alive}` + (status !== 'playing' ? `\n[${status}]` : '');
+      `场上敌人 ${enemyPool.activeCount}` + (status !== 'playing' ? `\n[${status}]` : '');
   }
 
   function placeTower(padIdx: number) {
@@ -179,8 +190,7 @@ export function createTowerGame(deps: TowerDeps) {
     const pad = pads[padIdx];
     if (!pad || pad.occupied) return;
     const cost = TOWER_COST[selected];
-    if (money < cost) return;
-    money -= cost;
+    if (!eco.spend(cost)) return;
     pad.occupied = true;
     const mesh = new THREE.Mesh(
       new THREE.BoxGeometry(1.4, 1.8, 1.4),
@@ -217,10 +227,19 @@ export function createTowerGame(deps: TowerDeps) {
 
   function spawnEnemy() {
     const e = enemyPool.acquire();
+    const hp = 40 + director.waveNumber * 8;
     e.alive = true;
-    e.hp = 40 + wave * 8;
-    e.speed = 3.5 + Math.min(2, wave * 0.2);
+    e.hp = hp;
+    e.speed = 3.5 + Math.min(2, director.waveNumber * 0.2);
     e.dist = 0;
+    e.health = new Health({
+      max: hp,
+      onDeath: () => {
+        e.alive = false;
+        enemyPool.release(e);
+        eco.add(10);
+      },
+    });
     e.mesh.visible = true;
     LANE.sampleAt(0, pos);
     e.mesh.position.set(pos.x, 0.6, pos.z);
@@ -237,22 +256,7 @@ export function createTowerGame(deps: TowerDeps) {
           return;
         }
 
-        // waves (5-wave campaign)
-        waveT += ft;
-        if (toSpawn === 0 && waveT > 6 && wave < 5) {
-          wave++;
-          toSpawn = 3 + wave * 2;
-          spawnT = 0;
-          waveT = 0;
-        }
-        if (toSpawn > 0) {
-          spawnT -= ft;
-          if (spawnT <= 0) {
-            spawnT = 0.55;
-            toSpawn--;
-            spawnEnemy();
-          }
-        }
+        director.update(ft);
 
         // enemies walk the lane
         enemyPool.forEachLive((e) => {
@@ -289,17 +293,19 @@ export function createTowerGame(deps: TowerDeps) {
           if (target) {
             tw.cd = 1 / rate;
             const e = target as EnemyMesh;
-            e.hp -= dmg;
-            if (e.hp <= 0) {
-              e.alive = false;
-              enemyPool.release(e);
-              money += 10;
+            if (e.health) e.health.damage(dmg);
+            else {
+              e.hp -= dmg;
+              if (e.hp <= 0) {
+                e.alive = false;
+                enemyPool.release(e);
+                eco.add(10);
+              }
             }
           }
         }
 
-        // win: cleared 5 waves with no enemies left
-        if (wave >= 5 && toSpawn === 0 && enemyPool.activeCount === 0) {
+        if (director.finished && enemyPool.activeCount === 0) {
           showEnd(true);
         }
 
@@ -321,7 +327,13 @@ export function createTowerGame(deps: TowerDeps) {
       endEl?.remove();
       endEl = null;
     },
-    stats: () => ({ money, wave, baseHp, towers: towers.length, status }),
+    stats: () => ({
+      money: eco.balance,
+      wave: director.waveNumber,
+      baseHp,
+      towers: towers.length,
+      status,
+    }),
   };
 }
 
