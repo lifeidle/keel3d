@@ -75,3 +75,31 @@ hud.setText(`金币 ${eco.balance}`);
 - **不要**在宿主里自动 `new` 这些积木  
 - 只在 `GameSpec.create()` 里构造并 `systems.push`  
 - 未 push 的模块会被打包器摇掉（无顶层副作用）
+
+
+## 交互积木 `src/blocks/interact/`
+
+| 模块 | 用途 |
+|---|---|
+| `TriggerZone` | 球/盒触发：onEnter/onExit/onStay |
+| `Pickup` / `PickupField` | 拾取（自动或手动） |
+| `Interactable` | F 键交互：距离 + 次数 + 冷却 |
+
+```ts
+import { PickupField, Pickup } from '../../blocks/interact/Pickup';
+
+const gems = new PickupField([
+  new Pickup({ id: 'a', x: 10, z: 6, radius: 1.6, onCollect: () => score++ }),
+]);
+// 每帧
+gems.update(player.x, player.z);
+```
+
+开放世界骨架已演示：走近金色灵珠自动拾取；中央台为 TriggerZone。
+
+## 进度积木 `src/blocks/progress/`
+
+| 模块 | 用途 |
+|---|---|
+| `SaveSlot` | 版本化 localStorage 存档 |
+| `BestScoreSlot` | 最佳成绩（圈速等） |

@@ -12,6 +12,8 @@ import * as Steering from '../../blocks/Steering';
 import { ChunkWorld } from '../../blocks/ChunkWorld';
 import { buildMap } from '../../blocks/MapBuilder';
 import { HealthBar } from '../../blocks/ui/HealthBar';
+import { Pickup, PickupField } from '../../blocks/interact/Pickup';
+import { TriggerZone } from '../../blocks/interact/TriggerZone';
 import type { System, EngineWorld } from '../../engine/types';
 
 export interface CultivationDeps {
@@ -129,6 +131,48 @@ export function createCultivationGame(deps: CultivationDeps) {
   let xpBar: HealthBar | null = null;
   const pos = { x: 0, y: 0, z: 0 };
 
+  // Collect demo (M1): spirit orbs + dais trigger
+  const orbGeo = new THREE.SphereGeometry(0.35, 10, 8);
+  const orbMat = new THREE.MeshStandardMaterial({
+    color: 0xffd27a,
+    emissive: 0x664400,
+  });
+  const orbSpots: Array<[number, number]> = [
+    [10, 6],
+    [-8, 12],
+    [14, -10],
+    [-14, -8],
+    [4, -16],
+  ];
+  let collected = 0;
+  const orbs = new PickupField(
+    orbSpots.map(([x, z], i) => {
+      const mesh = new THREE.Mesh(orbGeo, orbMat);
+      mesh.position.set(x, 0.8, z);
+      mesh.castShadow = true;
+      root.add(mesh);
+      return new Pickup({
+        id: `orb${i}`,
+        x,
+        z,
+        y: 0.8,
+        radius: 1.6,
+        onCollect: () => {
+          collected++;
+          mesh.visible = false;
+        },
+      });
+    }),
+  );
+  const daisZone = new TriggerZone({
+    id: 'dais',
+    shape: { kind: 'sphere', x: 0, z: 0, radius: 3.2 },
+    onEnter: () => {
+      /* hint handled in HUD */
+    },
+  });
+  let onDais = false;
+
   function setMode(m: CameraMode) {
     mode = m;
     rig.setMode(m);
@@ -167,9 +211,11 @@ export function createCultivationGame(deps: CultivationDeps) {
         rig.update(ft, player.position, yaw);
 
         if (world.playing) {
+          orbs.update(player.position.x, player.position.z, player.position.y);
+          daisZone.update([{ tag: 'player', x: player.position.x, z: player.position.z, y: player.position.y }]);
+          onDais = daisZone.has('player');
           // near dais → cultivate
-          const nearDais = player.position.length() < 3.2;
-          if (nearDais) {
+          if (onDais) {
             progress += ft * 0.08;
             if (progress >= 1) {
               progress = 0;
@@ -211,9 +257,9 @@ export function createCultivationGame(deps: CultivationDeps) {
         xpBar?.setRatio(progress);
         if (hudEl) {
           hudEl.textContent =
-            `修为 ${(progress * 100) | 0}% · 境界 ${REALMS[realmIdx]}\n` +
-            `视角 ${mode} (1第一/2第三/3俯视) · 妖兽 ${beasts.activeCount} · chunk ${chunkWorld.loadedCount}\n` +
-            `站上中央修炼台涨修为`;
+            `修为 ${(progress * 100) | 0}% · 境界 ${REALMS[realmIdx]} · 灵珠 ${collected}/${orbSpots.length}\n` +
+            `视角 ${mode} (1/2/3) · 妖兽 ${beasts.activeCount} · chunk ${chunkWorld.loadedCount}\n` +
+            (onDais ? '【修炼中】站上中央台涨修为' : '靠近中央台修炼 · 走近金色灵珠自动拾取');
         }
       },
     },
@@ -232,7 +278,13 @@ export function createCultivationGame(deps: CultivationDeps) {
       xpBar?.dispose();
       xpBar = null;
     },
-    stats: () => ({ realm: REALMS[realmIdx], progress, mode, beasts: beasts.activeCount }),
+    stats: () => ({
+      realm: REALMS[realmIdx],
+      progress,
+      mode,
+      beasts: beasts.activeCount,
+      orbs: collected,
+    }),
   };
 }
 
