@@ -13,15 +13,22 @@ import { createNightRaidGame } from './game/nightraid/NightRaidGame';
 import { createTowerGame } from './game/demo-tower';
 import { createCultivationGame } from './game/demo-cultivation';
 import { createTemplateGame } from './game/demo-template';
+import { createFlightGame } from './game/demo-flight';
+import { createRaceGame } from './game/demo-race';
 import type { System } from './engine/types';
 
-function gameFromUrl(): string {
+const GAME_IDS = ['nightraid', 'tower', 'cultivation', 'template', 'flight', 'race'] as const;
+type GameId = (typeof GAME_IDS)[number];
+
+function isGameId(v: string | undefined | null): v is GameId {
+  return !!v && (GAME_IDS as readonly string[]).includes(v);
+}
+
+function gameFromUrl(): GameId {
   const fromWindow = (window as unknown as { __GAME_ID__?: string }).__GAME_ID__;
-  if (fromWindow === 'nightraid' || fromWindow === 'tower' || fromWindow === 'cultivation' || fromWindow === 'template') {
-    return fromWindow;
-  }
-  const id = new URLSearchParams(location.search).get('game') ?? 'nightraid';
-  if (id === 'nightraid' || id === 'tower' || id === 'cultivation' || id === 'template') return id;
+  if (isGameId(fromWindow)) return fromWindow;
+  const id = new URLSearchParams(location.search).get('game');
+  if (isGameId(id)) return id;
   return 'nightraid';
 }
 
@@ -87,6 +94,18 @@ async function boot() {
     for (const s of sample.systems) engine.addSystem(s);
   } else if (gameId === 'template') {
     const sample = createTemplateGame({
+      scene: threeEngine.scene,
+      camera: threeEngine.camera,
+    });
+    for (const s of sample.systems) engine.addSystem(s);
+  } else if (gameId === 'flight') {
+    const sample = createFlightGame({
+      scene: threeEngine.scene,
+      camera: threeEngine.camera,
+    });
+    for (const s of sample.systems) engine.addSystem(s);
+  } else if (gameId === 'race') {
+    const sample = createRaceGame({
       scene: threeEngine.scene,
       camera: threeEngine.camera,
     });
