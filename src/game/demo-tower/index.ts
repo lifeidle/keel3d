@@ -63,43 +63,56 @@ export function createTowerGame(deps: TowerDeps) {
   const { scene, camera } = deps;
   const root = new THREE.Group();
   scene.add(root);
+  const pos = { x: 0, y: 0, z: 0 };
 
   const ground = new THREE.Mesh(
     new THREE.PlaneGeometry(60, 60),
-    new THREE.MeshStandardMaterial({ color: 0x3d5c3a }),
+    new THREE.MeshStandardMaterial({ color: 0x6b9e4a, roughness: 0.9 }),
   );
   ground.rotation.x = -Math.PI / 2;
+  ground.receiveShadow = true;
   root.add(ground);
 
-  const lanePts = LANE.points.map((p) => new THREE.Vector3(p.x, 0.05, p.z));
-  root.add(
-    new THREE.Line(
-      new THREE.BufferGeometry().setFromPoints(lanePts),
-      new THREE.LineBasicMaterial({ color: 0xc4a35a }),
-    ),
-  );
+  // lane ribbon (bright dirt road)
+  const lanePts = LANE.points.map((p) => new THREE.Vector3(p.x, 0.06, p.z));
+  const laneGeo = new THREE.BufferGeometry().setFromPoints(lanePts);
+  root.add(new THREE.Line(laneGeo, new THREE.LineBasicMaterial({ color: 0xd4a85a })));
+  // thick lane via small pads along the path
+  for (let d = 0; d <= LANE.totalLen; d += 2) {
+    LANE.sampleAt(d, pos);
+    const pad = new THREE.Mesh(
+      new THREE.BoxGeometry(2.2, 0.08, 2.2),
+      new THREE.MeshStandardMaterial({ color: 0xc49a52 }),
+    );
+    pad.position.set(pos.x, 0.04, pos.z);
+    pad.receiveShadow = true;
+    root.add(pad);
+  }
 
+  // base marker
   const base = new THREE.Mesh(
-    new THREE.BoxGeometry(2.2, 2.2, 2.2),
-    new THREE.MeshStandardMaterial({ color: 0x4a7ab5 }),
+    new THREE.BoxGeometry(2.4, 2.6, 2.4),
+    new THREE.MeshStandardMaterial({ color: 0x3d7ec4 }),
   );
-  base.position.set(24, 1.1, 0);
+  base.position.set(24, 1.3, 0);
+  base.castShadow = true;
   root.add(base);
 
   // tower pads
   const pads: { x: number; z: number; mesh: THREE.Mesh; occupied: boolean }[] = [];
   for (const p of grass1.pois!.filter((q) => q.id.startsWith('pad'))) {
     const m = new THREE.Mesh(
-      new THREE.CylinderGeometry(1.2, 1.2, 0.15, 16),
-      new THREE.MeshStandardMaterial({ color: 0x556655 }),
+      new THREE.CylinderGeometry(1.4, 1.4, 0.2, 20),
+      new THREE.MeshStandardMaterial({ color: 0x8a9a7a, emissive: 0x223322 }),
     );
-    m.position.set(p.x, 0.08, p.z);
+    m.position.set(p.x, 0.1, p.z);
+    m.receiveShadow = true;
     root.add(m);
     pads.push({ x: p.x, z: p.z, mesh: m, occupied: false });
   }
 
-  const enemyGeo = new THREE.BoxGeometry(0.8, 1.2, 0.8);
-  const enemyMat = new THREE.MeshStandardMaterial({ color: 0xa33b3b });
+  const enemyGeo = new THREE.BoxGeometry(0.9, 1.3, 0.9);
+  const enemyMat = new THREE.MeshStandardMaterial({ color: 0xd94b4b, roughness: 0.6 });
   const enemyPool = new Pool<EnemyMesh>(
     () => {
       const mesh = new THREE.Mesh(enemyGeo, enemyMat);
@@ -130,7 +143,6 @@ export function createTowerGame(deps: TowerDeps) {
   let endEl: HTMLElement | null = null;
   let status: 'playing' | 'win' | 'lose' = 'playing';
   const towers: TowerMesh[] = [];
-  const pos = { x: 0, y: 0, z: 0 };
 
   function ensureHud() {
     if (hudEl || typeof document === 'undefined') return;

@@ -15,7 +15,9 @@ import { createCultivationGame } from './game/demo-cultivation';
 import { createTemplateGame } from './game/demo-template';
 import { createFlightGame } from './game/demo-flight';
 import { createRaceGame } from './game/demo-race';
+import { applyDaylight, addSunDisc } from './blocks/scene';
 import type { System } from './engine/types';
+import type * as THREE from 'three';
 
 const GAME_IDS = ['nightraid', 'tower', 'cultivation', 'template', 'flight', 'race'] as const;
 type GameId = (typeof GAME_IDS)[number];
@@ -79,7 +81,15 @@ async function boot() {
     return;
   }
 
-  // Sample B / C — independent content packages on the same engine canvas.
+  // Sample B / C / templates — independent content packages on the same engine canvas.
+  // Daylight so demos read clearly (nightraid keeps night by design).
+  applyDaylight({
+    scene: threeEngine.scene as THREE.Scene,
+    sun: threeEngine.moon as THREE.DirectionalLight,
+    hemi: threeEngine.hemi as THREE.HemisphereLight,
+  });
+  addSunDisc(threeEngine.scene as THREE.Scene);
+
   engine.addSystem({
     name: 'sample.playing',
     update(_ft, world) {

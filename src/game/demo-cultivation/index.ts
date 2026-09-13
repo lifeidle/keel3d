@@ -54,11 +54,31 @@ export function createCultivationGame(deps: CultivationDeps) {
       const m = new THREE.Mesh(
         new THREE.PlaneGeometry(38, 38),
         new THREE.MeshStandardMaterial({
-          color: (cx + cz) % 2 === 0 ? 0x2f4a32 : 0x3a5640,
+          color: (cx + cz) % 2 === 0 ? 0x5a8f4a : 0x6aa055,
+          roughness: 0.92,
         }),
       );
       m.rotation.x = -Math.PI / 2;
+      m.receiveShadow = true;
       g.add(m);
+      // sparse trees for readability
+      for (let i = 0; i < 4; i++) {
+        const hx = ((cx * 17 + i * 13) % 29) - 14;
+        const hz = ((cz * 19 + i * 7) % 31) - 15;
+        if (Math.hypot(hx, hz) < 6) continue;
+        const trunk = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.25, 0.35, 2.2, 6),
+          new THREE.MeshStandardMaterial({ color: 0x6b4a2a }),
+        );
+        trunk.position.set(hx, 1.1, hz);
+        const crown = new THREE.Mesh(
+          new THREE.ConeGeometry(1.6, 3.2, 7),
+          new THREE.MeshStandardMaterial({ color: 0x3f7a38 }),
+        );
+        crown.position.set(hx, 3.2, hz);
+        crown.castShadow = true;
+        g.add(trunk, crown);
+      }
       return g;
     },
   });
@@ -66,21 +86,24 @@ export function createCultivationGame(deps: CultivationDeps) {
 
   // cultivation dais
   const dais = new THREE.Mesh(
-    new THREE.CylinderGeometry(2.5, 2.8, 0.4, 24),
-    new THREE.MeshStandardMaterial({ color: 0x8a7a5a }),
+    new THREE.CylinderGeometry(2.8, 3.1, 0.5, 28),
+    new THREE.MeshStandardMaterial({ color: 0xd4c48a, emissive: 0x332a10, roughness: 0.55 }),
   );
-  dais.position.set(0, 0.2, 0);
+  dais.position.set(0, 0.25, 0);
+  dais.castShadow = true;
+  dais.receiveShadow = true;
   root.add(dais);
 
   const player = new THREE.Mesh(
     new THREE.CapsuleGeometry(0.4, 1.0, 4, 8),
-    new THREE.MeshStandardMaterial({ color: 0xd4c4a8 }),
+    new THREE.MeshStandardMaterial({ color: 0x5b8fd4 }),
   );
   player.position.set(0, 1, 0);
+  player.castShadow = true;
   root.add(player);
 
-  const beastGeo = new THREE.BoxGeometry(1.1, 0.9, 1.6);
-  const beastMat = new THREE.MeshStandardMaterial({ color: 0x6b3a3a });
+  const beastGeo = new THREE.BoxGeometry(1.2, 1.0, 1.8);
+  const beastMat = new THREE.MeshStandardMaterial({ color: 0xb85c2a, roughness: 0.55 });
   const beasts = new Pool<Beast>(
     () => {
       const mesh = new THREE.Mesh(beastGeo, beastMat);

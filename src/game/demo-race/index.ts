@@ -29,9 +29,10 @@ export function createRaceGame(deps: RaceDeps) {
 
   const ground = new THREE.Mesh(
     new THREE.PlaneGeometry(80, 50),
-    new THREE.MeshStandardMaterial({ color: 0x444444 }),
+    new THREE.MeshStandardMaterial({ color: 0x7a9a55 }),
   );
   ground.rotation.x = -Math.PI / 2;
+  ground.receiveShadow = true;
   root.add(ground);
 
   const pts = TRACK.points.map((p) => new THREE.Vector3(p.x, 0.05, p.z));
@@ -41,12 +42,27 @@ export function createRaceGame(deps: RaceDeps) {
       new THREE.LineBasicMaterial({ color: 0xffffff }),
     ),
   );
+  const pos = { x: 0, y: 0, z: 0 };
+  const dir = { x: 0, y: 0, z: 0 };
+  for (let d = 0; d <= TRACK.totalLen; d += 2.5) {
+    TRACK.sampleAt(d, pos);
+    TRACK.sampleDir(d, dir);
+    const slab = new THREE.Mesh(
+      new THREE.BoxGeometry(4.2, 0.1, 2.6),
+      new THREE.MeshStandardMaterial({ color: 0x4a4a4a }),
+    );
+    slab.position.set(pos.x, 0.05, pos.z);
+    slab.rotation.y = Math.atan2(dir.x, dir.z);
+    slab.receiveShadow = true;
+    root.add(slab);
+  }
 
   const car = new THREE.Mesh(
-    new THREE.BoxGeometry(1.6, 0.6, 3),
-    new THREE.MeshStandardMaterial({ color: 0xc43c3c }),
+    new THREE.BoxGeometry(1.7, 0.65, 3.2),
+    new THREE.MeshStandardMaterial({ color: 0xe23c3c, metalness: 0.35, roughness: 0.35 }),
   );
-  car.position.y = 0.4;
+  car.position.y = 0.45;
+  car.castShadow = true;
   root.add(car);
 
   const rig = new CameraRig(camera, { defaultMode: 'chase', chase: { distance: 8, height: 3, lookAhead: 3 } });
@@ -54,8 +70,6 @@ export function createRaceGame(deps: RaceDeps) {
   let t = 0;
   let lap = 0;
   let hud: HTMLElement | null = null;
-  const pos = { x: 0, y: 0, z: 0 };
-  const dir = { x: 0, y: 0, z: 0 };
 
   const systems: System[] = [
     {

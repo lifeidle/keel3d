@@ -20,21 +20,22 @@ export function createFlightGame(deps: FlightDeps) {
 
   const sky = new THREE.Mesh(
     new THREE.SphereGeometry(200, 24, 16),
-    new THREE.MeshBasicMaterial({ color: 0x6a8ab0, side: THREE.BackSide }),
+    new THREE.MeshBasicMaterial({ color: 0x7eb6e8, side: THREE.BackSide }),
   );
   root.add(sky);
 
   const plane = new THREE.Mesh(
-    new THREE.ConeGeometry(0.6, 2.4, 6),
-    new THREE.MeshStandardMaterial({ color: 0xd0d0d0 }),
+    new THREE.ConeGeometry(0.7, 2.8, 6),
+    new THREE.MeshStandardMaterial({ color: 0xf0f0f0, metalness: 0.3, roughness: 0.4 }),
   );
   plane.rotation.x = Math.PI / 2;
+  plane.castShadow = true;
   root.add(plane);
 
   // ground reference far below
   const ground = new THREE.Mesh(
     new THREE.PlaneGeometry(400, 400),
-    new THREE.MeshStandardMaterial({ color: 0x3a4a38 }),
+    new THREE.MeshStandardMaterial({ color: 0x6a9a48 }),
   );
   ground.rotation.x = -Math.PI / 2;
   ground.position.y = -40;
