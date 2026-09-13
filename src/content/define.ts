@@ -1,8 +1,10 @@
 /**
- * L3 contract — defineGame / GameSpec / UnitDef / MapSpec.
- * Types land progressively; this file is the single content-package API home.
- * See FRAMEWORK_PLAN.md §3.
+ * L3 contract — GameSpec / MapSpec / UnitDef + create context types.
+ * See FRAMEWORK_V2_PLAN.md and FRAMEWORK_PLAN.md.
  */
+import type * as THREE from 'three';
+import type { System } from '../engine/types';
+
 export type CameraMode = 'fps' | 'chase' | 'orbit' | 'free';
 
 /** Seeded: procedural, same seed → same world. */
@@ -11,22 +13,16 @@ export interface SeededMapSpec {
   gen: (seed: number) => unknown;
 }
 
-/** Fixed: hand-authored map pack (offline bake). */
+/** Fixed: hand-authored map pack. */
 export interface FixedMapDef {
   id: string;
-  /** Human title key or literal. */
   title?: string;
-  /** Terrain descriptor — shared shape with seeded gens. */
   terrain: {
     size: number;
     amplitude?: number;
-    /** Optional height sampler override. */
   };
-  /** Named points of interest (spawn, lanes, tower pads…). */
   pois?: Array<{ id: string; x: number; y?: number; z: number }>;
-  /** Spawn definitions for units / players. */
   spawn?: Array<{ id: string; x: number; y?: number; z: number; side?: string }>;
-  /** Optional navmesh asset path (future). */
   navmesh?: string;
 }
 
@@ -35,7 +31,7 @@ export interface FixedMapSpec {
   maps: FixedMapDef[];
 }
 
-/** Stream: chunked open world (Sample C). */
+/** Stream: chunked open world. */
 export interface StreamMapSpec {
   kind: 'stream';
   root: string;
@@ -45,7 +41,6 @@ export interface StreamMapSpec {
 
 export type MapSpec = SeededMapSpec | FixedMapSpec | StreamMapSpec;
 
-/** Camera: single mode, or multi-mode with a default for runtime switch. */
 export type CameraSpec = CameraMode | { default: CameraMode; allow: CameraMode[] };
 
 export interface PlayerSpec {
@@ -70,18 +65,41 @@ export interface UnitDef {
   cost?: number;
 }
 
+/** Context passed to GameSpec.create at boot. */
+export interface GameCreateContext {
+  scene: THREE.Scene;
+  camera: THREE.PerspectiveCamera;
+  /** Shared quality controller (optional use). */
+  quality?: unknown;
+  /** DOM parent for the canvas (rarely needed). */
+  parent?: HTMLElement;
+}
+
+/** What a content package returns from create(). */
+export interface GameInstance {
+  systems: System[];
+  dispose?: () => void;
+  /** Optional debug snapshot for probes. */
+  stats?: () => Record<string, unknown>;
+}
+
 /**
- * GameSpec — the content package entry. `defineGame` (Phase C) turns this
- * into a framework-mountable GameModule.
+ * GameSpec — content package entry.
+ * `create` builds the live instance; host owns loop/present/daylight.
  */
 export interface GameSpec {
   id: string;
   title: string;
   camera: CameraSpec;
+  /** Apply framework daylight look (for demos; nightraid leaves false). */
+  daylight?: boolean;
+  /** Keep world.playing true without a match flow (most samples). */
+  autoPlay?: boolean;
   map?: MapSpec;
   player?: PlayerSpec;
   units?: UnitDef[];
-  systems?: unknown[];
   config?: Record<string, unknown>;
   i18n?: Record<string, [string, string]>;
+  /** Build systems + scene objects. Required for host-mounted games. */
+  create?: (ctx: GameCreateContext) => GameInstance;
 }

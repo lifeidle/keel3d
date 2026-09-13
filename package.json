@@ -16,7 +16,8 @@
     "net:dev": "vite --port 8799 --host",
     "site-audit": "node scripts/site-audit.mjs",
     "assets:webp": "node scripts/assets-webp.mjs",
-    "assets:encode": "node scripts/assets-encode.mjs"
+    "assets:encode": "node scripts/assets-encode.mjs",
+    "new-game": "node scripts/new-game.mjs"
   },
   "dependencies": {
     "@dimforge/rapier3d": "^0.20.0",

@@ -1,7 +1,8 @@
-// Entry point. Rapier ships as a standalone .wasm (ESM import, ready at module load).
-// Boot: Engine kernel owns the rAF loop + system schedule.
-// ?game=nightraid (default) | tower | cultivation — samples are independent.
-import { Game } from './game/nightraid/game';
+/**
+ * Boot: resolve game id → load module from registry → mount via host.
+ * Night Raid keeps its full Game menu flow (special path).
+ * All other packages: defineGame + mountSampleGame.
+ */
 import { Engine } from './engine/Engine';
 import { QualityController } from './engine/quality/QualityController';
 import { createEngineAsync, WebGpuRequiredError } from './engine/renderer';
@@ -9,51 +10,21 @@ import { detectQuality } from './world/quality';
 import { initI18n, t } from './i18n';
 import { prefetchHD } from './game/nightraid/world/phototex';
 import { FullscreenUI } from './ui/fullscreen';
-import { createNightRaidGame } from './game/nightraid/NightRaidGame';
-import { createTowerGame } from './game/demo-tower';
-import { createCultivationGame } from './game/demo-cultivation';
-import { createTemplateGame } from './game/demo-template';
-import { createFlightGame } from './game/demo-flight';
-import { createRaceGame } from './game/demo-race';
-import { applyDaylight, addSunDisc } from './blocks/scene';
-import type { System } from './engine/types';
+import { resolveGameId, loadGame, DEFAULT_GAME_ID } from './registry';
+import { mountSampleGame } from './content/host';
+import { bootNightRaid } from './game/nightraid/module';
 import type * as THREE from 'three';
-
-const GAME_IDS = ['nightraid', 'tower', 'cultivation', 'template', 'flight', 'race'] as const;
-type GameId = (typeof GAME_IDS)[number];
-
-function isGameId(v: string | undefined | null): v is GameId {
-  return !!v && (GAME_IDS as readonly string[]).includes(v);
-}
-
-function gameFromUrl(): GameId {
-  const fromWindow = (window as unknown as { __GAME_ID__?: string }).__GAME_ID__;
-  if (isGameId(fromWindow)) return fromWindow;
-  const id = new URLSearchParams(location.search).get('game');
-  if (isGameId(id)) return id;
-  return 'nightraid';
-}
-
-/** Present system for samples that reuse the engine's WebGPU canvas. */
-function presentSystem(engine: { renderer: { render(s: unknown, c: unknown): void }; scene: unknown; camera: unknown }): System {
-  return {
-    name: 'sample.present',
-    update() {
-      engine.renderer.render(engine.scene, engine.camera);
-    },
-  };
-}
 
 async function boot() {
   const fill = document.getElementById('bootFill')!;
-  const gameId = gameFromUrl();
+  const gameId = resolveGameId();
 
   if (gameId === 'nightraid') {
     fill.style.width = '30%';
     prefetchHD();
     fill.style.width = '70%';
   } else {
-    fill.style.width = '50%';
+    fill.style.width = '40%';
   }
 
   initI18n();
@@ -67,67 +38,35 @@ async function boot() {
   const engine = new Engine({ parent: app, qualityCtrl, headless: true });
 
   if (gameId === 'nightraid') {
-    const game = new Game(app, { qualityCtrl, externalLoop: true, engine: threeEngine });
-    const module = createNightRaidGame({ game });
-    for (const s of module.systems) engine.addSystem(s);
-    module.mount(engine);
+    const nr = bootNightRaid(app, { qualityCtrl, engine: threeEngine });
+    for (const s of nr.systems) engine.addSystem(s);
+    nr.mount(engine);
     fill.style.width = '100%';
     setTimeout(() => {
       document.getElementById('boot')!.classList.add('hidden');
-      game.mount();
+      nr.game.mount();
       engine.start();
       fullscreen.maybePrompt();
     }, 250);
     return;
   }
 
-  // Sample B / C / templates — independent content packages on the same engine canvas.
-  // Daylight so demos read clearly (nightraid keeps night by design).
-  applyDaylight({
-    scene: threeEngine.scene as THREE.Scene,
-    sun: threeEngine.moon as THREE.DirectionalLight,
-    hemi: threeEngine.hemi as THREE.HemisphereLight,
-  });
-  addSunDisc(threeEngine.scene as THREE.Scene);
+  const mod = await loadGame(gameId);
+  const render = (scene: THREE.Scene, camera: THREE.Camera) => {
+    threeEngine.renderer.render(scene, camera);
+  };
 
-  engine.addSystem({
-    name: 'sample.playing',
-    update(_ft, world) {
-      world.playing = true;
-    },
+  mountSampleGame(mod, {
+    engine,
+    scene: threeEngine.scene,
+    camera: threeEngine.camera,
+    sun: threeEngine.moon,
+    hemi: threeEngine.hemi,
+    parent: app,
+    quality: qualityCtrl,
+    render,
   });
-  if (gameId === 'tower') {
-    const sample = createTowerGame({
-      scene: threeEngine.scene,
-      camera: threeEngine.camera,
-    });
-    for (const s of sample.systems) engine.addSystem(s);
-  } else if (gameId === 'template') {
-    const sample = createTemplateGame({
-      scene: threeEngine.scene,
-      camera: threeEngine.camera,
-    });
-    for (const s of sample.systems) engine.addSystem(s);
-  } else if (gameId === 'flight') {
-    const sample = createFlightGame({
-      scene: threeEngine.scene,
-      camera: threeEngine.camera,
-    });
-    for (const s of sample.systems) engine.addSystem(s);
-  } else if (gameId === 'race') {
-    const sample = createRaceGame({
-      scene: threeEngine.scene,
-      camera: threeEngine.camera,
-    });
-    for (const s of sample.systems) engine.addSystem(s);
-  } else {
-    const sample = createCultivationGame({
-      scene: threeEngine.scene,
-      camera: threeEngine.camera,
-    });
-    for (const s of sample.systems) engine.addSystem(s);
-  }
-  engine.addSystem(presentSystem(threeEngine));
+
   fill.style.width = '100%';
   setTimeout(() => {
     document.getElementById('boot')!.classList.add('hidden');
@@ -149,3 +88,5 @@ boot().catch((err) => {
     bootTxt.textContent = t('boot.fail') + ' — ' + String(err);
   }
 });
+
+void DEFAULT_GAME_ID;

@@ -74,10 +74,12 @@ export function createTemplateGame(deps: TemplateDeps) {
   };
 }
 
-export const template = defineGame({
+export default defineGame({
   id: 'template',
   title: 'Template',
+  daylight: true,
   camera: { default: 'orbit', allow: ['fps', 'chase', 'orbit'] },
   map: { kind: 'seeded', gen: (seed) => ({ seed }) },
   config: { fixedDt: 1 / 60 },
+  create: (ctx) => createTemplateGame({ scene: ctx.scene, camera: ctx.camera }),
 });

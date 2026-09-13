@@ -226,10 +226,12 @@ export function createCultivationGame(deps: CultivationDeps) {
   };
 }
 
-export const cultivation = defineGame({
+export default defineGame({
   id: 'cultivation',
   title: 'Cultivation',
-  map: { kind: 'stream', root: '/chunks', chunk: 40, lodRings: [1, 2] },
+  daylight: true,
   camera: { default: 'chase', allow: ['fps', 'chase', 'orbit'] },
+  map: { kind: 'stream', root: '/chunks', chunk: 40, lodRings: [1, 2] },
   config: { fixedDt: 1 / 60, gravity: 0 },
+  create: (ctx) => createCultivationGame({ scene: ctx.scene, camera: ctx.camera }),
 });

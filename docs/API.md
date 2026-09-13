@@ -31,22 +31,44 @@
 ## L3 契约 `src/content/`
 
 ```ts
-defineGame(spec: GameSpec, systems?: System[]): DefinedGame
+defineGame(spec: GameSpec): DefinedGame
 
 interface GameSpec {
   id: string;
   title: string;
+  daylight?: boolean;     // default true for demos; false keeps engine night look
+  autoPlay?: boolean;     // default true → world.playing = true
   camera: CameraMode | { default: CameraMode; allow: CameraMode[] };
-  map?: MapSpec;           // seeded | fixed | stream
+  map?: MapSpec;
   player?: PlayerSpec;
   units?: UnitDef[];
-  config?: Record<string, unknown>;
+  create: (ctx: GameCreateContext) => GameInstance;
+}
+
+interface GameCreateContext {
+  scene: THREE.Scene;
+  camera: THREE.PerspectiveCamera;
+  quality?: unknown;
+  parent?: HTMLElement;
+}
+
+interface GameInstance {
+  systems: System[];
+  dispose?: () => void;
+  stats?: () => Record<string, unknown>;
 }
 
 type MapSpec =
   | { kind: 'seeded'; gen: (seed) => unknown }
   | { kind: 'fixed'; maps: FixedMapDef[] }
   | { kind: 'stream'; root: string; chunk: number; lodRings: number[] };
+```
+
+**Host**：`mountSampleGame(mod, { engine, scene, camera, render, sun, hemi })`  
+**Registry**：`src/registry.ts` — composition root, the only framework-side file allowed to import `game/*`.
+
+```bash
+npm run new-game mygame -- --title "My Game" --html
 ```
 
 ## System 契约

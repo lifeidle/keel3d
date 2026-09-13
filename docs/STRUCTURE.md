@@ -28,7 +28,8 @@
 engine/     L1 内核（WebGPU · 循环 · 输入 · 质量 · 资产 · 音频）
 blocks/     L2 积木（Pool Path Steering GridAStar CameraRig Unit
             ChunkWorld MapBuilder scene/*）
-content/    L3 契约（GameSpec · MapSpec · defineGame）
+content/    L3 契约（GameSpec · defineGame · mountSampleGame host）
+registry.ts 组合根：id → 动态 import 内容包（唯一可依赖 game/*）
 physics/    物理封装（参数注入）
 net/        联机协议（L2 可选能力）
 ui/ util/   输入辅助与小工具
@@ -68,6 +69,7 @@ main.ts               ?game= / window.__GAME_ID__ 路由
 | `game_regress.mjs` · `game_state_check.mjs` · `game_probe.mjs` · `selfcheck_full.mjs` | 浏览器回归 |
 | `net_e2e.mjs` | 联机 e2e |
 | `assets-encode.mjs` · `assets-webp.mjs` | 资产管线 |
+| `new-game.mjs` | 内容包脚手架（`npm run new-game`） |
 | `site-audit.mjs` | 站点体检 |
 | `adapter_probe.mjs` · `buf_err_probe.mjs` · `webgpu_probe.mjs` | 诊断 |
 

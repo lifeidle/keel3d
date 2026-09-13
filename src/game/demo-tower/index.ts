@@ -325,10 +325,12 @@ export function createTowerGame(deps: TowerDeps) {
   };
 }
 
-export const tower = defineGame({
+export default defineGame({
   id: 'tower',
   title: 'Tower',
-  map: { kind: 'fixed', maps: [grass1] },
+  daylight: true,
   camera: 'orbit',
+  map: { kind: 'fixed', maps: [grass1] },
   config: { fixedDt: 1 / 60 },
+  create: (ctx) => createTowerGame({ scene: ctx.scene, camera: ctx.camera }),
 });

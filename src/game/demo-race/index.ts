@@ -111,9 +111,10 @@ export function createRaceGame(deps: RaceDeps) {
   };
 }
 
-export const race = defineGame({
+export default defineGame({
   id: 'race',
   title: 'Race',
+  daylight: true,
   camera: { default: 'chase', allow: ['chase', 'orbit'] },
   map: {
     kind: 'fixed',
@@ -131,4 +132,5 @@ export const race = defineGame({
   },
   player: { model: 'car.glb', physics: 'vehicle' },
   config: { fixedDt: 1 / 60 },
+  create: (ctx) => createRaceGame({ scene: ctx.scene, camera: ctx.camera }),
 });

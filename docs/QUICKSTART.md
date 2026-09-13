@@ -35,26 +35,35 @@ npm run build && npm run preview
 
 **铁律**：`game/*` 之间禁止互相 import；`engine/`+`blocks/`+`content/` 禁止 import 任何 `game/`。
 
-## 3. 从模板新建游戏
+## 3. 从模板新建游戏（推荐）
+
+```bash
+npm run new-game mygame -- --title "My Game" --html
+```
+
+会：
+
+1. 复制 `demo-template` → `src/game/mygame`  
+2. 改写 `id` / `title`  
+3. 在 `src/registry.ts` 注册  
+4. 生成 `mygame.html` 并写入 Vite 多页入口  
+
+打开 `/?game=mygame` 或 `/mygame.html`。
+
+手写方式（无脚手架）：
 
 ```bash
 # Windows
 xcopy /E /I src\game\demo-template src\game\mygame
-# macOS / Linux
-cp -r src/game/demo-template src/game/mygame
 ```
 
-改 `src/game/mygame/index.ts` 里的 `id` / `title` / 场景逻辑。
+然后在 `src/registry.ts` 加一行：
 
-在 `src/main.ts`：
+```ts
+mygame: () => import('./game/mygame'),
+```
 
-1. `GAME_IDS` 数组加上 `'mygame'`  
-2. import `createTemplateGame` 改成你的 `createMyGame`  
-3. 在分支里 `createMyGame({ scene, camera })` 并注册 systems  
-
-（对照现有 `tower` / `cultivation` 分支即可。）
-
-也可用独立 HTML：复制 `tower.html` → `mygame.html`，把 `window.__GAME_ID__` 改成 `'mygame'`，并在 `vite.config.ts` 的 `rollupOptions.input` 里加上入口。
+内容包只需 `export default defineGame({ id, title, create })`。
 
 ## 4. 最小 System 模板
 

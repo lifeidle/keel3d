@@ -74,54 +74,28 @@ npm run dev              # http://localhost:5173
 
 ## 写你自己的游戏（最短路径）
 
-1. 复制模板目录：
-
 ```bash
-cp -r src/game/demo-template src/game/mygame
+npm run new-game mygame -- --title "My Game" --html
+# 打开 http://localhost:4173/?game=mygame
 ```
 
-2. 在 `src/main.ts` 注册（参考现有 `createTowerGame` 分支）：
+编辑 `src/game/mygame/index.ts`：
 
 ```ts
-import { createMyGame } from './game/mygame';
-// ...
-const sample = createMyGame({ scene: threeEngine.scene, camera: threeEngine.camera });
-for (const s of sample.systems) engine.addSystem(s);
-```
-
-3. 写内容（`src/game/mygame/index.ts`）：
-
-```ts
-import * as THREE from 'three';
-import { defineGame } from '../../content';
-import { CameraRig, Path, Steering, Pool } from '../../blocks';
-import type { System, EngineWorld } from '../../engine/types';
-
-export function createMyGame(deps: { scene: THREE.Scene; camera: THREE.PerspectiveCamera }) {
-  const { scene, camera } = deps;
-  const root = new THREE.Group();
-  scene.add(root);
-
-  const rig = new CameraRig(camera, { defaultMode: 'chase' });
-  const systems: System[] = [
-    {
-      name: 'mygame.sim',
-      update(ft: number, world: EngineWorld) {
-        // 你的玩法；world.playing 为对局中
-        rig.update(ft, new THREE.Vector3(0, 0, 0), 0);
-      },
-    },
-  ];
-  return { systems, dispose() { scene.remove(root); } };
-}
-
-export const mygame = defineGame({
+export default defineGame({
   id: 'mygame',
   title: 'My Game',
+  daylight: true,
   camera: { default: 'chase', allow: ['fps', 'chase', 'orbit'] },
-  map: { kind: 'seeded', gen: (seed) => ({ seed }) },
+  create: (ctx) => {
+    // ctx.scene / ctx.camera — 返回 { systems, dispose }
+    return { systems: [/* ... */] };
+  },
 });
 ```
+
+脚手架会写好 `src/registry.ts` 注册与可选的 `mygame.html`。  
+**不必改 `main.ts`。**
 
 更完整的说明：
 

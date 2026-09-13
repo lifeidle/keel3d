@@ -79,11 +79,13 @@ export function createFlightGame(deps: FlightDeps) {
   };
 }
 
-export const flight = defineGame({
+export default defineGame({
   id: 'flight',
   title: 'Flight',
+  daylight: true,
   camera: 'chase',
   map: { kind: 'seeded', gen: (seed) => ({ seed, sky: true }) },
   player: { model: 'plane.glb', physics: 'air' },
   config: { gravity: 0, fixedDt: 1 / 60 },
+  create: (ctx) => createFlightGame({ scene: ctx.scene, camera: ctx.camera }),
 });

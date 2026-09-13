@@ -237,3 +237,16 @@ src/game/<id>/
 **å¾…ä½ æ‹æ¿ï¼ˆä¸æŒ¡ U1â€“U2ï¼‰**
 - è„šæ‰‹æ¶æ˜¯å¦åŒæ—¶ç”Ÿæˆç‹¬ç«‹ `.html` å…¥å£ï¼ˆæ¨èï¼šç”Ÿæˆï¼‰ã€‚
 - é»˜è®¤æ ·ä¾‹ idï¼š`nightraid` è¿˜æ˜¯ `template`ï¼ˆæ¨èï¼šä¿æŒ nightraid ä¸ºé»˜è®¤ï¼Œæ¨¡æ¿ä½œæ˜¾å¼å…¥å£ï¼‰ã€‚
+
+## 9. Ö´ĞĞ×´Ì¬£¨2026-09-13£©
+
+| ½×¶Î | ×´Ì¬ |
+|---|---|
+| U1 ËŞÖ÷ | done ¡ª content/host.ts mountSampleGame |
+| U2 defineGame + registry | done ¡ª GameSpec.create + src/registry.ts |
+| U3 ½ÅÊÖ¼Ü | done ¡ª npm run new-game (with --html) |
+| U4 main È¥·ÖÖ§ | done ¡ª registry + host; nightraid bootNightRaid |
+| U5 ÎÄµµ | done ¡ª README / QUICKSTART / API / STRUCTURE |
+| U6 ¿ÉÑ¡ | partial ¡ª daylight via spec; diagnostics/KTX2 deferred |
+
+ÑéÊÕ£ºtypecheck 0 ¡¤ 26 tests ¡¤ build ¡¤ nightraid regress 0 errors ¡¤ tower/cult/flight/race/template/scaffold load OK.
