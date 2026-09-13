@@ -6,6 +6,7 @@
 export { StateSyncSystem } from './StateSyncSystem';
 export { MovementSystem } from './MovementSystem';
 export { CombatSimSystem } from './CombatSimSystem';
+export { CombatSystem } from './CombatSystem';
 export { GameplayFrameSystem } from './GameplayFrameSystem';
 export { EffectsSystem } from './EffectsSystem';
 export { AtmosphereSystem } from './AtmosphereSystem';

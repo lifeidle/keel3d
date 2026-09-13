@@ -1818,39 +1818,37 @@ export class Game {
       return;
     }
 
-    // player.update → MovementSystem (A8); weapon/enemies/physics stay here (A9)
-    const fireClick = this.input.consumeFireClick();
-    this.weapon.ads = this.input.adsToggle && !this.driving;
-    this.weapon.update(dt, this.input.fireDown, fireClick, this.engine.camera);
-    // ADS: zoom the FOV toward 75/zoom and soften the mouse while aiming
-    const baseFov = 75;
-    const targetFov = baseFov / (this.weapon.ads ? this.weapon.def.zoom : 1);
-    const cam = this.engine.camera;
-    if (Math.abs(cam.fov - targetFov) > 0.05) {
-      cam.fov += (targetFov - cam.fov) * Math.min(1, dt * 12);
-      cam.updateProjectionMatrix();
-    }
-    this.player.adsMul = this.weapon.ads ? 0.55 : 1;
-    // sniper glass at 2x+: vignette + crosshair overlay
-    this.hud.setScope(this.weapon.ads && (this.weapon.def.zoom ?? 1) >= 2);
-    this.enemies.update(dt, this.player, this.damagePlayer);
-    // fire-indicator arc lives on HudSystem (A6)
-    this.barrels.update(dt);
-    this.map.destructibles.update(dt);
-    this.physics.step();
-    this.updateEnemyTank(dt);
-    this.updateHudAndMission(dt, this.player.pos);
+    // infantry combat → CombatSystem (A9); vehicle branch stays above until A10
+  }
 
-    // near a driveable tank? surface the boarding hint (throttled)
-    this.tankHintCd -= dt;
-    if (this.playerTank?.alive && this.tankHintCd <= 0) {
-      const tp = this.playerTank.pos;
-      const d = Math.hypot(tp.x - this.player.pos.x, tp.z - this.player.pos.z);
-      if (d < 4.5) {
-        this.tankHintCd = 2;
-        this.hud.showHint(t('tank.board'), 2.2);
-      }
-    }
+  /** Collaborators for CombatSystem (A9). */
+  get combatFrame() {
+    return {
+      driving: !!this.driving,
+      input: this.input,
+      weapon: this.weapon,
+      camera: this.engine.camera,
+      player: this.player,
+      hud: this.hud,
+      enemies: this.enemies,
+      barrels: this.barrels,
+      destructibles: this.map.destructibles,
+      physics: this.physics,
+      onPlayerDamage: this.damagePlayer,
+      enemyTankTick: (dt: number) => this.updateEnemyTank(dt),
+      hudMissionTick: (dt: number, p: THREE.Vector3) => this.updateHudAndMission(dt, p),
+      tankBoardHint: (dt: number) => {
+        this.tankHintCd -= dt;
+        if (this.playerTank?.alive && this.tankHintCd <= 0) {
+          const tp = this.playerTank.pos;
+          const d = Math.hypot(tp.x - this.player.pos.x, tp.z - this.player.pos.z);
+          if (d < 4.5) {
+            this.tankHintCd = 2;
+            this.hud.showHint(t('tank.board'), 2.2);
+          }
+        }
+      },
+    };
   }
 
   /** Collaborators for MovementSystem (A8). */
