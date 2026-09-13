@@ -106,10 +106,7 @@ export function createTowerGame(deps: TowerDeps) {
   // tower pads
   const pads: { x: number; z: number; mesh: THREE.Mesh; occupied: boolean }[] = [];
   for (const p of grass1.pois!.filter((q) => q.id.startsWith('pad'))) {
-    const m = new THREE.Mesh(
-      new THREE.CylinderGeometry(1.4, 1.4, 0.2, 20),
-      new THREE.MeshStandardMaterial({ color: 0x8a9a7a, emissive: 0x223322 }),
-    );
+    const m = kitPad(1.4);
     m.position.set(p.x, 0.1, p.z);
     m.receiveShadow = true;
     root.add(m);

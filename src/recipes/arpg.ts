@@ -85,8 +85,8 @@ export function createArpgGame(
   function ensureBgm() {
     if (bgmReady || typeof AudioContext === 'undefined') return;
     try {
-      const ctx = new AudioContext();
-      bgm.attach(ctx);
+      ac = ac ?? new AudioContext();
+      bgm.attach(ac);
       bgmReady = true;
     } catch {
       /* silent */
@@ -379,6 +379,9 @@ export function createArpgGame(
       scene.remove(root);
       hud?.remove();
       endEl?.remove();
+      quest.dispose();
+      bar.dispose();
+      bgm.detach();
       hud = null;
       endEl = null;
     },

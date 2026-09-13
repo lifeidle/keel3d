@@ -95,6 +95,22 @@ export function createDungeonGame(
     },
   });
 
+  let dac: AudioContext | null = null;
+  function doorBeep() {
+    try {
+      if (typeof AudioContext === 'undefined') return;
+      dac = dac ?? new AudioContext();
+      const o = dac.createOscillator();
+      const g = dac.createGain();
+      o.frequency.value = 520;
+      g.gain.value = 0.05;
+      o.connect(g);
+      g.connect(dac.destination);
+      o.start();
+      o.stop(dac.currentTime + 0.08);
+    } catch { /* silent */ }
+  }
+
   function showEnd(win: boolean) {
     if (endEl || typeof document === 'undefined') return;
     endEl = document.createElement('div');

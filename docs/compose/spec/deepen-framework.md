@@ -1,14 +1,24 @@
 ---
 feature: deepen-framework
-status: in-progress
+status: delivered
 updated: 2026-09-13
 branch: feature/deepen-framework
-commits: # filled at delivery
+commits: 8b86821b2fc3b0211358e38a7a1413fe84729a57..6c6e60ebaa8284cec73b3a996e71a8d1c607c8c8
 ---
 
 # Deepen Framework — performance, gameplay depth, docs
 
 ## Report
+
+**What was built** — Deepened framework: ARPG BgmLayers intensity, tower kitPad + level HUD, dungeon door beep, collect R-restart/par, TUTORIAL.md, unused-check, import rules.
+
+**Verification** — typecheck PASS · test PASS · build PASS · probe-all PASS. Reviewer blocking items fixed (kitPad/KeyR/doorBeep/STRUCTURE).
+
+**Journey log** —
+1. Repeated "import-only" failure: always verify call sites, not diffs.
+2. CRLF vs LF broke naive string replace; regex ?
+ or inspect dispose blocks.
+3. noUnusedLocables:false hides dead imports — browser probe is the real gate.
 
 ## [S1] Problem
 
@@ -64,9 +74,9 @@ Three slices on one branch; npm publish remains out of scope.
 
 ## Tasks
 
-- [ ] T1: STRUCTURE import rules + unused-check script — acceptance: script runs (covers: S2 A)
-- [ ] T2: README copy-vs-ignore guidance — acceptance: section exists (covers: S2 A; depends: T1)
-- [ ] T3: ARPG BgmLayers intensity wire — acceptance: no crash without audio buffers (covers: S2 B; depends: T1)
-- [ ] T4: Tower level HUD + kitPad; dungeon beep; collect R restart — acceptance: typecheck; probe tower/collect (covers: S2 B; depends: T1)
-- [ ] T5: TUTORIAL.md + API/QUICKSTART/hub links — acceptance: docs exist and linked (covers: S2 C; depends: T1)
-- [ ] T6: Full verify — acceptance: typecheck/test/build/probe green (covers: S2; depends: T2-T5)
+- [x] T1: STRUCTURE import rules + unused-check script — acceptance: script runs (covers: S2 A)
+- [x] T2: README copy-vs-ignore guidance — acceptance: section exists (covers: S2 A; depends: T1)
+- [x] T3: ARPG BgmLayers intensity wire — acceptance: no crash without audio buffers (covers: S2 B; depends: T1)
+- [x] T4: Tower level HUD + kitPad; dungeon beep; collect R restart — acceptance: typecheck; probe tower/collect (covers: S2 B; depends: T1)
+- [x] T5: TUTORIAL.md + API/QUICKSTART/hub links — acceptance: docs exist and linked (covers: S2 C; depends: T1)
+- [x] T6: Full verify — acceptance: typecheck/test/build/probe green (covers: S2; depends: T2-T5)

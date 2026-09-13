@@ -66,6 +66,7 @@ export function createCollectGame(
     const mesh = new THREE.Mesh(geo, mat);
     mesh.position.set(x, 0.7, z);
     root.add(mesh);
+    orbMeshes.push(mesh);
     field.add(
       new Pickup({
         id: 'orb' + i,
@@ -91,9 +92,21 @@ export function createCollectGame(
   let endEl: HTMLElement | null = null;
   const rig = new CameraRig(camera, { defaultMode: 'chase', chase: { distance: 12, height: 6, lookAhead: 2 } });
 
-  function onDn(e: KeyboardEvent) {
-    keys.add(e.code);
-  }
+  function restart() {
+    status = 'playing';
+    got = 0;
+    score.reset();
+    field.resetAll();
+    for (const m of orbMeshes) m.visible = true;
+    player.position.set(0, 1, 0);
+    endEl?.remove();
+    endEl = null;
+    }
+
+    function onDn(e: KeyboardEvent) {
+      keys.add(e.code);
+      if (e.code === 'KeyR') restart();
+    }
   function onUp(e: KeyboardEvent) {
     keys.delete(e.code);
   }
@@ -134,7 +147,7 @@ export function createCollectGame(
             endEl = document.createElement('div');
             endEl.style.cssText =
               'position:fixed;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.5);color:#5dcea0;font:28px/1.4 system-ui,sans-serif';
-            endEl.textContent = `收集完成 · ${score.time.toFixed(1)}s — 回到金圈交付`;
+            endEl.textContent = `收集完成 · ${score.time.toFixed(1)}s — 按 R 再来一局`;
             document.body.appendChild(endEl);
           }
         }
@@ -148,7 +161,7 @@ export function createCollectGame(
         }
         if (hud) {
           hud.textContent =
-            `收集 ${got}/${n} · 时间 ${score.time.toFixed(1)}s\n` +
+            `收集 ${got}/${n} · 时间 ${score.time.toFixed(1)}s${opts.parTime ? ` · 参考 ${opts.parTime}s` : ''}\n` +
             `WASD 移动 · 捡满回金圈 · R 重开`;
         }
       },
