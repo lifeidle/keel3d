@@ -851,7 +851,6 @@ export class Game {
         this.animateViewmodel(ft);
       }
     }
-    if (this.nightClouds) this.nightClouds.rotation.y += ft * 0.006;
     if (this.shake > 0.001) this.shake = Math.max(0, this.shake - ft * 2.2);
     if (this.state === 'playing' && this.shake > 0.001) {
       const s = this.shake;
@@ -891,19 +890,23 @@ export class Game {
     };
   }
 
-  /** Weather + muzzle/flare light decay. */
-  hostAtmosphereFrame(ft: number, playing: boolean) {
-    if (
-      this.state === 'playing' ||
-      this.state === 'paused' ||
-      this.state === 'menu' ||
-      this.state === 'intro'
-    ) {
-      this.weather.update(ft, this.engine.camera.position);
-    }
-    this.fadeMuzzleLights(ft);
-    void playing;
+  /** Weather + muzzle/flare light decay → AtmosphereSystem (A5). */
+  hostAtmosphereFrame(_ft: number, _playing: boolean) {
+    // no-op shell until A12
   }
+
+  /** Atmosphere collaborators for AtmosphereSystem. */
+  get atmosphere() {
+    return {
+      state: this.state,
+      weather: this.weather,
+      cameraPos: this.engine.camera.position,
+      muzzleLights: this.muzzleLights,
+      nightClouds: this.nightClouds,
+    };
+  }
+
+  // fadeMuzzleLights lives on AtmosphereSystem (A5)
 
   /** Tier auto-downgrade handled by QualityAutoSystem (A2). */
   hostQualityAuto(_ft: number) {
@@ -2006,14 +2009,7 @@ export class Game {
     l.intensity = strength;
   }
 
-  /** Exponentially fade the muzzle lights (called every render frame). */
-  private fadeMuzzleLights(ft: number) {
-    const k = Math.exp(-ft * 11);
-    for (const l of this.muzzleLights) {
-      if (l.intensity > 0.02) l.intensity *= k;
-      else if (l.intensity !== 0) l.intensity = 0;
-    }
-  }
+  // original fadeMuzzleLights removed — AtmosphereSystem owns it (A5)
 
   /**
    * Battlefield dynamics (C batch): while a fight drags on, the enemy camp
