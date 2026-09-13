@@ -22,6 +22,8 @@
 | 别人能填 | ✅ template + QUICKSTART/API/ADAPT |
 
 **后续（不挡框架使用）**：游戏内容打磨、修仙正式 GLB、KTX2 编码工具链、npm 发包与线上三域名部署。
+
+**2026-09-13 基座代码审查**：CameraRig/Path 热路径零分配；Pool 迭代安全；ChunkWorld 跳过同格重建；GridAStar 二叉堆；Unit 胶囊体钳制；AssetHub 纹理加载；MapBuilder 穷尽 switch；content 统一出口。26 测 + regress 全绿。
 - ✅ **Phase C 契约**：`content/define.ts` + `defineGame()`。
 - 🔶 **Phase D 玩法链**：波次（5 波）+ 放塔 + 塔攻击 + 基地 HP + **胜负结算叠层** + 三读数 HUD。
 - 🔶 **Phase E 玩法链**：修炼台涨修为/境界 + Path+Steering 妖兽 + 视角 1/2/3 切换。真实 chunk 流式与修仙 GLB 仍缺。
