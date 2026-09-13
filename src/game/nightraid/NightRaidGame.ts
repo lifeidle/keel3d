@@ -14,6 +14,7 @@ import {
   QualityAutoSystem,
   RenderPresentSystem,
   HudSystem,
+  MissionSystem,
 } from './systems';
 
 export interface NightRaidDeps {
@@ -25,6 +26,7 @@ export function createNightRaidGame(deps: NightRaidDeps): GameModule {
   const systems: System[] = [
     new StateSyncSystem(g),
     new CombatSimSystem(g),
+    new MissionSystem(g),
     new GameplayFrameSystem(g),
     new HudSystem(g),
     new EffectsSystem(g),

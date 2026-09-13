@@ -1599,21 +1599,27 @@ export class Game {
 
   // updateFireIndicators moved to HudSystem (A6)
 
-  /** Kill-streak milestones: one-shot radio flourish as the count climbs. */
-  private checkStreak() {
-    const nodes: Array<[number, string, string]> = [
-      [3, 'v_streak3', 'streak.3'],
-      [5, 'v_streak5', 'streak.5'],
-      [8, 'v_streak8', 'streak.8'],
-    ];
-    for (const [n, voice, key] of nodes) {
-      if (this.kills === n && this.streakPlayed < n) {
-        this.streakPlayed = n;
-        this.hud.addKill(`<b>${t(key)}</b>`);
-        this.audio.playVoice(voice, 0.9);
-        return;
-      }
-    }
+  /** Collaborators for MissionSystem (A7). */
+  get missionFrame() {
+    return {
+      hud: this.hud,
+      audio: this.audio,
+      mission: this.mission,
+      playerPos: this.player.pos,
+      alive: this.enemies.aliveCount(),
+      squadAlive: this.enemies.alliesAlive(),
+      kills: this.kills,
+      pvpActive: this.netPvp && this.net.state === 'ready',
+      isClient: this.netMode === 'client' && this.net.state === 'ready',
+      ghostSwarm: this.ghostSwarm,
+      noteKills: (n: number) => {
+        this.kills += n;
+      },
+      markTimedOut: () => {
+        this.timedOut = true;
+      },
+      gameOver: (v: boolean) => this.gameOver(v),
+    };
   }
 
   /** Add camera-shake trauma (clamped). Decays in the render loop. */
@@ -1647,7 +1653,8 @@ export class Game {
     }
   }
 
-  private gameOver(victory: boolean) {
+  /** End-of-match settlement → MissionSystem (A7); kept public for net events. */
+  gameOver(victory: boolean) {
     if (this.state === 'over') return;
     // ?debug=1: record WHO ended the match (call site), for net e2e diagnosis
     if (this.dbg) {
@@ -1684,7 +1691,8 @@ export class Game {
     this.showScreen('end');
   }
 
-  private fillEnd() {
+  /** End-screen copy → MissionSystem (A7). */
+  fillEnd() {
     const el = document.getElementById('endTitle')!;
     el.textContent = t(this.victory ? 'end.win' : this.timedOut ? 'end.timeout' : 'end.lose');
     el.classList.toggle('win', this.victory);
@@ -2010,7 +2018,8 @@ export class Game {
    * it, and throw the garrison's reserve at the flag as a counterattack —
    * the rest of the fight is a defence.
    */
-  private onCampCaptured() {
+  /** Flag captured → MissionSystem (A7). */
+  onCampCaptured() {
     const camp = this.map?.camp;
     if (!camp) return;
     this.map.flagMats.hostile.color.setHex(0x3f7a3a); // their red becomes our green
@@ -2108,37 +2117,7 @@ export class Game {
       this.music.setMood(target);
     }
 
-    // kill-feed delta (hostiles only — squad mates don't advance the mission)
-    // PvP hunt: no AI squads exist — the co-op counters stay untouched there
-    const pvpActive = this.netPvp && this.net.state === 'ready';
-    const alive = this.enemies.aliveCount();
-    if (!pvpActive) {
-      if (alive < this.lastAlive) {
-        const killed = this.lastAlive - alive;
-        this.kills += killed;
-        this.hud.addKill(`<b>${killed}</b> ${t('kill.down')}`);
-        this.lastAlive = alive;
-        this.checkStreak();
-      }
-      this.hud.setEnemies(alive);
-
-      // friendly squad status: a colour-coded counter + a killfeed note when a
-      // squadmate falls (squad losses never fail the operation)
-      const sqAlive = this.enemies.alliesAlive();
-      const sqTotal = opScale().allies;
-      if (sqAlive < this.lastSquadAlive) {
-        const lost = this.lastSquadAlive - sqAlive;
-        this.hud.addKill(`<b>${lost}</b> ${t('hud.allyDown')}`);
-        // squad wiped (or nearly): the Chinese squad voice calls to hold
-        if (sqAlive === 0 && !this.losingVoiced && sqTotal > 0) {
-          this.losingVoiced = true;
-          this.audio.playVoice('v_losing', 0.8);
-        }
-      }
-      if (sqAlive > this.lastSquadAlive) this.losingVoiced = false; // reinforced
-      this.lastSquadAlive = sqAlive;
-      this.hud.setSquad(sqAlive, sqTotal);
-    }    // voice cooldowns tick here (same cadence as the HUD update)
+    // voice cooldowns tick here (same cadence as the HUD update)
     if (this.tangoCd > 0) this.tangoCd -= dt;
     if (this.allyVoiceCd > 0) this.allyVoiceCd -= dt;
 
@@ -2167,7 +2146,8 @@ export class Game {
       }
     }
     // --- PvP hunt tick ---
-    if (this.netPvp && this.net.state === 'ready') {
+    const pvpActive = this.netPvp && this.net.state === 'ready';
+    if (pvpActive) {
       this.pvpTimeLeft -= dt;
       if (this.pvpTimeLeft <= 0) {
         // time's up: higher score wins (host authoritative, ties favour host)
@@ -2205,16 +2185,6 @@ export class Game {
         this.net.sendInput(btn, this.player.yaw, this.player.pitch, ax.x, ax.z);
       }
       this.ghostSwarm?.update(dt);
-      // client HUD: counters read the SNAPSHOT ghosts (the local manager is
-      // empty by design — reading it showed 敌人剩余 0 / 小队 0 forever)
-      const swarm = this.ghostSwarm;
-      if (swarm) {
-        const ghostN = swarm.enemyAliveCount();
-        this.hud.setEnemies(ghostN);
-        this.hud.setSquad(swarm.allyAliveCount(), opScale().allies);
-        // same objective view as the host: killed/total from the shared seed
-        this.hud.setObjective(this.mission.view(ghostN, opScale().enemies));
-      }
       const pp = this.player.pos;
       const canRescue = this.ghostSwarm?.downedAllyNear(pp.x, pp.z, 2.6) ?? false;
       const canSupply = this.map.ammoDumps.some((d) => Math.hypot(d.x - pp.x, d.z - pp.z) < 3);
@@ -2239,14 +2209,7 @@ export class Game {
       return;
     }
 
-    // mission objective: from here on, win/lose is driven by the mission
-    const res = this.mission.update(dt, p, alive, opScale().enemies);
-    this.hud.setObjective(this.mission.view(alive, opScale().enemies));
-    if (res === 'win') this.gameOver(true);
-    else if (res === 'lose') {
-      this.timedOut = true;
-      this.gameOver(false);
-    }
+    // mission objective / kill-feed → MissionSystem (A7)
   }
 
   private loop = (now: number) => {
