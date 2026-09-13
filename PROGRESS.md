@@ -1,9 +1,9 @@
-# 3D 游戏框架 · 进度文档（PROGRESS）
+# KeeL 3D · 进度文档（PROGRESS）
 
-> 更新：2026-09-13（框架主轴定调） ｜ 配套：`FRAMEWORK_PLAN.md`（规划全文）· `EXECUTION_STEPS.md`（分步施工单）
-> **本文件 = 唯一进度真相源**：每次工作收尾更新此文件，确保上下文丢失后可从零恢复。
-> **主轴**：产品是**框架**（可适配各种三维游戏的开源基座）；三个样例互不相干，只通过框架 API 接入。
-
+> 更新：2026-09-13（品牌定名） ｜ 配套：`FRAMEWORK_PLAN.md` · `EXECUTION_STEPS.md`  
+> **品牌**：Specul · **KeeL 3D** · npm `keel3d` · https://3d.specul.com（2D 规划：KeeL 2D / keel2d）  
+> **本文件 = 唯一进度真相源**：每次工作收尾更新此文件，确保上下文丢失后可从零恢复。  
+> **主轴**：产品是**框架**（可适配各种三维游戏的开源基座）；样例互不相干，只通过框架 API 接入。
 ---
 
 ## 0. 一句话现状
@@ -249,24 +249,24 @@ $out = & $node "<脚本绝对路径>" 2>&1; $code = $LASTEXITCODE
 | `scripts/test.mjs` | 单测管线（esbuild bundle + node --test） |
 | `scripts/selfcheck_full.mjs` / `game_state_check.mjs` | 浏览器自测工具链 |
 
-**2026-09-13 FRAMEWORK_V2 U1�CU5 ���**
-- ͳһ���� mountSampleGame��registry ��ϸ���GameSpec.create/daylight/autoPlay
-- npm run new-game ���ּܣ������ɶ��� HTML��
-- main.ts �� resolve �� load �� mount��ҹϮ bootNightRaid ����
-- �ĵ����룻26 �� / regress / ȫ��������ȫ��
+**2026-09-13 FRAMEWORK_V2 U1�CU5 ���**
+- ͳһ���� mountSampleGame��registry ��ϸ���GameSpec.create/daylight/autoPlay
+- npm run new-game ���ּܣ������ɶ��� HTML��
+- main.ts �� resolve �� load �� mount��ҹϮ bootNightRaid ����
+- �ĵ����룻26 �� / regress / ȫ��������ȫ��
 
-**2026-09-13 V3 ��ľ���**
+**2026-09-13 V3 ��ľ���**
 - gameplay: Health/Timers/Economy/Scoreboard/WaveDirector/PlaceGrid/Spawner
 - ui: HudPanel/Toast/EndOverlay/HealthBar
-- �������� Economy+WaveDirector+Health��33 ���⣻docs/BLOCKS.md + REMAINING.md
-- ���� import���������Զ�ע��
+- �������� Economy+WaveDirector+Health��33 ���⣻docs/BLOCKS.md + REMAINING.md
+- ���� import���������Զ�ע��
 
-**2026-09-13 TD �䷽**
-- src/recipes/tower-defense.ts��new-game --recipe td ����֤�� typecheck/build
+**2026-09-13 TD �䷽**
+- src/recipes/tower-defense.ts��new-game --recipe td ����֤�� typecheck/build
 
-**2026-09-13 �����䷽ + ����Ѫ��**
-- recipes/survival.ts��new-game --recipe survival��cultivation �� HealthBar ��ʾ��Ϊ
+**2026-09-13 �����䷽ + ����Ѫ��**
+- recipes/survival.ts��new-game --recipe survival��cultivation �� HealthBar ��ʾ��Ϊ
 
-**2026-09-13 Ʒ�ƶ���**
-- ��Ʒ����KeeL 3D��npm��keel3d��վ�㣺3d.specul.com
-- ɡƷ�� Specul���滮 KeeL 2D / keel2d / 2d.specul.com
+**2026-09-13 Ʒ�ƶ���**
+- ��Ʒ����KeeL 3D��npm��keel3d��վ�㣺3d.specul.com
+- ɡƷ�� Specul���滮 KeeL 2D / keel2d / 2d.specul.com
