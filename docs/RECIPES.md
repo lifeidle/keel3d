@@ -11,6 +11,7 @@
 | `collect` | collect.html | WASD 捡满后回金圈 | PickupField · TriggerZone |
 | `rally` | rally.html | 自动行驶，按序穿检查点 | Path · BestScoreSlot · TriggerZone |
 | `dungeon` | dungeon.html | E/F 开门，Boss 房 J/空格 | Interactable · TriggerZone |
+| `fps-arena` | fps-arena.html | WASD + 鼠标/方向键，空格/J 射击 | pickTarget · Pool · kit |
 | `flight-arena` | （new-game） | WASD 飞行，空格/J 射击 | Projectile · pickTarget |
 
 ---
@@ -87,6 +88,20 @@ dungeonRecipe({ id: 'mydgn', rooms: 3 })
 |---|---|
 | `rooms` | 房间数（最后一间为 Boss） |
 | `playerHp` / `moveSpeed` | 玩家 |
+
+## fps-arena（轻量第一人称）
+
+```ts
+fpsArenaRecipe({ id: 'myfps', targetHp: 50 })
+```
+
+WASD 移动 · 鼠标（点击锁定）或方向键转向 · 空格/J 射击。完整战役演示见 `fps.html`。
+
+| 字段 | 含义 |
+|---|---|
+| `moveSpeed` / `lookSpeed` | 移动与视角 |
+| `fireCd` / `bulletDamage` | 射击 |
+| `targetHp` / `spawnEvery` / `arena` | 靶场 |
 
 ## flight-arena（空战）
 

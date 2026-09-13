@@ -63,7 +63,8 @@ Then open (default ~`http://localhost:4173`):
 | Path | What |
 |---|---|
 | `/hub.html` | Pick a genre → see base config + blocks |
-| `/` | Night Raid FPS |
+| `/fps.html` | Full FPS demo |
+| `/fps-arena.html` | Light FPS arena (recipe) |
 | `/tower.html` | Tower defense |
 | `/openworld.html` | Open world (keys 1/2/3 switch camera) |
 

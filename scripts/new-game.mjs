@@ -27,7 +27,7 @@ if (!id || !/^[a-z][a-z0-9-]*$/.test(id)) {
 }
 const title = arg('title', id.replace(/(^|-)([a-z])/g, (_, __, c) => c.toUpperCase()));
 const wantHtml = process.argv.includes('--html');
-const recipe = arg('recipe', 'blank'); // blank | td | survival | arpg | collect | rally | dungeon | flight-arena
+const recipe = arg('recipe', 'blank'); // blank | td | survival | arpg | fps-arena | ... | survival | arpg | collect | rally | dungeon | flight-arena
 
 const srcDir = path.join(root, 'src/game', id);
 if (fs.existsSync(srcDir)) {
@@ -123,6 +123,15 @@ export default dungeonRecipe({
   const code = `import { flightArenaRecipe } from '../../recipes/flight-arena';
 
 export default flightArenaRecipe({
+  id: '${id}',
+  title: '${title}',
+});
+`;
+  fs.writeFileSync(path.join(srcDir, 'index.ts'), code);
+} else if (recipe === 'fps-arena') {
+  const code = `import { fpsArenaRecipe } from '../../recipes/fps-arena';
+
+export default fpsArenaRecipe({
   id: '${id}',
   title: '${title}',
 });

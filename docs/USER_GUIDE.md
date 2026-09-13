@@ -65,7 +65,8 @@ npm run preview
 | 路径 | 内容 |
 |---|---|
 | `/hub.html` | **选品类 → 看基底与积木** |
-| `/` | FPS 骨架 |
+| `/fps.html` | 完整 FPS 演示 |
+| `/fps-arena.html` | 轻量 FPS 竞技场（配方） |
 | `/tower.html` | 塔防 |
 | `/openworld.html` | 开放世界骨架（1/2/3 切视角） |
 

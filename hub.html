@@ -385,13 +385,13 @@
     const GENRES = [
       {
         id: 'fps', icon: '🎯', title: 'FPS 骨架',
-        blurb: '第一人称 · 程序化地图 · 可选 P2P。',
-        tags: ['seeded', 'fps', 'P2P'],
-        demo: './fps.html',
-        spec: { camera: "'fps'", map: "seeded", player: 'ground' },
-        cmd: 'npm run new-game myfps -- --html',
-        note: '完整 DOM 与战役逻辑在 fps.html。',
-        blocks: [['createUnitBody', '角色'], ['CameraRig', 'fps'], ['MapBuilder', 'seeded']],
+        blurb: '轻量第一人称靶场；完整战役演示见 fps.html。',
+        tags: ['fps', 'hitscan', 'recipe'],
+        demo: './fps-arena.html',
+        spec: { camera: 'fps', create: 'fpsArenaRecipe' },
+        cmd: 'npm run new-game myfps -- --recipe fps-arena --html',
+        note: '完整演示 fps.html；轻量起点 fps-arena.html 或 --recipe fps-arena。',
+        blocks: [['pickTarget', '选敌'], ['Cooldown', '射速'], ['kitHumanoid', '靶子']],
       },
       {
         id: 'td', icon: '🏰', title: '塔防骨架',

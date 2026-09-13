@@ -112,6 +112,7 @@ export default defineConfig({
         rally: 'rally.html',
         dungeon: 'dungeon.html',
         'flight-arena': 'flight-arena.html',
+        'fps-arena': 'fps-arena.html',
       },
       output: {
         manualChunks(id) {
