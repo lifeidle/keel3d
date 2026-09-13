@@ -7,6 +7,7 @@ import * as THREE from 'three';
 import { defineGame } from '../../content/defineGame';
 import { CameraRig } from '../../blocks/CameraRig';
 import { Path } from '../../blocks/Path';
+import { BestScoreSlot } from '../../blocks/progress/SaveSlot';
 import type { System, EngineWorld } from '../../engine/types';
 
 export interface RaceDeps {
@@ -69,6 +70,8 @@ export function createRaceGame(deps: RaceDeps) {
   let dist = 0;
   let t = 0;
   let lap = 0;
+  const best = new BestScoreSlot('keel3d-race-best');
+  let lapT = 0;
   let hud: HTMLElement | null = null;
 
   const systems: System[] = [
@@ -80,7 +83,12 @@ export function createRaceGame(deps: RaceDeps) {
           const speed = 12;
           const prev = dist;
           dist = (dist + speed * ft) % TRACK.totalLen;
-          if (dist < prev) lap++;
+          lapT += ft;
+          if (dist < prev) {
+            lap++;
+            best.submit(Math.round(lapT * 100) / 100, 'bestLap', true);
+            lapT = 0;
+          }
         }
         TRACK.sampleAt(dist, pos);
         TRACK.sampleDir(dist, dir);
@@ -95,7 +103,8 @@ export function createRaceGame(deps: RaceDeps) {
               'position:fixed;left:12px;top:12px;z-index:20;color:#e8eef7;font:14px/1.4 monospace;background:rgba(0,0,0,.45);padding:8px 12px;border-radius:6px';
             document.body.appendChild(hud);
           }
-          hud.textContent = `赛车骨架 · vehicle · 圈 ${lap} · 里程 ${(dist).toFixed(1)}m`;
+          const b = best.read('bestLap');
+          hud.textContent = `赛车骨架 · 圈 ${lap} · 里程 ${dist.toFixed(1)}m · 最佳圈 ${b == null ? '—' : b + 's'}`;
         }
       },
     },

@@ -498,6 +498,26 @@
           ['MapBuilder', '三种地图'],
         ],
       },
+      {
+        id: 'arpg',
+        icon: '⚔️',
+        title: '俯视 ARPG 骨架',
+        blurb: 'WASD 移动、近战/弹道、掉落与金币。配方生成。',
+        tags: ['orbit', 'combat', 'recipe'],
+        demo: './template.html',
+        spec: {
+          camera: "'orbit'",
+          create: 'arpgRecipe({ id })',
+        },
+        cmd: 'npm run new-game myarpg -- --recipe arpg --html',
+        note: '空格/J 攻击；掉落可用 Pickup 拾取。',
+        blocks: [
+          ['Cooldown', '攻击间隔'],
+          ['pickTarget', '选敌'],
+          ['Projectile', '弹道'],
+          ['Pickup', '掉落'],
+        ],
+      },
     ];
 
     const grid = document.getElementById('genre-grid');

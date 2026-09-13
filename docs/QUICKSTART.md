@@ -47,6 +47,9 @@ npm run new-game mytd -- --recipe td --title "My TD" --html
 
 # 波次生存配方（WASD 移动，撑过波次）
 npm run new-game mysurv -- --recipe survival --html
+
+# 俯视 ARPG
+npm run new-game myarpg -- --recipe arpg --html
 ```
 
 会：

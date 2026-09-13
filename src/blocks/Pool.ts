@@ -18,6 +18,11 @@ export class Pool<T> {
     return this.live.size;
   }
 
+  /** Snapshot of live items. */
+  get units(): readonly T[] {
+    return [...this.live];
+  }
+
   get spareCount(): number {
     return this.free.length;
   }

@@ -14,3 +14,8 @@ export {
   createSurvivalGame,
   type SurvivalRecipeOpts,
 } from './survival';
+export {
+  arpgRecipe,
+  createArpgGame,
+  type ArpgRecipeOpts,
+} from './arpg';

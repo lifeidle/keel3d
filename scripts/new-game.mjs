@@ -65,6 +65,18 @@ export default towerDefenseRecipe({
 });
 `;
   fs.writeFileSync(path.join(srcDir, 'index.ts'), code);
+} else if (recipe === 'arpg') {
+  const code = `/**
+ * \`${id}\` — top-down ARPG via recipe.
+ */
+import { arpgRecipe } from '../../recipes/arpg';
+
+export default arpgRecipe({
+  id: '${id}',
+  title: '${title}',
+});
+`;
+  fs.writeFileSync(path.join(srcDir, 'index.ts'), code);
 } else if (recipe === 'survival') {
   const code = `/**
  * \`${id}\` — wave survival via recipe.

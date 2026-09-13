@@ -103,3 +103,23 @@ gems.update(player.x, player.z);
 |---|---|
 | `SaveSlot` | 版本化 localStorage 存档 |
 | `BestScoreSlot` | 最佳成绩（圈速等） |
+
+
+## 战斗积木 `src/blocks/combat/`
+
+| 模块 | 用途 |
+|---|---|
+| `Cooldown` | 技能/射击间隔 |
+| `pickTarget` | 最近 / 范围内选敌 |
+| `Projectile` + `stepProjectiles` | 弹道与命中 |
+| `areaHits` / `ringHits` | AOE / 环形伤害 |
+
+## 建造积木 `src/blocks/build/`
+
+| 模块 | 用途 |
+|---|---|
+| `BuildSystem` | 建筑表、放置、升级、定时产出 |
+
+## 进度（补充）
+
+`LevelTable` — 关卡解锁链；赛车骨架已用 `BestScoreSlot` 存最佳圈速。

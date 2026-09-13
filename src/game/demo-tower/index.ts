@@ -142,7 +142,7 @@ export function createTowerGame(deps: TowerDeps) {
   let hudEl: HTMLElement | null = null;
   let endEl: HTMLElement | null = null;
   let status: 'playing' | 'win' | 'lose' = 'playing';
-  const towers: TowerMesh[] = [];
+  const towers: (TowerMesh & { defBoost?: number })[] = [];
 
   const waves = [0, 1, 2, 3, 4].map((i) => ({
     count: 3 + (i + 1) * 2,
@@ -181,7 +181,7 @@ export function createTowerGame(deps: TowerDeps) {
     const alive = enemyPool.activeCount;
     hudEl.textContent =
       `金钱 ${eco.balance} · 波次 ${director.waveNumber}/${director.totalWaves} · 基地 ${baseHp}\n` +
-      `选塔 1速射/2重炮/3减速 (${selected}) · 点击空塔位放置\n` +
+      `选塔 1/2/3 · 点空台放塔 · U 升级最后放的塔\n` +
       `场上敌人 ${enemyPool.activeCount}` + (status !== 'playing' ? `\n[${status}]` : '');
   }
 
@@ -214,10 +214,20 @@ export function createTowerGame(deps: TowerDeps) {
     if (idx >= 0) placeTower(idx);
   }
 
+  function upgradeTower() {
+    if (status !== 'playing' || !towers.length) return;
+    const tw = towers[towers.length - 1];
+    const cost = Math.floor(TOWER_COST[tw.kind] * 0.6);
+    if (!eco.spend(cost)) return;
+    tw.defBoost = (tw.defBoost ?? 1) + 0.35;
+    tw.mesh.scale.setScalar(1 + (tw.defBoost - 1) * 0.25);
+  }
+
   function onKey(e: KeyboardEvent) {
     if (e.key === '1') selected = 'rapid';
     else if (e.key === '2') selected = 'cannon';
     else if (e.key === '3') selected = 'frost';
+    else if (e.key === 'u' || e.key === 'U') upgradeTower();
   }
 
   if (typeof window !== 'undefined') {
@@ -279,7 +289,8 @@ export function createTowerGame(deps: TowerDeps) {
           if (tw.cd > 0) continue;
           const range = tw.kind === 'cannon' ? 14 : 11;
           const rate = tw.kind === 'rapid' ? 4 : tw.kind === 'cannon' ? 0.8 : 1.2;
-          const dmg = tw.kind === 'rapid' ? 8 : tw.kind === 'cannon' ? 28 : 6;
+          const baseDmg = tw.kind === 'rapid' ? 8 : tw.kind === 'cannon' ? 28 : 6;
+          const dmg = Math.round(baseDmg * (tw.defBoost ?? 1));
           let target: EnemyMesh | null = null;
           let best = Infinity;
           enemyPool.forEachLive((e) => {
