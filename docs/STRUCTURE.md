@@ -13,7 +13,7 @@
 | `PROGRESS.md` | 进度真相源 |
 | `README.md` · `LICENSE` | 说明与许可 |
 | `hub.html` | 选型页（游戏形式 → 基底） |
-| `index.html` | Sample A 入口（夜袭） |
+| `index.html` | Sample A 入口（FPS 骨架） |
 | `tower.html` | Sample B 独立入口 |
 | `cultivation.html` | Sample C 独立入口 |
 | `package.json` · `tsconfig.json` · `vite.config.ts` · `wrangler.toml` | 工程配置 |
@@ -36,11 +36,11 @@ registry.ts 组合根：id → 动态 import 内容包（唯一可依赖 game/*�
 physics/    物理封装（参数注入）
 net/        联机协议（L2 可选能力）
 ui/ util/   输入辅助与小工具
-world/      L2 候选：quality / mapgen / terrain / textures（夜袭仍用）
+world/      L2 候选：quality / mapgen / terrain / textures（FPS 骨架仍用）
 game/
   nightraid/           Sample A（完整 FPS + 联机）
   demo-tower/          Sample B 塔防
-  demo-cultivation/    Sample C 修仙
+  demo-cultivation/    Sample C 开放世界骨架
   demo-flight/         飞行骨架
   demo-race/           赛车骨架
   demo-template/       新游戏模板
@@ -51,7 +51,7 @@ main.ts               ?game= / window.__GAME_ID__ 路由
 
 1. `game/*` 两两禁止互相 import
 2. `engine/` + `blocks/` + `content/` 禁止 import 任何 `game/`
-3. 上移 L2 前必须脱敏（去夜袭专名）
+3. 上移 L2 前必须脱敏（去FPS 骨架专名）
 
 ## docs/
 
@@ -80,10 +80,10 @@ main.ts               ?game= / window.__GAME_ID__ 路由
 
 | URL | 游戏 |
 |---|---|
-| http://localhost:4188/ | 夜袭 |
+| http://localhost:4188/ | FPS 骨架 |
 | http://localhost:4189/tower.html | 塔防 |
-| http://localhost:4190/cultivation.html | 修仙 |
-| `/?game=flight` · `/?game=race` · `/?game=template` | 骨架/模板 |
+| http://localhost:4190/openworld.html | 开放世界骨架 |
+| `/flight.html` · `/race.html` · `/template.html` | 骨架/模板 |
 
 ## 不入库 / 可再生
 

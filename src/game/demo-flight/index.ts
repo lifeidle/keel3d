@@ -1,6 +1,6 @@
 /**
  * Spec skeleton — flight (Sample path for air physics).
- * Loadable via ?game=flight. Minimal: zero gravity, chase camera, sky box.
+ * Loadable via flight.html. Minimal: zero gravity, chase camera, sky box.
  * Independent: no imports from other game/* packages.
  */
 import * as THREE from 'three';

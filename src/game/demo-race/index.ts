@@ -1,6 +1,6 @@
 /**
  * Spec skeleton — race (Sample path for vehicle physics + fixed track).
- * Loadable via ?game=race. Minimal: orbit/chase camera, looped track marker.
+ * Loadable via race.html. Minimal: orbit/chase camera, looped track marker.
  * Independent: no imports from other game/* packages.
  */
 import * as THREE from 'three';

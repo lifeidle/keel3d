@@ -13,22 +13,22 @@
 | DoD 项 | 状态 |
 |---|---|
 | 样例互相独立（零 import） | ✅ |
-| 三样例可跑 | ✅ 夜袭 / 塔防 / 修仙 |
-| 飞行 / 赛车 spec 骨架可加载 | ✅ `?game=flight` · `?game=race` |
+| 三样例可跑 | ✅ FPS 骨架 / 塔防 / 开放世界骨架 |
+| 飞行 / 赛车 spec 骨架可加载 | ✅ `flight.html` · `race.html` |
 | 地图三模式 | ✅ seeded / fixed / stream（ChunkWorld） |
-| 运行时相机切换 | ✅ 修仙 1/2/3 |
+| 运行时相机切换 | ✅ 开放世界骨架 1/2/3 |
 | 三重验证 | ✅ typecheck / 26 测 / build |
 | Sample A 不回归 | ✅ regress + net e2e |
 | 别人能填 | ✅ template + QUICKSTART/API/ADAPT |
 
-**后续（不挡框架使用）**：游戏内容打磨、修仙正式 GLB、KTX2 编码工具链、npm 发包与线上三域名部署。
+**后续（不挡框架使用）**：游戏内容打磨、开放世界骨架正式 GLB、KTX2 编码工具链、npm 发包与线上三域名部署。
 
 **2026-09-13 基座代码审查**：CameraRig/Path 热路径零分配；Pool 迭代安全；ChunkWorld 跳过同格重建；GridAStar 二叉堆；Unit 胶囊体钳制；AssetHub 纹理加载；MapBuilder 穷尽 switch；content 统一出口。26 测 + regress 全绿。
 
 **2026-09-13 目录终态清理**：根目录只留规划三件套 + README/LICENSE + 三入口 HTML + 工程配置；scripts 主流程与 legacy 分离；许可清单进 docs/；结构见 `docs/STRUCTURE.md`。
 - ✅ **Phase C 契约**：`content/define.ts` + `defineGame()`。
 - 🔶 **Phase D 玩法链**：波次（5 波）+ 放塔 + 塔攻击 + 基地 HP + **胜负结算叠层** + 三读数 HUD。
-- 🔶 **Phase E 玩法链**：修炼台涨修为/境界 + Path+Steering 妖兽 + 视角 1/2/3 切换。真实 chunk 流式与修仙 GLB 仍缺。
+- 🔶 **Phase E 玩法链**：修炼台涨修为/境界 + Path+Steering 妖兽 + 视角 1/2/3 切换。真实 chunk 流式与开放世界骨架 GLB 仍缺。
 - ✅ **联机 e2e**：COOP PASS + PVP PASS（快照数一致、seed 一致）。
 
 ---
@@ -38,9 +38,9 @@
 | 角色 | 定位 | 交付义务 |
 |---|---|---|
 | **框架**（L1 内核 + L2 积木 + L3 契约 + 工具链 + 文档） | **产品本体**（开源游戏基座，适配各种三维游戏） | Phase 0–F 全部 |
-| 夜袭（Sample A） | **独立内容包之一**（碰巧已存在的最复杂样本，用作压力测试） | 抽框架时不回归；内容增强归自己 |
+| FPS 骨架（Sample A） | **独立内容包之一**（碰巧已存在的最复杂样本，用作压力测试） | 抽框架时不回归；内容增强归自己 |
 | demo-tower（Sample B） | **独立内容包之一**（塔防，零其他样例代码） | 最小可玩；证 fixed+Path+orbit |
-| demo-cultivation（Sample C） | **独立内容包之一**（修仙开放世界，零其他样例代码） | 最小可玩；证 stream+运行时切视角；美术另做 GLB |
+| demo-cultivation（Sample C） | **独立内容包之一**（开放世界骨架开放世界，零其他样例代码） | 最小可玩；证 stream+运行时切视角；美术另做 GLB |
 
 **样例独立性铁律**：`src/game/<name>/` 两两禁止互相 import；框架不得反向依赖任一样例；上移 L2 必须脱敏。
 将来任何新游戏 = 再加一个内容包，不碰框架、不碰其他样例。
@@ -75,9 +75,9 @@
 | **Phase 0** | 前沿技术基线（WebGPU 唯一 + 标准 rapier3d + KTX2/Draco + esnext） | 🔶 进行中 |
 | Phase A | 解耦 `core/game.ts` 大脑为真实 System | ⬜ |
 | Phase B | 通用构件上移 `src/blocks/` + MapBuilder（seeded/fixed）+ CameraRig.setMode | ⬜ |
-| Phase C | `defineGame` 内容包 API + 夜袭重表达 | ⬜ |
+| Phase C | `defineGame` 内容包 API + FPS 骨架重表达 | ⬜ |
 | Phase D | **demo-tower（塔防）验收样例 B** | ⬜ |
-| Phase E | **demo-cultivation（修仙）验收样例 C**（ChunkWorld 最小 + 多视角） | ⬜ |
+| Phase E | **demo-cultivation（开放世界骨架）验收样例 C**（ChunkWorld 最小 + 多视角） | ⬜ |
 | Phase F | 开源打包（npm 三包 + template + 文档） | ⬜（另开任务） |
 
 > 范围确认：**Phase 0→E 做到「WebGPU 下 Sample A+B+C 能跑 + 三重验证全绿」即框架完工**。
@@ -122,7 +122,7 @@
 
 ### 3.4 规划文档
 - `FRAMEWORK_PLAN.md`：完整规划（含 2.5 技术基线、3.3 地图三模式、三样例、第 8 节已定/待拍板全部关闭）
-- `EXECUTION_STEPS.md`：分步施工单（Phase 0 收尾 + A12 + B9 + C4 + D4 + **E1–E5 修仙样例**）
+- `EXECUTION_STEPS.md`：分步施工单（Phase 0 收尾 + A12 + B9 + C4 + D4 + **E1–E5 开放世界骨架样例**）
 - 2026-09-13 增补：**Sample C demo-cultivation** 写入两份文档；`stream` 从接口位升为最小可工作；`CameraRig.setMode` 升为一等 API
 
 ### 3.5 技术基线核验（2026-09-13）
@@ -184,11 +184,11 @@
 3. ~~浏览器回归~~ ✅（WebGPU 可玩、0 错误；修复 sprite 共享几何体 bug）
 4. ~~三样例规划增补~~ ✅（FRAMEWORK_PLAN + EXECUTION_STEPS + 本文件）
 5. ~~依赖小版本对齐~~ ✅（@types/three 0.186 / vite 8.3 / wrangler 4.131；typecheck+test+build 全绿）
-6. ~~深度技术审查 + 三项拍板~~ ✅（音频归夜袭内容包 / Sample C 另做修仙 GLB / Phase A 前 git init）
+6. ~~深度技术审查 + 三项拍板~~ ✅（音频归FPS 骨架内容包 / Sample C 另做开放世界骨架 GLB / Phase A 前 git init）
 7. ~~框架主轴定调~~ ✅（样例互不相干；独立性铁律入 DoD）
 8. ~~施工准备~~ ✅（0.0 git + 0.1 快照 `A0` + 0.2 基线 `shots/baseline/` 全绿）
 9. **切片 3**：KTX2/Draco 资产管线（1.1）
-10. **Phase A**：从 Sample A 抽出 L1/L2（A1–A12，脱敏后夜袭降为普通内容包）
+10. **Phase A**：从 Sample A 抽出 L1/L2（A1–A12，脱敏后FPS 骨架降为普通内容包）
 
 ## 6.5 审查修复记录（2026-09-13 第二轮）
 
@@ -197,7 +197,7 @@
 - ✅ **历史文档归档标注**：`OPTIMIZATION_PLAN.md` / `TECH_STACK_UPGRADE_PLAN.md` 顶部加「已被 FRAMEWORK_PLAN.md 取代」注记（内含过时的 WebGL 回退/多线程方案，防误读）。
 - ✅ **施工单落地**：`EXECUTION_STEPS.md`（Phase 0 收尾 + Phase A 12 步 + B/C/D/E/F 细分，每步含做法/验收/回滚/规模）。
 - ✅ **三样例增补（2026-09-13）**：Sample C demo-cultivation 写入规划；`stream` 升最小可工作；`CameraRig.setMode` 升一等 API；开源打包改为 Phase F。
-- ✅ **深度技术审查（2026-09-13）**：版本全最新；发现音频占 dist 74%（22.3MB）、WebGPU 无 render.info 诊断失明；用户拍板：①音频归夜袭内容包不进 Phase 0 ②Sample C 另做修仙 GLB ③Phase A 前 git init。
+- ✅ **深度技术审查（2026-09-13）**：版本全最新；发现音频占 dist 74%（22.3MB）、WebGPU 无 render.info 诊断失明；用户拍板：①音频归FPS 骨架内容包不进 Phase 0 ②Sample C 另做开放世界骨架 GLB ③Phase A 前 git init。
 - ✅ **框架主轴定调（2026-09-13）**：产品是框架；三样例互不相干只依赖框架；写入独立性铁律（互相 import 禁止 + 脱敏上移 + DoD grep 验收）。
 - ℹ️ 规划评审结论：骨架成立；已修正物理选型描述、补回滚网（快照机制）、补回归基线、拆细 Phase A。
 
@@ -239,10 +239,10 @@ $out = & $node "<脚本绝对路径>" 2>&1; $code = $LASTEXITCODE
 | 文件 | 说明 |
 |---|---|
 | `FRAMEWORK_PLAN.md` | 完整规划（战略层：分层架构、内容包 API、MapSpec 三模式、三样例、Phase 0–F） |
-| `EXECUTION_STEPS.md` | 分步施工单（每步做法/验收/回滚/规模 + 行为账本 + 打勾表，含 Phase E 修仙样例） |
+| `EXECUTION_STEPS.md` | 分步施工单（每步做法/验收/回滚/规模 + 行为账本 + 打勾表，含 Phase E 开放世界骨架样例） |
 | `PROGRESS.md`（本文件） | 进度真相源（执行层：状态、问题、下一步、环境备忘） |
 | `src/engine/` | L1 内核（Engine/renderer/RendererFacade/services/quality/assets/audio/input） |
-| `src/core/game.ts` | **待解耦的"上帝类"**（Phase A 目标；2347 行，承接夜袭全部实体逻辑） |
+| `src/core/game.ts` | **待解耦的"上帝类"**（Phase A 目标；2347 行，承接FPS 骨架全部实体逻辑） |
 | `src/game/nightraid/` | Sample A 内容模块（FrameSystems 薄壳 + SoldierFactory） |
 | `src/game/demo-tower/` | Sample B（待建，Phase D） |
 | `src/game/demo-cultivation/` | Sample C（待建，Phase E） |

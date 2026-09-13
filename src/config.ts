@@ -1,4 +1,4 @@
-// 夜袭 / Night Raid — central tunables.
+// FPS 骨架 / Night Raid — central tunables.
 // Everything gameplay-affecting lives here so the content layer can be tweaked
 // without touching systems code. (Matches the "keep framework, replace content" rule.)
 

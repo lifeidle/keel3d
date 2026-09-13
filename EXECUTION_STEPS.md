@@ -35,7 +35,7 @@
 - **规模**：S
 
 ### 0.2 回归基线（Phase A 的对照物）— S ✅ 已完成
-- **目标**：录下「现在的夜袭」作为手感/数据对照物，Phase A 每步与它比。
+- **目标**：录下「现在的FPS 骨架」作为手感/数据对照物，Phase A 每步与它比。
 - **做法**：
   1. `npm run build` → 起服务（端口 4188）→ 依次跑并写入 `shots/baseline/`：
      - `game_state_check` → `state.txt`（ERRORS: none，HUD 30/90）
@@ -84,7 +84,7 @@ DOM id：`#bootFill #bootTxt #btnPlay #btnNet #btnNetHost #btnNetJoin #btnNetGo 
 ## 1. Phase 0 收尾：资产管线（切片 3）
 
 ### 1.1 KTX2/Draco 工具链 + 运行时接入 — M ✅ Draco 完成（KTX2 延后）
-- **目标**：第三方模型/纹理进项目时体积更小、加载更快；夜袭现有资产做一次转换验证。
+- **目标**：第三方模型/纹理进项目时体积更小、加载更快；FPS 骨架现有资产做一次转换验证。
 - **做法**：
   1. 引入 `@gltf-transform/cli` + `draco3d` + `meshoptimizer`（devDependency）✅
   2. 写 `scripts/assets-encode.mjs`（`npm run assets:encode`）：`public/models/*.glb` → `public/models-opt/`（Draco）；失败回退拷贝原文件 ✅
@@ -149,19 +149,19 @@ DOM id：`#bootFill #bootTxt #btnPlay #btnNet #btnNetHost #btnNetJoin #btnNetGo 
 
 ## 3. Phase B：通用构件上移 `src/blocks/`
 
-> 原则：**只把「换游戏也要用」的东西上移**；夜袭专属（士兵外观/坦克/吉普）留在内容层。
-> 每步先上移、再让夜袭改用、再验证夜袭无变化。
+> 原则：**只把「换游戏也要用」的东西上移**；FPS 骨架专属（士兵外观/坦克/吉普）留在内容层。
+> 每步先上移、再让FPS 骨架改用、再验证FPS 骨架无变化。
 
 ### B1 `blocks/` 目录与导出规范 — S
 - 建 `src/blocks/index.ts` 出口；约定「blocks 不 import 内容层、内容层可 import blocks」。
 
 ### B2 `Unit`（单位基座）— M
 - 从 `player.ts` + `SoldierFactory` 抽象：配置驱动（半径/高度/速度/HP 从参数注入）；物理体创建封装。
-- 验收：夜袭玩家改用后，五连全绿 + 移动/受击手感不变。
+- 验收：FPS 骨架玩家改用后，五连全绿 + 移动/受击手感不变。
 
 ### B3 `CameraRig`（相机机架）— M
-- fps / chase / orbit / free 四种模式；**含运行时 `setMode()` + 短时 lerp 过渡**（为 Sample C 预埋，本步不强制夜袭使用切换）。
-- 夜袭 fps + tank chase 先迁移验证。
+- fps / chase / orbit / free 四种模式；**含运行时 `setMode()` + 短时 lerp 过渡**（为 Sample C 预埋，本步不强制FPS 骨架使用切换）。
+- FPS 骨架 fps + tank chase 先迁移验证。
 
 ### B4 `Pool`（对象池）— S
 - 把 muzzle light / flare / casing 三个散落池泛化为 `Pool<T>`。
@@ -169,7 +169,7 @@ DOM id：`#bootFill #bootTxt #btnPlay #btnNet #btnNetHost #btnNetJoin #btnNetGo 
 ### B5 `Path` + `Steering`（寻路三件套之两个标准件）— M
 - `Path`：样条/waypoint 跟线（新写，~150 行）。
 - `Steering`：从 `enemy.ts` 抽「直扑/侧翼/分离/限速/停火距离」为纯函数工具。
-- 验收：夜袭 AI 改用 Steering 后行为抽查（敌人战术不变）。
+- 验收：FPS 骨架 AI 改用 Steering 后行为抽查（敌人战术不变）。
 
 ### B6 `SceneBuilder` / `MapBuilder`（seeded 模式）— M
 - `terrain.ts` + `mapgen.ts` 收进 `blocks/scene/`；`gen(seed)` 注入（行为逐点一致：见 B9 的确定性测试）。
@@ -179,7 +179,7 @@ DOM id：`#bootFill #bootTxt #btnPlay #btnNet #btnNetHost #btnNetJoin #btnNetGo 
 
 ### B8 `MapSpec.fixed` 机制 + 1 张示例图 — M
 - 定义 `FixedMapDef` 数据结构（地形参数 + POI + 出生点）；加载器 + 菜单可切（默认隐藏，URL 可选）。
-- 用 1 张小图验证机制（不必是夜袭正式图，demo 级别即可）。
+- 用 1 张小图验证机制（不必是FPS 骨架正式图，demo 级别即可）。
 
 ### B9 Phase B 总验收 — S
 - **mapgen 确定性回归**：同 seed 地图与改造前逐点对比（写一次性脚本 `scripts/mapgen_determinism.mjs`，输出 diff=0）。
@@ -192,7 +192,7 @@ DOM id：`#bootFill #bootTxt #btnPlay #btnNet #btnNetHost #btnNetJoin #btnNetGo 
 ### C1 契约类型（`src/content/define.ts`）— M
 - `GameSpec` / `UnitDef` / `PlayerSpec` / `MapSpec` / `SceneBuilder` 类型 + `defineGame()` 骨架（先只做类型与空实现，不改运行时）。
 
-### C2 夜袭重表达（`src/game/nightraid/define.ts`）— M
+### C2 FPS 骨架重表达（`src/game/nightraid/define.ts`）— M
 - 把 `NightRaidGame` 的装配改写为一份 `defineGame` 配置；`MapSpec` 走 `seeded`。
 - 此时 `Game`（已被 A12 瘦身）变成「内容层私有装配器」，由 `define.ts` 调用。
 
@@ -200,7 +200,7 @@ DOM id：`#bootFill #bootTxt #btnPlay #btnNet #btnNetHost #btnNetJoin #btnNetGo 
 - `main.ts` 改为 `createGame(nightraidSpec)`；加 `?game=` 参数路由（默认 nightraid，未知值回退）。
 
 ### C4 全量回归 — M
-- 五连 + `net_e2e.mjs` + PvP + 驾驶局；`PROGRESS.md` 更新：**夜袭已变成「框架上的第一个内容包」**。
+- 五连 + `net_e2e.mjs` + PvP + 驾驶局；`PROGRESS.md` 更新：**FPS 骨架已变成「框架上的第一个内容包」**。
 
 ---
 
@@ -234,11 +234,11 @@ DOM id：`#bootFill #bootTxt #btnPlay #btnNet #btnNetHost #btnNetJoin #btnNetGo 
 
 ### E2 运行时相机切换 API 收口 — S
 - 确认 `CameraRig.setMode(fps|chase|orbit)` + lerp 过渡可用；`GameSpec.camera` 支持 `{ default, allow }`。
-- 验收：单测或最小 playground 切换无跳变；夜袭/塔防单模式回归不变。
+- 验收：单测或最小 playground 切换无跳变；FPS 骨架/塔防单模式回归不变。
 
 ### E3 骨架 — M
 - `src/game/demo-cultivation/`：`defineGame` + 2–3 chunk stream 地图 + `camera:{default:'chase',allow:[fps,chase,orbit]}`；空场景能走动能切视角。
-- **美术注记（用户拍板）**：另找/做修仙 GLB（修士/妖兽/山林小场景）。E1–E2 与本步骨架用**占位几何**验收机制；正式 GLB 到位后替换（不阻塞 E1–E2 验收）。
+- **美术注记（用户拍板）**：另找/做开放世界骨架 GLB（修士/妖兽/山林小场景）。E1–E2 与本步骨架用**占位几何**验收机制；正式 GLB 到位后替换（不阻塞 E1–E2 验收）。
 
 ### E4 玩法链 — L
 - 第三人称 ground 移动 → 修炼点站桩涨修为条 → 1–2 种游荡妖兽（Steering + GridAStar 绕障追击）→ 简易飞剑/法术命中。
@@ -256,8 +256,8 @@ DOM id：`#bootFill #bootTxt #btnPlay #btnNet #btnNetHost #btnNetJoin #btnNetGo 
 ## 6. Phase F：开源打包（概要，另开任务时再细化）
 
 - npm 三包拆分（`@yexi/core` / `@yexi/blocks` / `@yexi/content`）或单包多入口。
-- 模板仓库 `game-template` + 对应三样例路径的示例 spec（fps / 塔防 / 修仙多视角）。
-- 文档：QUICKSTART / API / ADAPT（ADAPT 含修仙一页）。
+- 模板仓库 `game-template` + 对应三样例路径的示例 spec（fps / 塔防 / 开放世界骨架多视角）。
+- 文档：QUICKSTART / API / ADAPT（ADAPT 含开放世界骨架一页）。
 - README 重写（框架叙事 + demo-tower / demo-cultivation 链接）。
 
 ---
@@ -304,4 +304,4 @@ DOM id：`#bootFill #bootTxt #btnPlay #btnNet #btnNetHost #btnNetJoin #btnNetGo 
 | D1–D4（塔防） | | | | |
 | E1 ChunkWorld | | | | |
 | E2 相机切换 | | | | |
-| E3–E5 修仙样例 | | | | |
+| E3–E5 开放世界骨架样例 | | | | |

@@ -37,7 +37,7 @@
 |---|---|---|
 | FPS（含联机） | `src/game/nightraid` | 任务、武器、地图种子 |
 | 塔防 | `src/game/demo-tower` + `--recipe td` | 车道、塔表、波次、金币 |
-| 修仙开放世界 | `src/game/demo-cultivation` | chunk、视角、妖兽 |
+| 开放世界骨架开放世界 | `src/game/demo-cultivation` | chunk、视角、妖兽 |
 | 波次生存 | `--recipe survival` | 血量、波次、伤害 |
 | 飞行 / 赛车骨架 | `demo-flight` / `demo-race` | 赛道、手感 System |
 
@@ -65,9 +65,9 @@ npm run preview
 | 路径 | 内容 |
 |---|---|
 | `/hub.html` | **选品类 → 看基底与积木** |
-| `/` | 夜袭 FPS |
+| `/` | FPS 骨架 |
 | `/tower.html` | 塔防 |
-| `/cultivation.html` | 修仙（1/2/3 切视角） |
+| `/openworld.html` | 开放世界骨架（1/2/3 切视角） |
 
 ### 3.3 新建自己的游戏
 
@@ -165,8 +165,8 @@ npm run build
 **改了代码没生效？**  
 `npm run preview` 服务的是 `dist/`，改完先 `npm run build`。开发用 `npm run dev`。
 
-**如何只发布自己的游戏、不要夜袭素材？**  
-不要拷贝 `public/audio`、`public/models` 中夜袭专用文件；只用你自己的资产。框架代码仍是 MIT。
+**如何只发布自己的游戏、不要FPS 骨架素材？**  
+不要拷贝 `public/audio`、`public/models` 中FPS 骨架专用文件；只用你自己的资产。框架代码仍是 MIT。
 
 **可以商用吗？**  
-可以。见 [LEGAL.md](./LEGAL.md)；完整夜袭构建请遵守 CC-BY 署名等条款。
+可以。见 [LEGAL.md](./LEGAL.md)；完整FPS 骨架构建请遵守 CC-BY 署名等条款。

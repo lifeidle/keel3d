@@ -65,7 +65,7 @@ Then open (default ~`http://localhost:4173`):
 | `/hub.html` | Pick a genre → see base config + blocks |
 | `/` | Night Raid FPS |
 | `/tower.html` | Tower defense |
-| `/cultivation.html` | Open world (keys 1/2/3 switch camera) |
+| `/openworld.html` | Open world (keys 1/2/3 switch camera) |
 
 ### 3.3 Scaffold your own game
 

@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite';
 
-// 夜袭 / Night Raid - Vite config
+// FPS 骨架 / Night Raid - Vite config
 // base: './' keeps asset paths relative so the build runs from any sub-path
 // (Cloudflare Pages, GitHub Pages, or a plain static file server).
 // manualChunks splits the two heavy vendors into cacheable files: app updates
@@ -101,8 +101,12 @@ export default defineConfig({
       input: {
         main: 'index.html',
         hub: 'hub.html',
+        fps: 'fps.html',
         tower: 'tower.html',
-        cultivation: 'cultivation.html',
+        openworld: 'openworld.html',
+        flight: 'flight.html',
+        race: 'race.html',
+        template: 'template.html',
       },
       output: {
         manualChunks(id) {

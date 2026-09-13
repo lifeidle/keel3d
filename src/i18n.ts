@@ -160,7 +160,7 @@ const STRINGS: Record<string, { zh: string; en: string }> = {
   'quality.low':   { zh: '低画质', en: 'LOW' },
   'quality.med':   { zh: '中画质', en: 'MED' },
   'quality.high':  { zh: '高画质', en: 'HIGH' },
-  'note.touch':    { zh: '本作为第一人称射击，需要鼠标与键盘操作；触屏设备体验受限。', en: 'This is a first-person shooter — a mouse and keyboard are required. Touch devices are only partially supported.' },
+  'note.touch':    { zh: '本作为FPS 骨架，需要鼠标与键盘操作；触屏设备体验受限。', en: 'This is a first-person shooter — a mouse and keyboard are required. Touch devices are only partially supported.' },
 
   // tanks (H package)
   'tank.board':      { zh: '[F] 登车 — 驾驶坦克',         en: '[F] BOARD TANK' },
@@ -177,7 +177,7 @@ const STRINGS: Record<string, { zh: string; en: string }> = {
   'boot.loading':  { zh: '正在初始化战场…', en: 'Initializing battlefield…' },
 
   // Page <title> + share-card copy (switched fully per locale, no mix).
-  'meta.title':    { zh: '夜袭', en: 'NIGHT RAID' },
+  'meta.title':    { zh: 'FPS 骨架', en: 'NIGHT RAID' },
   'meta.desc':     { zh: '离线可玩的 Three.js 夜战 FPS：种子化随机战场、任务目标、可破坏掩体、动态天气。', en: 'An offline, seeded night-raid FPS built with Three.js — randomized battlefields, objectives, destructible cover, and dynamic weather.' },
 
   // Label shows the language you would switch TO.

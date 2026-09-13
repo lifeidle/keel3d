@@ -1,38 +1,37 @@
 # KeeL 3D
 
 **Browser-native 3D game foundation** (WebGPU + three.js + Rapier + TypeScript).  
-Part of [Specul](https://specul.com) · Site: https://3d.specul.com · npm: `keel3d`
+Part of [Specul](https://specul.com) · GitHub: https://github.com/lifeidle/keel3d · npm: `keel3d`
 
-Stop rebuilding the engine. Clone, fill in **models + gameplay + scene**, and ship FPS, tower defense, open-world, flight, racing, and more — as static web games.
+Stop rebuilding the engine. Clone, fill in **models + gameplay + scene**, and ship web 3D games as static sites.
 
 | | |
 |---|---|
-| Rendering | **WebGPU only** (three.js r186; no WebGL fallback) |
-| Physics | Rapier3D (standard wasm) |
+| Rendering | **WebGPU only** (three.js; no WebGL fallback) |
+| Physics | Rapier3D |
 | Stack | TypeScript + Vite |
-| License | MIT (code) · see third-party notices for assets |
+| License | MIT (code) · see notices for assets |
 
-> Requires a WebGPU browser (recent Chrome / Edge, Safari 17+). Others see an upgrade message.
+> Requires a WebGPU browser (recent Chrome / Edge, Safari 17+).
 
-**English docs:** [User Guide](docs/USER_GUIDE.en.md) · [Legal](docs/LEGAL.en.md) · [Third-party notices](docs/THIRD_PARTY_NOTICES.md)  
-**中文文档：** [使用指南](docs/USER_GUIDE.md) · [法律说明](docs/LEGAL.md) · [Quickstart](docs/QUICKSTART.md)
+**English:** [User Guide](docs/USER_GUIDE.en.md) · [Legal](docs/LEGAL.en.md) · [Third-party notices](docs/THIRD_PARTY_NOTICES.md)  
+**中文：** [README.md](README.md) · [使用指南](docs/USER_GUIDE.md)
 
 ---
 
-## What you get
+## Skeletons (standalone HTML)
 
-| You no longer build | KeeL 3D provides |
-|---|---|
-| Render loop / fixed-step physics | `Engine` |
-| Quality tiers + dynamic resolution | `QualityController` |
-| Keyboard / mouse / touch | `Input` |
-| Pools, paths, steering, A* | `Pool` · `Path` · `Steering` · `GridAStar` |
-| FPS / chase / orbit + runtime switch | `CameraRig.setMode` |
-| Character capsule | `createUnitBody` |
-| Chunk streaming | `ChunkWorld` |
-| Maps: seeded / fixed / stream | `MapBuilder` |
-| Draco / KTX2 model load | `createGltfLoader` |
-| Optional P2P protocol | `src/net/` |
+| Skeleton | Entry | Notes |
+|---|---|---|
+| **FPS** | [`fps.html`](fps.html) | first-person · seeded maps · optional P2P |
+| **Tower defense** | [`tower.html`](tower.html) | fixed lanes · towers · waves/economy |
+| **Open world** | [`openworld.html`](openworld.html) | stream chunks · camera 1/2/3 |
+| **Flight** | [`flight.html`](flight.html) | chase · gravity 0 |
+| **Racing** | [`race.html`](race.html) | loop track · vehicle |
+| **Blank template** | [`template.html`](template.html) | minimal start |
+| **Hub** | [`hub.html`](hub.html) | pick skeleton → base + blocks |
+
+Entries are **HTML files only** (no query-string routing).
 
 ---
 
@@ -41,42 +40,26 @@ Stop rebuilding the engine. Clone, fill in **models + gameplay + scene**, and sh
 ```bash
 npm install
 npm run build && npm run preview
+# open /hub.html or any skeleton page
 ```
-
-| URL | Game |
-|---|---|
-| `/hub.html` | Genre picker → base + blocks |
-| `/` | Night Raid (FPS sample) |
-| `/tower.html` | Tower defense |
-| `/cultivation.html` | Open world (1/2/3 camera) |
-
-### New game
 
 ```bash
 npm run new-game mygame -- --title "My Game" --html
 npm run new-game mytd -- --recipe td --html
-npm run new-game mysurv -- --recipe survival --html
 ```
 
 ---
 
-## Architecture
+## What you get
 
-```
-src/engine/     L1 kernel
-src/blocks/     L2 building blocks (opt-in import)
-src/content/    L3 GameSpec / defineGame / host
-src/registry.ts composition root (only place that may load game/*)
-src/game/*      independent content packages (no cross-imports)
-```
+Engine kernel, opt-in blocks (pools, paths, steering, cameras, chunks, maps), gameplay blocks (health, waves, economy, placement), UI helpers, and data-driven recipes.
+
+Import **only what you need** — unused blocks stay out of the bundle and the frame loop.
 
 ---
 
-## License & compliance
+## License
 
 - **Source:** MIT — commercial use OK; keep the license notice.  
-- **Assets in `public/`:** CC0 / CC-BY / CC-BY-SA — **not** covered by MIT.  
-- Full guide: [docs/LEGAL.en.md](docs/LEGAL.en.md) · [docs/THIRD_PARTY_NOTICES.md](docs/THIRD_PARTY_NOTICES.md)
-
-**Commercial:** Framework + your own game → MIT + dependency notices.  
-Full Night Raid build → keep CC-BY credits; handle CC-BY-SA voice lines (attribute/SA or remove).
+- **Assets in `public/`:** CC0 / CC-BY / etc. — **not** under MIT.  
+- See [docs/LEGAL.en.md](docs/LEGAL.en.md) and [docs/THIRD_PARTY_NOTICES.md](docs/THIRD_PARTY_NOTICES.md).

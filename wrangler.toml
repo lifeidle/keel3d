@@ -1,19 +1,13 @@
 # Cloudflare Pages — direct upload config.
-# Deploy with:  wrangler pages deploy dist
-# (requires `wrangler login` first, or CLOUDFLARE_API_TOKEN in the env)
-name = "night-raid"
+# Deploy: wrangler pages deploy dist
+# (wrangler login first, or CLOUDFLARE_API_TOKEN in the env)
+name = "keel3d"
 pages_build_output_dir = "dist"
 compatibility_date = "2024-09-01"
 
-# NOTE: this project ships @dimforge/rapier3d-COMPAT. Its WASM is inlined as
-# base64, so it runs WITHOUT cross-origin isolation (no SharedArrayBuffer).
-# That means no COOP/COEP headers are required — _headers already ships the
-# security headers we want and intentionally leaves isolation off.
-
-# --- Multiplayer signaling (stage 1, free plan) ---
-# Pages Functions read/write offers & answers via this KV namespace.
-# Create the namespace once:  wrangler kv namespace create NET_SIGNALING
-# then put its id below (local dev with `wrangler pages dev` auto-mocks it).
-[[kv_namespaces]]
-binding = "NET_SIGNALING"
-id = "5c768f82f6da4c4c8fdc44b17128d358"
+# Optional multiplayer signaling (Pages Functions + KV).
+# Create a namespace in your own Cloudflare account, then set the id here.
+# Local dev with `wrangler pages dev` mocks signaling without KV.
+# [[kv_namespaces]]
+# binding = "NET_SIGNALING"
+# id = "<your-kv-namespace-id>"

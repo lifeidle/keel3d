@@ -2,7 +2,7 @@
 
 > 主轴不变：**框架是产品**。  
 > 本计划在「三样例已跑通」的基础上，专攻 **开发者体验（DX）** 与 **技术先进性**，让新人 15 分钟做出可玩原型，而不是先读完源码。  
-> 夜袭只是 Sample A：**不拖累 API 形状**；能跑即可，不为兼容旧接线牺牲框架设计。
+> FPS 骨架只是 Sample A：**不拖累 API 形状**；能跑即可，不为兼容旧接线牺牲框架设计。
 
 ---
 
@@ -69,9 +69,9 @@ src/game/<id>/
    - `mountSampleGame({ id, engine, systems, daylight? })`
    - 自动：`world.playing = true`（样例默认）+ present system + 可选 `applyDaylight`
 2. 改 `main.ts`：`createXxxGame` 分支收敛为 `loaders[id]` Map。
-3. 夜袭保持特殊路径（完整 `Game` 类），但 id 仍走同一 `resolveGameId`。
+3. FPS 骨架保持特殊路径（完整 `Game` 类），但 id 仍走同一 `resolveGameId`。
 
-**验收**：`/?game=tower|cultivation|flight|race|template` 与三个 HTML 入口行为不变；夜袭 regress 0 错误。
+**验收**：`/?game=tower|cultivation|flight|race|template` 与三个 HTML 入口行为不变；FPS 骨架 regress 0 错误。
 
 **规模**：M
 
@@ -140,11 +140,11 @@ src/game/<id>/
    });
    ```
 2. `main.ts` 仅：resolve id → `registry` → `create` → `mountSampleGame`。
-3. 夜袭：`create` 包装现有 `Game` + `createNightRaidGame`（不拆玩法）。
+3. FPS 骨架：`create` 包装现有 `Game` + `createNightRaidGame`（不拆玩法）。
 
-**验收**：全部入口 + 夜袭 regress。
+**验收**：全部入口 + FPS 骨架 regress。
 
-**规模**：L（夜袭接线最烦）
+**规模**：L（FPS 骨架接线最烦）
 
 ---
 
@@ -181,7 +181,7 @@ src/game/<id>/
 |---|---|---|---|
 | U1.1 | 实现 `mountSampleGame` + present/daylight | `content/host.ts` | 编译过 |
 | U1.2 | `main.ts` 改为 loaders Map | 单一入口逻辑 | 三 HTML + ?game 全开 |
-| U1.3 | 夜袭接 loaders（包装现有 Game） | 无行为变化 | regress + e2e 可选 |
+| U1.3 | FPS 骨架接 loaders（包装现有 Game） | 无行为变化 | regress + e2e 可选 |
 | U2.1 | 扩展 `GameSpec.create` + 类型 | define.ts | tsc |
 | U2.2 | 静态 `registry.ts` | 内容包懒加载 | 五样例 |
 | U2.3 | 各 demo 改 `export default defineGame` | 统一模块形 | 五连 |
@@ -198,7 +198,7 @@ src/game/<id>/
 | 风险 | 缓解 |
 |---|---|
 | 动态 import 打包丢模块 | 必须用**静态** registry 对象字面量 |
-| 夜袭接线复杂 | 只做适配器，不改 `Game` 内部 |
+| FPS 骨架接线复杂 | 只做适配器，不改 `Game` 内部 |
 | vite 多页 HTML 脚手架改配置脆弱 | 生成 HTML + 手写/标记块插入 input；失败则只生成目录 |
 | 范围膨胀到编辑器/发包 | 本计划 DoD 明确非目标 |
 
@@ -231,22 +231,22 @@ src/game/<id>/
 ## 8. 已定 / 待拍板
 
 **已定（2026-09-13 用户）**
-- 框架优先于「保夜袭旧结构」；夜袭不回归仍要跑，但不约束 API。
+- 框架优先于「保FPS 骨架旧结构」；FPS 骨架不回归仍要跑，但不约束 API。
 - 目标：先进 + 好上手 + 好用。
 
 **待你拍板（不挡 U1–U2）**
 - 脚手架是否同时生成独立 `.html` 入口（推荐：生成）。
 - 默认样例 id：`nightraid` 还是 `template`（推荐：保持 nightraid 为默认，模板作显式入口）。
 
-## 9. ִ��״̬��2026-09-13��
+## 9. ִ��״̬��2026-09-13��
 
-| �׶� | ״̬ |
+| �׶� | ״̬ |
 |---|---|
-| U1 ���� | done �� content/host.ts mountSampleGame |
-| U2 defineGame + registry | done �� GameSpec.create + src/registry.ts |
-| U3 ���ּ� | done �� npm run new-game (with --html) |
-| U4 main ȥ��֧ | done �� registry + host; nightraid bootNightRaid |
-| U5 �ĵ� | done �� README / QUICKSTART / API / STRUCTURE |
-| U6 ��ѡ | partial �� daylight via spec; diagnostics/KTX2 deferred |
+| U1 ���� | done �� content/host.ts mountSampleGame |
+| U2 defineGame + registry | done �� GameSpec.create + src/registry.ts |
+| U3 ���ּ� | done �� npm run new-game (with --html) |
+| U4 main ȥ��֧ | done �� registry + host; nightraid bootNightRaid |
+| U5 �ĵ� | done �� README / QUICKSTART / API / STRUCTURE |
+| U6 ��ѡ | partial �� daylight via spec; diagnostics/KTX2 deferred |
 
-���գ�typecheck 0 �� 26 tests �� build �� nightraid regress 0 errors �� tower/cult/flight/race/template/scaffold load OK.
+���գ�typecheck 0 �� 26 tests �� build �� nightraid regress 0 errors �� tower/cult/flight/race/template/scaffold load OK.

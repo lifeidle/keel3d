@@ -1,11 +1,11 @@
 # 可开源 3D 游戏框架 —— 整体规划
 
 > **主轴（用户定调，不可动摇）**：**框架本身是产品**。目标是做一个能承载**各种各样三维游戏**的开源基座——
-> 别人 clone 下来，只填「模型 + 玩法 + 场景」，就能做出 FPS / 塔防 / 修仙开放世界 / 飞行 / 赛车等任意品类，不用从底层搭引擎。
+> 别人 clone 下来，只填「模型 + 玩法 + 场景」，就能做出 FPS / 塔防 / 开放世界骨架开放世界 / 飞行 / 赛车等任意品类，不用从底层搭引擎。
 >
-> **三个样例互不相干**：夜袭（Sample A）、demo-tower（Sample B）、demo-cultivation（Sample C）
+> **三个样例互不相干**：FPS 骨架（Sample A）、demo-tower（Sample B）、demo-cultivation（Sample C）
 > 彼此**没有任何内容共享、没有代码依赖、没有先后从属**——它们唯一的共同点是**都只通过框架 API 接入**。
-> 夜袭不是「母体」，只是**碰巧已经存在的、最复杂的那个内容包**；拆它只是抽框架的手段，不是目的。
+> FPS 骨架不是「母体」，只是**碰巧已经存在的、最复杂的那个内容包**；拆它只是抽框架的手段，不是目的。
 >
 > 本规划只描述方案，未动代码。
 
@@ -17,21 +17,21 @@
 | 角色 | 定位 | 本次交付义务 |
 |---|---|---|
 | **框架**（L1 内核 + L2 积木 + L3 契约 + 工具链 + 文档） | **产品本体** | 全部（Phase 0–F） |
-| 夜袭（Sample A） | 独立内容包之一。因已存在且最复杂（FPS + seeded + P2P），用作**压力测试样本**；重构后行为不回归 | **不回归**；其内容增强（手工图/音频瘦身）归夜袭自己的未来任务 |
-| demo-tower（Sample B） | 独立内容包之一。塔防，**零夜袭代码、零 Sample C 代码** | 最小可玩；验证 `MapSpec.fixed` + Path + orbit |
-| demo-cultivation（Sample C） | 独立内容包之一。修仙开放世界，**零夜袭代码、零 Sample B 代码** | 最小可玩；验证 `MapSpec.stream` + 运行时相机切换 |
+| FPS 骨架（Sample A） | 独立内容包之一。因已存在且最复杂（FPS + seeded + P2P），用作**压力测试样本**；重构后行为不回归 | **不回归**；其内容增强（手工图/音频瘦身）归FPS 骨架自己的未来任务 |
+| demo-tower（Sample B） | 独立内容包之一。塔防，**零FPS 骨架代码、零 Sample C 代码** | 最小可玩；验证 `MapSpec.fixed` + Path + orbit |
+| demo-cultivation（Sample C） | 独立内容包之一。开放世界骨架开放世界，**零FPS 骨架代码、零 Sample B 代码** | 最小可玩；验证 `MapSpec.stream` + 运行时相机切换 |
 
 ### 0.1 样例独立性铁律（主轴的操作化）
 
 1. **`src/game/<name>/` 之间禁止互相 import**——A/B/C 任一样例不得引用另一个样例的任何文件（grep 验收）。
 2. **样例只 import 框架**：`src/engine/`、`src/blocks/`、`src/content/`。不允许样例间「先抄再改」。
 3. **框架不得反向依赖任一样例**：L1/L2 里不允许出现 `nightraid` / `demo-tower` / `demo-cultivation` 字样（grep 验收）。
-4. **从夜袭抽出的积木必须「脱敏」**：进 L2 前去掉夜袭专名（士兵/坦克/夜战 HUD 等），参数化后才能上移。
+4. **从FPS 骨架抽出的积木必须「脱敏」**：进 L2 前去掉FPS 骨架专名（士兵/坦克/夜战 HUD 等），参数化后才能上移。
 5. **验收标准与样例数量无关**：框架完工 = 三样例各自可玩且互不依赖；将来加第 4 个样例不应改 L1/L2。
 
 **三样例对框架路径的覆盖（设计依据——证明「各种三维游戏」而不是只证这三个）**：
 
-| 框架能力 | Sample A 夜袭 FPS | Sample B demo-tower | Sample C demo-cultivation | 将来品类（不交付，只保证 API 装得下） |
+| 框架能力 | Sample A FPS 骨架 | Sample B demo-tower | Sample C demo-cultivation | 将来品类（不交付，只保证 API 装得下） |
 |---|---|---|---|---|
 | `MapSpec.seeded` | ✅ 主模式 | — | — | Roguelike / 无尽遭遇 |
 | `MapSpec.fixed` | — | ✅ 主模式 + 示例图 | — | 战役 / 竞技场 / 赛车 |
@@ -41,7 +41,7 @@
 | 相机 orbit | — | ✅ 主视角 | ✅ 可切换之一（顶部俯视） | RTS / 塔防 / MOBA |
 | **运行时相机切换** | 部分（上下坦克） | 无 | ✅ **一等公民**（键位 1/2/3） | 自由视角沙盒 |
 | 物理 ground | ✅ 第一人称 | 无玩家体 | ✅ 第三人称控制器 | 平台跳跃 |
-| 物理 air / vehicle | （夜袭有载具，走 vehicle） | — | — | 飞行 / 赛车（spec 骨架） |
+| 物理 air / vehicle | （FPS 骨架有载具，走 vehicle） | — | — | 飞行 / 赛车（spec 骨架） |
 | Path 跟线 | — | ✅ 敌人行进 | 可选 | 跑酷 / 护送 |
 | Steering AI | ✅ 敌人 | 可选 | ✅ 开放世界游荡怪 | 生存 / 割草 |
 | GridAStar | 可选 | — | 建议启用 | RTS / 开放世界 |
@@ -53,7 +53,7 @@
 联机若做，仅限现有 P2P 小房间合作（≤8 人），失败即降级单机，不阻塞框架完工。
 
 **推论**：
-1. 夜袭的 `fixed` 手工图、音频瘦身**全部移出框架关键路径**——那是夜袭内容包自己的事。
+1. FPS 骨架的 `fixed` 手工图、音频瘦身**全部移出框架关键路径**——那是FPS 骨架内容包自己的事。
 2. `MapSpec.stream` 从「本期仅接口位」**升级为「最小可工作」**（Sample C 是其验收载体）：
    ChunkWorld 要能加载 2–3 个 chunk + 预取环 + 远处降 LOD，不要求 MMORPG 级流式。
 3. **运行时相机切换**从「每游戏一个默认值」升为 L2 `CameraRig` 一等 API（`setMode()` + 平滑过渡）。
@@ -79,7 +79,7 @@
 **判断标准（主轴）**：一段代码如果「**另一个不相干的游戏**也要用它」→ 属于 L1/L2 框架；
 如果「只属于某一个游戏的口味」→ 属于该游戏的 L3。
 物理/渲染/循环/输入/音频/资产池/相机 rig 是框架；
-士兵/坦克/夜袭 HUD/塔防波次表/修仙境界文字是各内容包私有。
+士兵/坦克/FPS 骨架 HUD/塔防波次表/开放世界骨架境界文字是各内容包私有。
 
 ---
 
@@ -159,7 +159,7 @@ export const tower = defineGame({
 interface GameSpec {
   id: string;
   title: string;
-  /** 相机：可写单模式（塔防）或多模式（修仙运行时切换） */
+  /** 相机：可写单模式（塔防）或多模式（开放世界骨架运行时切换） */
   camera: CameraMode | { default: CameraMode; allow: CameraMode[] };
   player: PlayerSpec;                      // model + physics mode + stats
   units: UnitDef[];                        // 单位表：模型 + 行为 + 数值 + 生成
@@ -187,7 +187,7 @@ function defineGame(spec: GameSpec): GameModule;  // 返回框架可挂载的 Ga
 
 关键设计：
 - **`behaviorFn` 让塔防 / 赛车 / 飞行各自塞自己的单位行为**，不用改框架。
-- **`physics` 三模式**：`ground`（夜袭式 character controller）、`air`（飞行 3-DOF）、`vehicle`（载具）。
+- **`physics` 三模式**：`ground`（FPS 骨架式 character controller）、`air`（飞行 3-DOF）、`vehicle`（载具）。
   这是「一个框架适配多品类」的核心开关。
 - **`config` 覆盖默认**：飞行把 `gravity` 设 0，赛车调 `fixedDt`，全部走配置而非改代码。
 
@@ -198,23 +198,23 @@ function defineGame(spec: GameSpec): GameModule;  // 返回框架可挂载的 Ga
 
 | 模式 | `MapSpec` 形态 | 适合 | 质量上限 | 多样性 | 成本结构 | 验收载体 |
 |---|---|---|---|---|---|---|
-| `seeded` | `{ kind:'seeded', fn: (seed) => MapGen }`（程序化生成，同 seed 同图） | P2P 联机遭遇战、Roguelike、无尽模式 | 受生成算法封顶 | **无穷**（一个 seed 一个世界） | 运行时生成，零资产；**P2P 零带宽共享**（seed 字符串 = 整个世界） | Sample A 夜袭 |
+| `seeded` | `{ kind:'seeded', fn: (seed) => MapGen }`（程序化生成，同 seed 同图） | P2P 联机遭遇战、Roguelike、无尽模式 | 受生成算法封顶 | **无穷**（一个 seed 一个世界） | 运行时生成，零资产；**P2P 零带宽共享**（seed 字符串 = 整个世界） | Sample A FPS 骨架 |
 | `fixed` | `{ kind:'fixed', assets: MapAsset[] }`（手工设计地图包，离线烘焙） | 战役、竞技场 PvP、赛车、塔防 | **最高**（美术可设计光位/掩体/POI） | 低（N 张图） | **离线烘焙**（含 navmesh），运行时零生成成本，内存可预测 | Sample B demo-tower |
-| `stream` | `{ kind:'stream', chunks: ChunkDef[] }`（chunk 流式，走到哪载到哪） | 开放世界 / 大型休闲 / 修仙 | 最高（手工）+ 可无限扩展 | 中（大地图分区） | 流式加载 + 预取环；**本期最小可工作**（Sample C） | Sample C demo-cultivation |
+| `stream` | `{ kind:'stream', chunks: ChunkDef[] }`（chunk 流式，走到哪载到哪） | 开放世界 / 大型休闲 / 开放世界骨架 | 最高（手工）+ 可无限扩展 | 中（大地图分区） | 流式加载 + 预取环；**本期最小可工作**（Sample C） | Sample C demo-cultivation |
 
 ```ts
 // src/content/define.ts（MapSpec 契约）
 type MapSpec =
-  | { kind: 'seeded';  gen: (seed: number) => TerrainDesc }                       // 夜袭现状
+  | { kind: 'seeded';  gen: (seed: number) => TerrainDesc }                       // FPS 骨架现状
   | { kind: 'fixed';   maps: FixedMapDef[] }                                      // 手工图包，菜单选图
   | { kind: 'stream';  root: string; chunk: number; lodRings: number[] };         // chunk 流式
 interface FixedMapDef { id: string; terrain: TerrainDesc; navmesh?: string; spawn: SpawnDef[] }
 interface TerrainDesc { /* 地形描述：尺寸/高度场/POI/掩体——seeded 与 fixed 共用 */ }
 ```
 
-**夜袭的落位（Sample A）**：
+**FPS 骨架的落位（Sample A）**：
 - 本次只走 `seeded` 模式（现状行为，不回归）——验证框架能承载"程序化地图 + P2P 联机"这一最复杂样本。
-- `fixed` 模式（3-6 张手工图：夜战经典 + 开阔遭遇 + PvP 对称）= **夜袭内容包的未来任务**，不在框架关键路径；
+- `fixed` 模式（3-6 张手工图：夜战经典 + 开阔遭遇 + PvP 对称）= **FPS 骨架内容包的未来任务**，不在框架关键路径；
   框架只交付 `fixed` 的机制与接口（`FixedMapDef` 加载 + 离线烘焙工具链 + 菜单选图），由 sample 验证机制可用。
 
 > **NPC 行为注记**：地图方式只影响"路线规划表示"（seeded 用 steering+物理滑移已够；fixed/stream 可叠加 navmesh）。
@@ -231,8 +231,8 @@ interface TerrainDesc { /* 地形描述：尺寸/高度场/POI/掩体——seede
 
 ## 4. 迁移路线（每步 tsc + test + build 三重验证，不跳步）
 
-> 原则：每阶段结束 `npm run typecheck && npm test && npm run build` 全绿 + 夜袭可玩，才进下一步。
-> 夜袭行为「前后一致」是红线——重构不许改手感。
+> 原则：每阶段结束 `npm run typecheck && npm test && npm run build` 全绿 + FPS 骨架可玩，才进下一步。
+> FPS 骨架行为「前后一致」是红线——重构不许改手感。
 > **📋 分步施工单**（每步的做法/验收/回滚/预计规模）见 `EXECUTION_STEPS.md`；本节的 Phase 为战略层，
 > 施工以 `EXECUTION_STEPS.md` 为准，两者冲突时以施工单为准。
 
@@ -248,19 +248,19 @@ interface TerrainDesc { /* 地形描述：尺寸/高度场/POI/掩体——seede
 - ⚠️ 代价前置确认：① 删 WebGL 回退 = 老设备直接打不开（已拍板接受）；② 标准 wasm 需 HTTP 服务（file:// 不行——本就部署网页端）。
 
 ### Phase A — 从最复杂样例抽出内核（框架主轴的关键战役）
-> **目的不是「重构夜袭」，而是「把与游戏无关的逻辑从 Sample A 里抽出来变成框架」。**
-> 夜袭是现成的、最复杂的压力样本（FPS+联机+载具）——用它当手术台，抽出后夜袭自己降级为普通内容包。
+> **目的不是「重构FPS 骨架」，而是「把与游戏无关的逻辑从 Sample A 里抽出来变成框架」。**
+> FPS 骨架是现成的、最复杂的压力样本（FPS+联机+载具）——用它当手术台，抽出后FPS 骨架自己降级为普通内容包。
 把 `core/game.ts` 的 `Game` 大脑按职责拆成真实 System，FrameSystems 从转发壳变成实壳：
 - `MovementSystem`（player 位移/姿态）、`CombatSystem`（武器/AI/命中）、`VehicleSystem`（tank/jeep）、
   `MissionSystem`（任务/胜负）、`WeatherSystem`（天空/云/探照灯）、`NetSystem`（联机同步）、
   `EffectsSystem`（VFX）、`HUDSystem`（UI）、`AtmosphereSystem`、`RenderPresentSystem`。
 - `Game` 类瘦身为「持有 services + 实体 + 屏态」的宿主，不再 own 循环。
-- **脱敏纪律**：搬到 L2 的部分去掉夜袭专名；留在 `src/game/nightraid/` 的才是 Sample A 私有。
+- **脱敏纪律**：搬到 L2 的部分去掉FPS 骨架专名；留在 `src/game/nightraid/` 的才是 Sample A 私有。
 - 验证：`?debug=1` 自测脚本（`scripts/selfcheck_full.mjs` + `game_state_check.mjs`）像素/状态断言不回归。
 
 ### Phase B — 通用构件上移到 L2 `src/blocks/`（框架独立于任何样例）
-> **只把「另一个不相干的游戏也要用」的东西上移**；Sample A 私有（士兵外观/坦克/吉普/夜袭 HUD）留在内容包。
-> 上移前必须**脱敏**：去掉夜袭专名，改为参数/接口。
+> **只把「另一个不相干的游戏也要用」的东西上移**；Sample A 私有（士兵外观/坦克/吉普/FPS 骨架 HUD）留在内容包。
+> 上移前必须**脱敏**：去掉FPS 骨架专名，改为参数/接口。
 - `player/player.ts` → `blocks/Unit`（配置驱动：半径/高度/速度全从 `PlayerSpec` 注入，不再硬读 `CONFIG`）。
 - `world/tank.ts`、`world/jeep.ts` → 内容包私有（Sample A 载具），但 `blocks/` 提供 `VehicleBase`。
 - `world/terrain.ts` + `mapgen.ts` → `blocks/SceneBuilder` 的可复用地形/生成器。
@@ -270,7 +270,7 @@ interface TerrainDesc { /* 地形描述：尺寸/高度场/POI/掩体——seede
 - 验证：Sample A 手感不变 + `test/` 六项单测全绿 + 同 seed 地图与改造前逐点一致（mapgen 确定性回归测试）。
 
 ### Phase C — 内容包 API 落地，Sample A 改用 `defineGame` 重表达
-> **里程碑含义**：夜袭从「唯一游戏」降级为「框架上的一个普通内容包」——与 B/C 平级，只是目录名不同。
+> **里程碑含义**：FPS 骨架从「唯一游戏」降级为「框架上的一个普通内容包」——与 B/C 平级，只是目录名不同。
 - 新建 `src/content/define.ts`、`SceneBuilder`、`UnitDef`、`MapSpec` 类型。
 - 把 Sample A 改写为 `src/game/nightraid/define.ts`（一份 `defineGame` 配置 + 系统集），`MapSpec` 走 `seeded` 模式（现状行为）。
 - `main.ts` 改为 `createGame(nightraidSpec)`，删掉 `core/game.ts` 的 `Game` 大脑（已拆空）。
@@ -290,9 +290,9 @@ interface TerrainDesc { /* 地形描述：尺寸/高度场/POI/掩体——seede
 - 形态边界（保持最小）：3 种塔（速射/慢伤/减速）+ 3-5 波 + 基地 HP；HUD 只要「金钱/波次/基地血量」三读数，不做完整胜负结算页。
 
 ### Phase E — 验收样例 C：demo-cultivation（三样例补全：stream + 多视角）
-> 形态（2026-09-13 用户增补）：**修仙开放世界**（小规模 ARPG 观感，非真·MMO 架构）。
-> **美术（用户拍板）**：另找/做一批修仙 GLB（修士/妖兽/山林小场景）；E1–E2 机制验收用占位几何，E3 起换正式模型，避免「等美术」堵死框架路径。
-- 新建 `src/game/demo-cultivation/`：**只用框架 + 积木、零其他样例代码**的最小修仙场景：
+> 形态（2026-09-13 用户增补）：**开放世界骨架开放世界**（小规模 ARPG 观感，非真·MMO 架构）。
+> **美术（用户拍板）**：另找/做一批开放世界骨架 GLB（修士/妖兽/山林小场景）；E1–E2 机制验收用占位几何，E3 起换正式模型，避免「等美术」堵死框架路径。
+- 新建 `src/game/demo-cultivation/`：**只用框架 + 积木、零其他样例代码**的最小开放世界骨架场景：
   - `MapSpec.stream`：2–3 个 chunk 的小开放世界（山林+修炼台+小村），玩家走动触发加载/卸载——**ChunkWorld 最小可工作**的验收载体；
   - `camera: { default:'chase', allow:['fps','chase','orbit'] }`：**运行时键位切换**（1/2/3），CameraRig `setMode()` + 平滑过渡验收；
   - 玩家：第三人称 ground 控制器（Sample A 的 fps 控制器对照，验证 physics:ground 的视角无关性）；
@@ -306,8 +306,8 @@ interface TerrainDesc { /* 地形描述：尺寸/高度场/POI/掩体——seede
 
 ### Phase F — 开源打包
 - npm workspace 或单包多入口：`@yexi/core`（L1）、`@yexi/blocks`（L2）、`@yexi/content`（L3 契约 + 示例）。
-- 模板仓库 `game-template`：`defineGame` 空骨架 + 三套示例 spec 对应三样例路径（fps/塔防/修仙多视角占位），别人 fork 即填。
-- 文档：`docs/QUICKSTART.md`（10 分钟上手）、`docs/API.md`（三层契约）、`docs/ADAPT.md`（**多品类各一页**：FPS/塔防/修仙多视角/飞行/赛车——证明框架适配各种三维游戏）。
+- 模板仓库 `game-template`：`defineGame` 空骨架 + 三套示例 spec 对应三样例路径（fps/塔防/开放世界骨架多视角占位），别人 fork 即填。
+- 文档：`docs/QUICKSTART.md`（10 分钟上手）、`docs/API.md`（三层契约）、`docs/ADAPT.md`（**多品类各一页**：FPS/塔防/开放世界骨架多视角/飞行/赛车——证明框架适配各种三维游戏）。
 - README 顶部放「框架能做什么」+ 三样例在线链接（三样例平级展示，无主从）。
 
 ---
@@ -334,18 +334,18 @@ interface TerrainDesc { /* 地形描述：尺寸/高度场/POI/掩体——seede
 | Phase A 拆分 `Game` 大脑（2,347 行），重构面最大，易引入手感回归 | **高** | 逐系统拆成 10 个小步（见 `EXECUTION_STEPS.md` §2）；每步跑自测 + 快照回滚点；拆完再删，不边拆边删 |
 | **项目无版本控制（无 git）= 大重构无回滚网** | **高** | `EXECUTION_STEPS.md` §0.1 快照机制：每步开工前 `_snapshots/<step>/` 全量拷贝（一条命令），失败即拷回；可选：本地 git 仅作安全网（不推远端） |
 | `CONFIG` 被 20+ 文件直接 import，改注入式要动很多文件 | 中 | Phase B 用「参数注入 + 默认值回退」渐进迁移，不一次性全改 |
-| 联机（net/）与内容耦合：P2P 协议写死夜袭单位 | 中 | 联机归 L2 可选能力，协议按「Unit 快照」泛化；夜袭专属事件走内容包 |
-| 范围膨胀：想一次做完所有品类 | — | 只保证三样例（fps / 塔防 / 修仙最小）可玩，赛车/飞行仅交 spec 骨架，不交成品 |
+| 联机（net/）与内容耦合：P2P 协议写死FPS 骨架单位 | 中 | 联机归 L2 可选能力，协议按「Unit 快照」泛化；FPS 骨架专属事件走内容包 |
+| 范围膨胀：想一次做完所有品类 | — | 只保证三样例（fps / 塔防 / 开放世界骨架最小）可玩，赛车/飞行仅交 spec 骨架，不交成品 |
 | **Sample C 被做成「真 MMO」而失控** | **高（已设红线）** | 品类观感≠架构：不做专用服务器/无缝大世界/持久化；联机仅可选 P2P 小房间；ChunkWorld 只做 2–3 chunk 最小可工作 |
 | **运行时相机切换引入手感/眩晕问题** | 中 | `setMode` 用短时 lerp 过渡；Sample A 的 fps 与坦克 chase 先做回归，再在 Sample C 接三模式 |
 | **Phase 0 删 WebGL 回退 = 老设备/老 Safari 打不开** | **高（已拍板接受）** | 启动页明确「本框架需 WebGPU」+ 浏览器版本提示；这是「不向下兼容」的既定代价 |
-| **音频 22MB 占 dist 74%（用户拍板：归夜袭内容包，不进框架 Phase 0）** | 中（不阻塞框架） | 框架 DoD 不含音频瘦身；夜袭内容包任务：dist 只发 ogg/m4a、wav 不进包；README 注明样例体积现状 |
-| **Sample C 依赖外部修仙 GLB** | 中 | E1–E2 用占位几何验收 ChunkWorld/相机；E3 换正式 GLB；美术延期只影响观感，不阻塞机制验收 |
+| **音频 22MB 占 dist 74%（用户拍板：归FPS 骨架内容包，不进框架 Phase 0）** | 中（不阻塞框架） | 框架 DoD 不含音频瘦身；FPS 骨架内容包任务：dist 只发 ogg/m4a、wav 不进包；README 注明样例体积现状 |
+| **Sample C 依赖外部开放世界骨架 GLB** | 中 | E1–E2 用占位几何验收 ChunkWorld/相机；E3 换正式 GLB；美术延期只影响观感，不阻塞机制验收 |
 | **WebGPU 无 render.info，性能对账失明** | 中 | 记入已知问题；L1 可选扩展位补 WebGPU 诊断面；不阻塞三样例 |
 | **标准 rapier3d 的 wasm 需独立文件加载** | 低（已解决） | 浏览器构建走 Vite 原生 wasm 处理（独立缓存）；Node 测试管线 esbuild alias → compat；`file://` 不可用（本就网页部署）；多线程需未来自建编译（扩展位） |
 | **KTX2/Draco 资产转码工具链** | 中 | 一次性 `scripts/assets-encode.mjs`；转码失败资产回退原格式（开发期），不阻塞 |
 | WebGPU 后期链/GPU 粒子是帧率杀手 | 中 | 全部挂 `QualityController` 分档，低配自动降 CPU 路径；按档验收帧率 |
-| `fixed` 手工图的质量收益 = 美术工时，不是框架能白送的 | 中 | 框架只交付机制（MapSpec + 离线烘焙工具链 + 流式加载）+ ≥1 张示例图验证机制；夜袭 3 张手工图 = 夜袭内容包未来任务，不占框架关键路径 |
+| `fixed` 手工图的质量收益 = 美术工时，不是框架能白送的 | 中 | 框架只交付机制（MapSpec + 离线烘焙工具链 + 流式加载）+ ≥1 张示例图验证机制；FPS 骨架 3 张手工图 = FPS 骨架内容包未来任务，不占框架关键路径 |
 | 地图三模式增加框架接口面（MapSpec 复杂度） | 低-中 | 三模式在 B/C/E 阶段落地：seeded/fixed 在 B/C，stream 最小可工作在 E（Sample C）；后续只加内容不动接口 |
 
 ---
@@ -361,10 +361,10 @@ interface TerrainDesc { /* 地形描述：尺寸/高度场/POI/掩体——seede
 | `physics: ground/air/vehicle` | 单位物理三模式，是「一个框架适配多品类」的核心开关 |
 | `behaviorFn` | 单位自定义行为钩子，让塔防/赛车/飞行各自塞 AI |
 | 寻路三件套 | `Path`（固定路线）/ `Steering`（怎么走得自然）/ `GridAStar`（任意目标绕障）；"真实感"= 路线+转向+平滑三者组合，A\* 单独不真实 |
-| `MapSpec` 三模式 | `seeded`（程序化，同 seed 同图，P2P 零带宽共享）/ `fixed`（手工图包，离线烘焙，质量上限最高）/ `stream`（chunk 流式，走到哪载到哪，开放世界/修仙）；三种地图方式框架全内置，内容作者自选 |
+| `MapSpec` 三模式 | `seeded`（程序化，同 seed 同图，P2P 零带宽共享）/ `fixed`（手工图包，离线烘焙，质量上限最高）/ `stream`（chunk 流式，走到哪载到哪，开放世界/开放世界骨架）；三种地图方式框架全内置，内容作者自选 |
 | `NavMesh` | 第 3 档可选件：把可走区域烘焙成凸多边形网络，A\*+funnel 在"面片图"上搜；生成重（离线/做图时）、运行时查询亚毫秒；本期仅接口位（Sample C 用 Steering+GridAStar，不依赖 NavMesh） |
 | `ChunkWorld` | chunk 加载/预取环/远处 LOD 的标准件；Sample C 要求**最小可工作**（2–3 chunk）；navmesh 与地形搭同一加载顺风车为未来能力 |
-| 验收样例 | B=demo-tower（塔防，证 fixed+Path+orbit）；C=demo-cultivation（修仙，证 stream+运行时相机切换）；两者都是「框架成立」的证据 |
+| 验收样例 | B=demo-tower（塔防，证 fixed+Path+orbit）；C=demo-cultivation（开放世界骨架，证 stream+运行时相机切换）；两者都是「框架成立」的证据 |
 
 ---
 
@@ -374,18 +374,18 @@ interface TerrainDesc { /* 地形描述：尺寸/高度场/POI/掩体——seede
 - ✅ 技术基线：WebGPU 唯一 + **标准 rapier3d（独立 wasm）** + KTX2/Draco + 最新 three + `esnext` 构建，**不向下兼容老设备**（Phase 0；多线程列未来扩展位——官方无多线程 JS 构建，2026-09-13 实测修正）。
 - ✅ 引擎留在 three.js，不上 Babylon.js（迁移=全量重写，违背铁律）。
 - ✅ **地图三模式一等公民**：框架同时内置 `seeded`（程序化）/ `fixed`（手工离线烘焙）/ `stream`（chunk 流式），内容作者按游戏自选（见 3.3）。
-- ✅ **寻路三件套**：`Path`（标准件）+ `Steering`（标准件，从夜袭 AI 抽出）+ `GridAStar`（可选件）；`NavMesh` 为第 3 档可选件（开放世界/MMORPG 档，本期仅预留接口位，不做实现）。
+- ✅ **寻路三件套**：`Path`（标准件）+ `Steering`（标准件，从FPS 骨架 AI 抽出）+ `GridAStar`（可选件）；`NavMesh` 为第 3 档可选件（开放世界/MMORPG 档，本期仅预留接口位，不做实现）。
 
 **已定（2026-09-13 全部拍板，规划定稿 · 三样例增补）**
-1. ✅ **范围**：Phase 0→E 做到「WebGPU 下 Sample A（夜袭）+ Sample B（demo-tower）+ Sample C（demo-cultivation）能跑 + 三重验证全绿」即框架完工；Phase F 开源打包另开任务。
+1. ✅ **范围**：Phase 0→E 做到「WebGPU 下 Sample A（FPS 骨架）+ Sample B（demo-tower）+ Sample C（demo-cultivation）能跑 + 三重验证全绿」即框架完工；Phase F 开源打包另开任务。
 2. ✅ **Sample B 形态**：**demo-tower 塔防**（最小可玩：3 种塔 + 3-5 波 + 基地 HP + 三读数 HUD；同时充当 `fixed` 机制验证载体）——Sample A 已覆盖 FPS 第一视角，Sample B 换品类验证更多框架路径（`MapSpec.fixed` + `Path` + `Steering` + `orbit` 视角 + 波次/经济系统）。
-3. ✅ **Sample C 形态（2026-09-13 增补）**：**demo-cultivation 修仙开放世界**（最小可玩：stream 2–3 chunk + 运行时 fps/chase/orbit 切换 + 第三人称 ground + Steering/GridAStar 妖兽 + 修炼点交互；**非真 MMO 架构**，联机可选）——验证 `MapSpec.stream` 与 `CameraRig.setMode` 两条路径。
+3. ✅ **Sample C 形态（2026-09-13 增补）**：**demo-cultivation 开放世界骨架开放世界**（最小可玩：stream 2–3 chunk + 运行时 fps/chase/orbit 切换 + 第三人称 ground + Steering/GridAStar 妖兽 + 修炼点交互；**非真 MMO 架构**，联机可选）——验证 `MapSpec.stream` 与 `CameraRig.setMode` 两条路径。
 4. ✅ **包结构**：先**单仓多目录**（`engine/`、`blocks/`、`content/`、`game/` 目录边界即包边界），npm 拆包等确认开源时再做。
 5. ~~✅ **COOP/COEP**：Cloudflare Pages 顶层部署~~ → **已作废（2026-09-13 实测修正）**：标准 rapier3d 同为单线程，**不需要 COOP/COEP**，部署零额外约束；`public/_headers` 保持现状。
 
 **已定（2026-09-13 深度审查拍板）**
-6. ✅ **音频不进框架 Phase 0**：22MB 音频归**夜袭内容包**任务（dist 只发 ogg/m4a）；框架完工判定不含音频瘦身。
-7. ✅ **Sample C 美术 = 另找/做修仙 GLB**（不程序化凑合、不改夜袭资产）；E1–E2 占位几何先验收机制，E3 换正式 GLB。
+6. ✅ **音频不进框架 Phase 0**：22MB 音频归**FPS 骨架内容包**任务（dist 只发 ogg/m4a）；框架完工判定不含音频瘦身。
+7. ✅ **Sample C 美术 = 另找/做开放世界骨架 GLB**（不程序化凑合、不改FPS 骨架资产）；E1–E2 占位几何先验收机制，E3 换正式 GLB。
 8. ✅ **Phase A 前 `git init` 本地仓**（不推远端），每步一 commit；与 `_snapshots` 双保险。
 9. ℹ️ **WebGPU 诊断面**列为 L1 可选扩展位（无 `render.info`），不阻塞三样例。
 

@@ -18,12 +18,12 @@ npm run build && npm run preview
 
 | 地址 | 游戏 |
 |---|---|
-| `/` | 夜袭 FPS |
+| `/` | FPS 骨架 |
 | `/tower.html` | 塔防（1/2/3 选塔，点圆台放置） |
-| `/cultivation.html` | 修仙（1/2/3 切视角） |
-| `/?game=flight` | 飞行骨架 |
-| `/?game=race` | 赛车骨架 |
-| `/?game=template` | 空白模板 |
+| `/openworld.html` | 开放世界骨架（1/2/3 切视角） |
+| `/flight.html` | 飞行骨架 |
+| `/race.html` | 赛车骨架 |
+| `/template.html` | 空白模板 |
 
 ## 2. 理解分层
 
@@ -123,7 +123,7 @@ const rig = new CameraRig(camera, {
 });
 // 每帧
 rig.update(dt, targetPos, yaw);
-// 运行时切换（修仙样例用 1/2/3）
+// 运行时切换（开放世界骨架样例用 1/2/3）
 rig.setMode('orbit');
 ```
 

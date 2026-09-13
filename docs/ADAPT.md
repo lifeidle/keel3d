@@ -17,7 +17,7 @@
 - 敌人 `Path` 跟线；放塔用射线拾取
 - 无玩家体；经济/波次写在自己的 System
 
-## 修仙开放世界（Sample C 路径）
+## 开放世界骨架开放世界（Sample C 路径）
 
 - `camera: { default: 'chase', allow: ['fps','chase','orbit'] }`
 - `map: { kind: 'stream' }` + `ChunkWorld`
