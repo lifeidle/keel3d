@@ -10,6 +10,7 @@ import {
   MovementSystem,
   CombatSimSystem,
   CombatSystem,
+  VehicleSystem,
   GameplayFrameSystem,
   EffectsSystem,
   AtmosphereSystem,
@@ -25,11 +26,12 @@ export interface NightRaidDeps {
 
 export function createNightRaidGame(deps: NightRaidDeps): GameModule {
   const g = deps.game;
-  // Order: Movement → CombatSim (dyn/vehicle) → Combat (infantry) → Mission.
+  // Order: Movement → CombatSim (dyn) → Vehicle | Combat → Mission.
   const systems: System[] = [
     new StateSyncSystem(g),
     new MovementSystem(g),
     new CombatSimSystem(g),
+    new VehicleSystem(g),
     new CombatSystem(g),
     new MissionSystem(g),
     new GameplayFrameSystem(g),

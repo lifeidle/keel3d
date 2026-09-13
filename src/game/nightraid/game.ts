@@ -1770,55 +1770,27 @@ export class Game {
     this.updateFlares(dt);
     this.matchTime += dt;
 
-    if (this.driving) {
-      // tank driver: player body is parked inside the hull; drive + gun
-      const mv = this.input.moveAxis();
-      const mouse = this.input.consumeMouse();
-      const fire = this.input.fireDown;
-      this.driving.updatePlayer(
-        dt,
-        mv,
-        mouse,
-        fire,
-        this.engine.camera,
-        this.tankCamThird,
-        this.player.sensMul
-      );
-      // keep the player's body glued to the tank so enemy fire can't hit a
-      // "ghost" standing outside (he's inside armour — bullets tickle the hull)
-      const tp = this.driving.pos;
-      this.player.pos.set(tp.x, tp.y + 0.2, tp.z);
-      // engine drone follows the throttle
-      const maxV = this.driving instanceof Jeep ? CONFIG.jeep.maxSpeed : CONFIG.tank.maxSpeed;
-      this.audio.setEnginePitch(Math.abs(this.driving.speed) / maxV);
-      // off-road rattle: random mechanical clunks past walking pace
-      if (Math.abs(this.driving.speed) > 3) {
-        this.rattleCd -= dt;
-        if (this.rattleCd <= 0) {
-          this.rattleCd = 0.35 + Math.random() * 0.9;
-          this.audio.playRattle();
-        }
-      } else {
-        this.rattleCd = 0;
-      }
-      // hull HP drives the health bar while driving (armour readout)
-      this.hud.setHealth(this.driving.hp, this.driving.maxHp);
-      this.hud.setHealthLabel(t('hud.armor'));
-      // jeep: the pintle MG belt takes over the ammo readout
-      if (this.driving instanceof Jeep) {
-        this.hud.setAmmo(this.driving.mgAmmo, 0, this.driving.mgReloadT > 0);
-      }
-      this.enemies.update(dt, this.player, this.damagePlayer);
-      this.barrels.update(dt);
-      this.map.destructibles.update(dt);
-      this.physics.step();
-      // enemy AI tank still hunts while we drive ours
-      this.updateEnemyTank(dt);
-      this.updateHudAndMission(dt, this.driving.pos);
-      return;
-    }
+    // vehicle drive step → VehicleSystem (A10); infantry combat → CombatSystem (A9)
+  }
 
-    // infantry combat → CombatSystem (A9); vehicle branch stays above until A10
+  /** Collaborators for VehicleSystem (A10). */
+  get vehicleFrame() {
+    return {
+      driving: this.driving,
+      input: this.input,
+      camera: this.engine.camera,
+      tankCamThird: this.tankCamThird,
+      player: this.player,
+      audio: this.audio,
+      hud: this.hud,
+      enemies: this.enemies,
+      barrels: this.barrels,
+      destructibles: this.map.destructibles,
+      physics: this.physics,
+      onPlayerDamage: this.damagePlayer,
+      enemyTankTick: (dt: number) => this.updateEnemyTank(dt),
+      hudMissionTick: (dt: number, p: THREE.Vector3) => this.updateHudAndMission(dt, p),
+    };
   }
 
   /** Collaborators for CombatSystem (A9). */
