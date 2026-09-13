@@ -58,14 +58,17 @@ export class Path {
     return out;
   }
 
-  /** Unit forward direction at arc-length dist (XZ-normalized when possible). */
+  private _da: PathPoint = { x: 0, y: 0, z: 0 };
+  private _db: PathPoint = { x: 0, y: 0, z: 0 };
+
+  /** Unit forward direction at arc-length dist (zero-alloc scratch). */
   sampleDir(dist: number, out: { x: number; y: number; z: number } = { x: 0, y: 0, z: 0 }) {
     const eps = 0.05;
-    const a = this.sampleAt(Math.max(0, dist - eps));
-    const b = this.sampleAt(Math.min(this.totalLen, dist + eps));
-    let dx = b.x - a.x;
-    let dy = b.y - a.y;
-    let dz = b.z - a.z;
+    const a = this.sampleAt(Math.max(0, dist - eps), this._da);
+    const b = this.sampleAt(Math.min(this.totalLen, dist + eps), this._db);
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const dz = b.z - a.z;
     const len = Math.hypot(dx, dy, dz) || 1;
     out.x = dx / len;
     out.y = dy / len;

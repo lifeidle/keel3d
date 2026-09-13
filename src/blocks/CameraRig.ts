@@ -1,6 +1,7 @@
 /**
  * Camera rig: fps / chase / orbit / free with runtime setMode + short lerp.
  * Sample A uses fps (+ tank chase); Sample C switches 1/2/3 at runtime.
+ * update() is zero-allocation after construction (scratch vectors).
  */
 import * as THREE from 'three';
 
@@ -22,6 +23,10 @@ export class CameraRig {
   private fromQuat = new THREE.Quaternion();
   private chase: { distance: number; height: number; lookAhead: number };
   private orbit: { distance: number; height: number; pitch: number };
+  // scratch — no per-frame allocs
+  private _pos = new THREE.Vector3();
+  private _look = new THREE.Vector3();
+  private _tmp = new THREE.Object3D();
 
   constructor(private camera: THREE.PerspectiveCamera, opts: CameraRigOpts = {}) {
     this.mode = opts.defaultMode ?? 'fps';
@@ -43,8 +48,8 @@ export class CameraRig {
    * `target` is the player / unit world position; `yaw` is facing (radians).
    */
   update(dt: number, target: THREE.Vector3, yaw: number): void {
-    const pos = new THREE.Vector3();
-    const look = new THREE.Vector3();
+    const pos = this._pos;
+    const look = this._look;
 
     switch (this.mode) {
       case 'fps': {
@@ -58,16 +63,8 @@ export class CameraRig {
         const c = this.chase;
         const sin = Math.sin(yaw);
         const cos = Math.cos(yaw);
-        pos.set(
-          target.x + sin * c.distance,
-          target.y + c.height,
-          target.z + cos * c.distance,
-        );
-        look.set(
-          target.x - sin * c.lookAhead,
-          target.y + 1.2,
-          target.z - cos * c.lookAhead,
-        );
+        pos.set(target.x + sin * c.distance, target.y + c.height, target.z + cos * c.distance);
+        look.set(target.x - sin * c.lookAhead, target.y + 1.2, target.z - cos * c.lookAhead);
         break;
       }
       case 'orbit': {
@@ -86,7 +83,7 @@ export class CameraRig {
         return;
     }
 
-    const tmp = new THREE.Object3D();
+    const tmp = this._tmp;
     tmp.position.copy(pos);
     tmp.lookAt(look);
 

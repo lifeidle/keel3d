@@ -78,14 +78,14 @@ export class Engine implements EngineHost {
     }
 
     this.services = {
-      renderer: renderer!,
-      physics: physics!,
+      renderer: renderer as RendererFacade,
+      physics: physics as PhysicsWorld,
       assets,
-      audio: audio!,
-      input: input!,
+      audio: audio as AudioEngine,
+      input: input as Input,
       quality,
       events,
-    } as EngineServices;
+    };
 
     this.world = {
       services: this.services,
@@ -184,7 +184,7 @@ export class Engine implements EngineHost {
     this.systems = [];
     this.byName.clear();
     this.services.events.clear();
-    this.services.renderer?.dispose();
+    this.services.renderer?.dispose?.();
   }
 }
 

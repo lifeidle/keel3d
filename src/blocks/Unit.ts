@@ -24,8 +24,10 @@ export interface UnitBody {
 }
 
 export function createUnitBody(physics: PhysicsWorld, opts: UnitBodyOpts): UnitBody {
-  const r = opts.radius;
-  const half = opts.height / 2 - r;
+  const r = Math.max(0.05, opts.radius);
+  // Keep a valid capsule: height must exceed 2*radius.
+  const height = Math.max(opts.height, r * 2 + 0.05);
+  const half = height / 2 - r;
   const centerY = half + r;
   const body = physics.world.createRigidBody(
     RAPIER.RigidBodyDesc.kinematicPositionBased().setTranslation(

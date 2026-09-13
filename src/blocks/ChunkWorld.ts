@@ -31,6 +31,10 @@ export class ChunkWorld {
   private ring: number;
   private buildChunk: ChunkWorldOpts['buildChunk'];
   private disposeChunk?: ChunkWorldOpts['disposeChunk'];
+  /** Last focus cell — skip ring rebuild when the player stays in the same chunk. */
+  private lastCx = Number.NaN;
+  private lastCz = Number.NaN;
+  private lastRing = -1;
 
   constructor(opts: ChunkWorldOpts) {
     this.chunkSize = opts.chunkSize;
@@ -65,6 +69,11 @@ export class ChunkWorld {
    */
   update(focusX: number, focusZ: number): void {
     const { cx, cz } = this.worldToChunk(focusX, focusZ);
+    if (cx === this.lastCx && cz === this.lastCz && this.ring === this.lastRing) return;
+    this.lastCx = cx;
+    this.lastCz = cz;
+    this.lastRing = this.ring;
+
     const want = new Set<string>();
     for (let dx = -this.ring; dx <= this.ring; dx++) {
       for (let dz = -this.ring; dz <= this.ring; dz++) {

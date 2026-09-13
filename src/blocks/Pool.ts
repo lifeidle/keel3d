@@ -39,7 +39,16 @@ export class Pool<T> {
     for (const item of [...this.live]) this.release(item);
   }
 
+  /**
+   * Iterate live items. Snapshot so `release` inside the callback is safe
+   * (does not skip siblings).
+   */
   forEachLive(fn: (item: T) => void): void {
-    for (const item of this.live) fn(item);
+    if (this.live.size === 0) return;
+    for (const item of [...this.live]) fn(item);
+  }
+
+  has(item: T): boolean {
+    return this.live.has(item);
   }
 }

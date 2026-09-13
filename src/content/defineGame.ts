@@ -1,28 +1,24 @@
 /**
  * defineGame — turn a GameSpec into a framework-mountable GameModule.
- * Phase C contract: content packages never import engine internals directly.
+ * Content packages describe the game; systems stay supplied by the sample.
  */
 import type { GameSpec } from './define';
-import type { GameModule, System } from '../engine/types';
+import type { EngineHost, GameModule, System } from '../engine/types';
 
 export interface DefinedGame extends GameModule {
   spec: GameSpec;
 }
 
-/**
- * Wrap a content spec + system list as a GameModule.
- * Systems are supplied by the sample (until defineGame grows a full host).
- */
 export function defineGame(
   spec: GameSpec,
   systems: System[] = [],
-  mount?: (host: unknown) => void,
+  mount?: (host: EngineHost) => void,
 ): DefinedGame {
   return {
     id: spec.id,
     spec,
     systems,
-    mount(host: unknown) {
+    mount(host: EngineHost) {
       mount?.(host);
     },
   };

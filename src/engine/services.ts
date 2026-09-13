@@ -50,7 +50,7 @@ export class Emitter {
   }
 }
 
-/** Well-known event names used by the Night Raid sample. */
+/** Well-known event names. Content packages may add their own strings. */
 export const EV = {
   PlayerDamaged: 'player.damaged',
   PlayerDied: 'player.died',
