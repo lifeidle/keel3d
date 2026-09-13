@@ -100,6 +100,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: 'index.html',
+        hub: 'hub.html',
         tower: 'tower.html',
         cultivation: 'cultivation.html',
       },
