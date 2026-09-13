@@ -9,3 +9,5 @@ tools/blender-*/
 *.log
 dev-server.log
 .DS_Store
+assets_new/
+
