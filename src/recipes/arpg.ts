@@ -17,6 +17,7 @@ import * as Steering from '../blocks/Steering';
 import { kitScatter } from '../blocks/kit/placeholders';
 import { ButtonBar } from '../blocks/ui/ButtonBar';
 import { QuestTracker } from '../blocks/ui/QuestTracker';
+import { BgmLayers } from '../blocks/audio/BgmLayers';
 import type { System, EngineWorld } from '../engine/types';
 
 export interface ArpgRecipeOpts {
@@ -79,6 +80,18 @@ export function createArpgGame(
   });
   bar.setSlots([{ id: 'attack', label: '攻击', key: '空格/J' }]);
   const KILL_GOAL = 10;
+  const bgm = new BgmLayers();
+  let bgmReady = false;
+  function ensureBgm() {
+    if (bgmReady || typeof AudioContext === 'undefined') return;
+    try {
+      ac = ac ?? new AudioContext();
+      bgm.attach(ac);
+      bgmReady = true;
+    } catch {
+      /* silent */
+    }
+  }
   quest.setItems([{ id: 'k10', title: `击杀 ${KILL_GOAL} 个目标`, done: false }]);
 
   // optional tiny SFX (no assets required)
@@ -252,6 +265,7 @@ export function createArpgGame(
 
   if (typeof window !== 'undefined') {
     window.addEventListener('keydown', onKeyDn);
+    window.addEventListener('pointerdown', ensureBgm, { once: true });
     window.addEventListener('keyup', onKeyUp);
   }
 
@@ -298,6 +312,11 @@ export function createArpgGame(
           );
         }
         rig.update(ft, player.position, Math.atan2(facingX, facingZ));
+        // intensity: more living enemies → more intense layer
+        {
+          const live = liveEnemies().length;
+          bgm.setIntensity(Math.min(1, live / 8));
+        }
 
         enemies.forEachLive((e) => {
           if (!e.alive) return;
@@ -360,6 +379,9 @@ export function createArpgGame(
       scene.remove(root);
       hud?.remove();
       endEl?.remove();
+      quest.dispose();
+      bar.dispose();
+      bgm.detach();
       hud = null;
       endEl = null;
     },

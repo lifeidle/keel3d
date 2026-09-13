@@ -84,3 +84,12 @@ interface System {
 ```
 
 注册顺序 = 执行顺序。`world.playing === false` 时 fixedUpdate 由内核跳过。
+
+
+## 音频 / UI / kit 补充
+
+| 模块 | 路径 |
+|---|---|
+| SfxPlayer / BgmLayers | `src/blocks/audio/` |
+| ButtonBar / QuestTracker / WorldBar | `src/blocks/ui/` |
+| kitHumanoid / kitScatter / kitPad / kitPillar | `src/blocks/kit/` |

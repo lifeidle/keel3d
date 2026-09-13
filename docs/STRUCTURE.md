@@ -44,6 +44,12 @@ game/
 main.ts               ?game= / window.__GAME_ID__ 路由
 ```
 
+## 积木 import 规则
+
+1. **精确路径**：`import { X } from '../../blocks/gameplay/X'`
+2. **禁止** `import * from '../../blocks'` 或 barrel 误拖整包
+3. 宿主不自动注册玩法积木；只 push 你 new 出来的 System
+
 ## 独立性铁律
 
 1. `game/*` 两两禁止互相 import
@@ -72,6 +78,7 @@ main.ts               ?game= / window.__GAME_ID__ 路由
 | `new-game.mjs` | 内容包脚手架（`npm run new-game`） |
 | `probe-all.mjs` | 全骨架浏览器探针 |
 | `bundle-report.mjs` | dist 体积报告 |
+| `unused-check.mjs` | blocks 未引用报告（信息性） |
 | `site-audit.mjs` | 站点体检 |
 | `adapter_probe.mjs` · `buf_err_probe.mjs` · `webgpu_probe.mjs` | 诊断 |
 

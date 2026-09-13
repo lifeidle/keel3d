@@ -11,6 +11,7 @@ import { Pool } from '../../blocks/Pool';
 import { Economy } from '../../blocks/gameplay/Economy';
 import { WaveDirector } from '../../blocks/gameplay/WaveDirector';
 import { Health } from '../../blocks/gameplay/Health';
+import { kitPad } from '../../blocks/kit/placeholders';
 import type { System, EngineWorld } from '../../engine/types';
 import type { FixedMapDef } from '../../content/define';
 
@@ -105,10 +106,7 @@ export function createTowerGame(deps: TowerDeps) {
   // tower pads
   const pads: { x: number; z: number; mesh: THREE.Mesh; occupied: boolean }[] = [];
   for (const p of grass1.pois!.filter((q) => q.id.startsWith('pad'))) {
-    const m = new THREE.Mesh(
-      new THREE.CylinderGeometry(1.4, 1.4, 0.2, 20),
-      new THREE.MeshStandardMaterial({ color: 0x8a9a7a, emissive: 0x223322 }),
-    );
+    const m = kitPad(1.4);
     m.position.set(p.x, 0.1, p.z);
     m.receiveShadow = true;
     root.add(m);
@@ -181,7 +179,7 @@ export function createTowerGame(deps: TowerDeps) {
     const alive = enemyPool.activeCount;
     hudEl.textContent =
       `金钱 ${eco.balance} · 波次 ${director.waveNumber}/${director.totalWaves} · 基地 ${baseHp}\n` +
-      `选塔 1/2/3 · 点空台放塔 · U 升级最后放的塔\n` +
+      `选塔 1/2/3 · 点空台放塔 · U 升级末塔 · 塔数 ${towers.length} · 末塔强化 ${(towers[towers.length-1]?.defBoost ?? 1).toFixed(2)}\n` +
       `场上敌人 ${enemyPool.activeCount}` + (status !== 'playing' ? `\n[${status}]` : '');
   }
 

@@ -71,6 +71,12 @@ npm run new-game mytd -- --recipe td --html
 
 ---
 
+## 复制配方 vs 读完整样例
+
+- **改玩法**：复制 `src/recipes/*.ts` 或 `new-game --recipe` 生成的包，改数据与少量 System。  
+- **学接线**：读 `src/game/nightraid`（完整 FPS 演示），不要整包拷贝。  
+- **只用积木**：精确路径 import `src/blocks/...`，避免 barrel 误拖。
+
 ## 架构
 
 ```
