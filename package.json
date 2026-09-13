@@ -1,9 +1,9 @@
 {
-  "name": "yexi-game-framework",
+  "name": "keel3d",
   "version": "0.2.0",
   "private": true,
   "type": "module",
-  "description": "WebGPU 3D game framework — three independent samples (nightraid / tower / cultivation)",
+  "description": "KeeL 3D — WebGPU browser game framework (Specul). Samples: nightraid / tower / cultivation.",
   "engines": {
     "node": ">=22"
   },

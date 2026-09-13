@@ -1,4 +1,4 @@
-# 积木手册 — 按需拼装
+# 积木手册 — KeeL 3D 按需拼装
 
 > **原则**：要用哪块就 import 哪块；不要的不进包、不进帧循环。  
 > 推荐精确路径：`from '../../blocks/gameplay/Health'`（避免整包 barrel 误拖）。

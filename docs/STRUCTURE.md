@@ -1,6 +1,8 @@
-# 项目结构（框架主轴 · 终态）
+# 项目结构（KeeL 3D · 框架主轴 · 终态）
 
-> **产品是框架**。样例互不相干，只通过 L1/L2/L3 API 接入。
+> **产品是框架**。样例互不相干，只通过 L1/L2/L3 API 接入。  
+> **品牌**：Specul · **KeeL 3D** · npm `keel3d` · https://3d.specul.com  
+> 规划中的二维线：KeeL 2D · `2d.specul.com` · `keel2d`
 
 ## 顶层
 
@@ -10,6 +12,7 @@
 | `EXECUTION_STEPS.md` | 分步施工单 |
 | `PROGRESS.md` | 进度真相源 |
 | `README.md` · `LICENSE` | 说明与许可 |
+| `hub.html` | 选型页（游戏形式 → 基底） |
 | `index.html` | Sample A 入口（夜袭） |
 | `tower.html` | Sample B 独立入口 |
 | `cultivation.html` | Sample C 独立入口 |

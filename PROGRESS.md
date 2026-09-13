@@ -266,3 +266,7 @@ $out = & $node "<鑴氭湰缁濆璺緞>" 2>&1; $code = $LASTEXITCODE
 
 **2026-09-13 生存配方 + 修仙血条**
 - recipes/survival.ts；new-game --recipe survival；cultivation 用 HealthBar 显示修为
+
+**2026-09-13 品牌定名**
+- 产品名：KeeL 3D；npm：keel3d；站点：3d.specul.com
+- 伞品牌 Specul；规划 KeeL 2D / keel2d / 2d.specul.com

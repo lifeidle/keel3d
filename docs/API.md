@@ -1,5 +1,6 @@
-# API — 三层契约
+# API — KeeL 3D 三层契约
 
+> **KeeL 3D** · Specul · https://3d.specul.com  
 > 框架维护 L1+L2，内容包只写 L3。样例目录之间禁止互相 import。
 
 ## L1 内核 `src/engine/`

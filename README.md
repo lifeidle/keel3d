@@ -1,4 +1,8 @@
-# Yexi Game Framework
+# KeeL 3D
+
+> **品牌**：[Specul](https://specul.com) 旗下三维游戏基座 · **KeeL 3D**  
+> **站点**：https://3d.specul.com · **npm**：`keel3d`  
+> 二维产品线（规划）：**KeeL 2D** · `2d.specul.com` · `keel2d`
 
 **纯浏览器 3D 游戏基座**（WebGPU + three.js + Rapier）。
 

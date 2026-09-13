@@ -1,5 +1,6 @@
-# ADAPT — 换品类一页纸
+# ADAPT — KeeL 3D 换品类一页纸
 
+> **KeeL 3D** · https://3d.specul.com  
 > 换游戏 = 换一份 `defineGame` + systems + 模型。内核与积木零改动。
 
 ## FPS（Sample A 路径）
