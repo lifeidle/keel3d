@@ -17,33 +17,33 @@
 
 ## 0. 施工前准备（安全网 + 基线）——必须先做
 
-### 0.0 本地 git 安全网（2026-09-13 用户拍板）— S
+### 0.0 本地 git 安全网（2026-09-13 用户拍板）— S ✅ 已完成
 - **目标**：Phase A 拆 `game.ts` 时有 diff/blame/步骤级回滚，不再只靠文件夹快照。
 - **做法**：
-  1. `git init`（本地仓，**不推远端**）；`.gitignore` 排除 `node_modules/`、`dist/`、`_snapshots/`、`shots/`、`tools/blender-*/`。
+  1. `git init`（本地仓，**不推远端**）；`.gitignore` 排除 `node_modules/`、`dist/`、`_snapshots/`、`shots/`、`tools/blender-*/`、`assets_new/`。
   2. 首次 commit：当前全绿基线（typecheck/test/build 已过）。
   3. 此后**每步施工开工前 commit、验收通过后再 commit**；快照机制（0.1）保留作发布点备份。
-- **验收**：`git log` 可见初始 commit；`git status` 干净。
+- **验收**：`git log` 可见初始 commit；`git status` 干净。✅
 - **规模**：S
 
-### 0.1 快照机制（与 git 双保险的发布点备份）— S ⬜ 待建
+### 0.1 快照机制（与 git 双保险的发布点备份）— S ✅ 已完成
 - **目标**：任何一步翻车，5 分钟内回到干净状态。
 - **做法**：
-  1. 建 `scripts/snapshot.mjs`：`node scripts/snapshot.mjs save <label>` 把 `src/ test/ scripts/ public/soldier-preview.html public/tank-preview.html package.json vite.config.ts` 复制到 `_snapshots/<label>/`；`node scripts/snapshot.mjs restore <label>` 反向恢复（恢复前自动再存一份 `auto-before-restore`）。
+  1. 建 `scripts/snapshot.mjs`：`node scripts/snapshot.mjs save <label>` 把 `src/ test/ scripts/ package.json vite.config.ts …` 复制到 `_snapshots/<label>/`；`restore <label>` 反向恢复（恢复前自动再存 `auto-before-restore`）。
   2. 约定 label = 步骤号（如 `A5`、`B3`）。每步开工前 `save`，通过验收后不必删（体积小）。
-- **验收**：`save A0` 后 `_snapshots/A0/` 内含 `src/` 全量；故意改一个文件，`restore A0` 后改动消失。
+- **验收**：`save A0` 后恢复验证通过（故意改 `rng.ts` → `restore A0` → 改动消失）。✅
 - **规模**：S
 
-### 0.2 回归基线（Phase A 的对照物）— S
+### 0.2 回归基线（Phase A 的对照物）— S ✅ 已完成
 - **目标**：录下「现在的夜袭」作为手感/数据对照物，Phase A 每步与它比。
 - **做法**：
-  1. `npm run build` → 起服务（见 §0.3 命令 4）→ 依次跑：
-     - `node scripts/game_state_check.mjs` → 存 `shots/baseline/state.txt`
-     - `node scripts/game_regress.mjs http://localhost:4188/` → 存 `shots/baseline/regress.txt`
-     - `node scripts/selfcheck_full.mjs` → 截图存 `shots/baseline/`（menu/game1/game2/preview）
-     - `node scripts/game_probe.mjs`（?debug=1 敌人探针）→ 存 `shots/baseline/probe.txt`
-  2. 另在 `shots/baseline/README.md` 记录人工观察要点（打一局 2 分钟）：移动手感 / 开火节奏 / 敌人行为 / HUD 读数 / 坦克上下车 / 任务提示。
-- **验收**：`shots/baseline/` 齐套；`state.txt` 无 ERRORS。
+  1. `npm run build` → 起服务（端口 4188）→ 依次跑并写入 `shots/baseline/`：
+     - `game_state_check` → `state.txt`（ERRORS: none，HUD 30/90）
+     - `game_regress` → `regress.txt`（ERRORS: none，webgpu，~75 FPS）
+     - `selfcheck_full` → `selfcheck.txt` + 截图
+     - `game_probe` → `probe.txt`（4 hostile + 2 ally）
+  2. `shots/baseline/README.md` 记录人工观察要点。
+- **验收**：`shots/baseline/` 齐套；`state.txt` / `regress.txt` 均无 ERRORS。✅
 - **规模**：S
 
 ### 0.3 验收工具链核对（2026-09-13 已修复）— 参考信息
@@ -280,8 +280,9 @@ DOM id：`#bootFill #bootTxt #btnPlay #btnNet #btnNetHost #btnNetJoin #btnNetGo 
 
 | 步骤 | 快照 | 五连 | 行为抽查 | 日期 |
 |---|---|---|---|---|
-| 0.0 git init | — | （待做） | — | |
-| 0.1 快照机制 | — | （待做） | — | |
+| 0.0 git init | — | ✅ | — | 2026-09-13 |
+| 0.1 快照机制 | A0 | ✅ | restore 验证 | 2026-09-13 |
+| 0.2 回归基线 | — | ✅ | shots/baseline 齐套 | 2026-09-13 |
 | 0.2 回归基线 | | | | |
 | 1.1 资产管线 | | | | |
 | 1.2 Phase 0 验收 | | | | |

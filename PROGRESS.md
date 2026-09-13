@@ -14,6 +14,8 @@
 - ✅ 切片 2 收尾：**浏览器回归通过**（WebGPU 后端、75 FPS、HUD 正常、**控制台 0 错误**）
 - ⬜ 切片 3：KTX2/Draco 资产管线（未开始）
 - ✅ 规划更新：三样例 + **框架主轴**（样例互不相干）写入 FRAMEWORK_PLAN + EXECUTION_STEPS
+- ✅ **目录重组**：夜袭内容收拢 `src/game/nightraid/`；骨架 blocks/content/demo-tower/demo-cultivation；根目录清理
+- ✅ **施工准备 0.0–0.2**：本地 git + 快照机制（`_snapshots/A0`）+ **回归基线**（`shots/baseline/` 全绿）
 
 ---
 
@@ -170,7 +172,7 @@
 5. ~~依赖小版本对齐~~ ✅（@types/three 0.186 / vite 8.3 / wrangler 4.131；typecheck+test+build 全绿）
 6. ~~深度技术审查 + 三项拍板~~ ✅（音频归夜袭内容包 / Sample C 另做修仙 GLB / Phase A 前 git init）
 7. ~~框架主轴定调~~ ✅（样例互不相干；独立性铁律入 DoD）
-8. **施工准备**：git init（0.0）+ 快照机制（0.1）+ 回归基线（0.2）
+8. ~~施工准备~~ ✅（0.0 git + 0.1 快照 `A0` + 0.2 基线 `shots/baseline/` 全绿）
 9. **切片 3**：KTX2/Draco 资产管线（1.1）
 10. **Phase A**：从 Sample A 抽出 L1/L2（A1–A12，脱敏后夜袭降为普通内容包）
 
