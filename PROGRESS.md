@@ -260,3 +260,6 @@ $out = & $node "<鑴氭湰缁濆璺緞>" 2>&1; $code = $LASTEXITCODE
 - ui: HudPanel/Toast/EndOverlay/HealthBar
 - 塔防接入 Economy+WaveDirector+Health；33 单测；docs/BLOCKS.md + REMAINING.md
 - 按需 import，宿主不自动注册
+
+**2026-09-13 TD 配方**
+- src/recipes/tower-defense.ts；new-game --recipe td 已验证可 typecheck/build

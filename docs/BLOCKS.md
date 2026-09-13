@@ -52,6 +52,11 @@ hud.setText(`金币 ${eco.balance}`);
 
 `Path` · `Steering` · `GridAStar` · `CameraRig` · `ChunkWorld` · `MapBuilder` · `createSeededTerrain` · `Pool`
 
+## 配方 recipes
+
+- towerDefenseRecipe + npm run new-game --recipe td
+- 见 src/recipes/tower-defense.ts
+
 ## 不同游戏要配多少？
 
 | 类型 | 你通常只写 |
