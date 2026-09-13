@@ -1,4 +1,4 @@
-﻿// Entry point. Rapier ships as a standalone .wasm (ESM import, ready at module load).
+// Entry point. Rapier ships as a standalone .wasm (ESM import, ready at module load).
 // Boot: Engine kernel owns the rAF loop + system schedule.
 // ?game=nightraid (default) | tower | cultivation — samples are independent.
 import { Game } from './game/nightraid/game';
@@ -12,11 +12,12 @@ import { FullscreenUI } from './ui/fullscreen';
 import { createNightRaidGame } from './game/nightraid/NightRaidGame';
 import { createTowerGame } from './game/demo-tower';
 import { createCultivationGame } from './game/demo-cultivation';
+import { createTemplateGame } from './game/demo-template';
 import type { System } from './engine/types';
 
 function gameFromUrl(): string {
   const id = new URLSearchParams(location.search).get('game') ?? 'nightraid';
-  if (id === 'tower' || id === 'cultivation' || id === 'nightraid') return id;
+  if (id === 'nightraid' || id === 'tower' || id === 'cultivation' || id === 'template') return id;
   return 'nightraid';
 }
 
@@ -76,6 +77,12 @@ async function boot() {
   });
   if (gameId === 'tower') {
     const sample = createTowerGame({
+      scene: threeEngine.scene,
+      camera: threeEngine.camera,
+    });
+    for (const s of sample.systems) engine.addSystem(s);
+  } else if (gameId === 'template') {
+    const sample = createTemplateGame({
       scene: threeEngine.scene,
       camera: threeEngine.camera,
     });

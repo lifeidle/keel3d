@@ -14,3 +14,4 @@ export { createUnitBody, type UnitBodyOpts, type UnitBody } from './Unit';
 export { ChunkWorld, type ChunkWorldOpts, type ChunkCoord } from './ChunkWorld';
 export { buildMap, type MapBuilderDeps, type BuiltMap } from './MapBuilder';
 export { GridAStar, type GridAStarOpts } from './GridAStar';
+export { createSeededTerrain, type TerrainOpts, type SeededTerrain } from './scene';
