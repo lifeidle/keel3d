@@ -1,6 +1,5 @@
 /**
  * Kit — optional procedural placeholder meshes (no external assets).
- * Import and use; nothing runs until you call create*.
  */
 import * as THREE from 'three';
 
@@ -57,7 +56,27 @@ export function kitHumanoid(color = 0x5b8fd4): THREE.Group {
   return g;
 }
 
-/** Scatter kit props on XZ; returns group to add to scene. */
+export function kitPillar(h = 3): THREE.Mesh {
+  const m = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.35, 0.45, h, 10),
+    new THREE.MeshStandardMaterial({ color: 0x9a9a88, roughness: 0.8 }),
+  );
+  m.position.y = h / 2;
+  m.castShadow = true;
+  return m;
+}
+
+export function kitPad(r = 1.4): THREE.Mesh {
+  const m = new THREE.Mesh(
+    new THREE.CylinderGeometry(r, r * 1.05, 0.2, 20),
+    new THREE.MeshStandardMaterial({ color: 0x7a8a6a, roughness: 0.9 }),
+  );
+  m.position.y = 0.1;
+  m.receiveShadow = true;
+  return m;
+}
+
+/** Scatter kit props on XZ. */
 export function kitScatter(
   count: number,
   half: number,
@@ -70,8 +89,9 @@ export function kitScatter(
     const z = (rng() * 2 - 1) * half;
     if (Math.hypot(x, z) < 6) continue;
     let obj: THREE.Object3D;
-    if (r < 0.4) obj = kitRock(0.5 + rng() * 0.8);
-    else if (r < 0.75) obj = kitTree(3 + rng() * 3);
+    if (r < 0.35) obj = kitRock(0.5 + rng() * 0.8);
+    else if (r < 0.65) obj = kitTree(3 + rng() * 3);
+    else if (r < 0.85) obj = kitPillar(2 + rng() * 2);
     else {
       obj = kitCrate(0.8 + rng() * 0.4);
       obj.position.y = 0.5;

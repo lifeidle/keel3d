@@ -15,6 +15,8 @@ import { Projectile, stepProjectiles } from '../blocks/combat/Projectile';
 import { Pickup, PickupField } from '../blocks/interact/Pickup';
 import * as Steering from '../blocks/Steering';
 import { kitScatter } from '../blocks/kit/placeholders';
+import { ButtonBar } from '../blocks/ui/ButtonBar';
+import { QuestTracker } from '../blocks/ui/QuestTracker';
 import type { System, EngineWorld } from '../engine/types';
 
 export interface ArpgRecipeOpts {
