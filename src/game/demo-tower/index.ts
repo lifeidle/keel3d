@@ -11,6 +11,7 @@ import { Pool } from '../../blocks/Pool';
 import { Economy } from '../../blocks/gameplay/Economy';
 import { WaveDirector } from '../../blocks/gameplay/WaveDirector';
 import { Health } from '../../blocks/gameplay/Health';
+import { kitPad } from '../../blocks/kit/placeholders';
 import type { System, EngineWorld } from '../../engine/types';
 import type { FixedMapDef } from '../../content/define';
 
@@ -181,7 +182,7 @@ export function createTowerGame(deps: TowerDeps) {
     const alive = enemyPool.activeCount;
     hudEl.textContent =
       `金钱 ${eco.balance} · 波次 ${director.waveNumber}/${director.totalWaves} · 基地 ${baseHp}\n` +
-      `选塔 1/2/3 · 点空台放塔 · U 升级最后放的塔\n` +
+      `选塔 1/2/3 · 点空台放塔 · U 升级末塔 · 塔数 ${towers.length} · 末塔强化 ${(towers[towers.length-1]?.defBoost ?? 1).toFixed(2)}\n` +
       `场上敌人 ${enemyPool.activeCount}` + (status !== 'playing' ? `\n[${status}]` : '');
   }
 

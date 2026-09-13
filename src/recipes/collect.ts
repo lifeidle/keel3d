@@ -56,6 +56,7 @@ export function createCollectGame(
   const geo = new THREE.SphereGeometry(0.4, 10, 8);
   const mat = new THREE.MeshStandardMaterial({ color: 0xffd27a, emissive: 0x554400 });
   const field = new PickupField();
+  const orbMeshes: THREE.Mesh[] = [];
   let got = 0;
   for (let i = 0; i < n; i++) {
     const ang = (i / n) * Math.PI * 2;
@@ -148,7 +149,7 @@ export function createCollectGame(
         if (hud) {
           hud.textContent =
             `收集 ${got}/${n} · 时间 ${score.time.toFixed(1)}s\n` +
-            `WASD 移动 · 捡满后回到中央金圈`;
+            `WASD 移动 · 捡满回金圈 · R 重开`;
         }
       },
     },

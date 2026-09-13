@@ -72,6 +72,7 @@ main.ts               ?game= / window.__GAME_ID__ 路由
 | `new-game.mjs` | 内容包脚手架（`npm run new-game`） |
 | `probe-all.mjs` | 全骨架浏览器探针 |
 | `bundle-report.mjs` | dist 体积报告 |
+| `unused-check.mjs` | blocks 未引用报告（信息性） |
 | `site-audit.mjs` | 站点体检 |
 | `adapter_probe.mjs` · `buf_err_probe.mjs` · `webgpu_probe.mjs` | 诊断 |
 
