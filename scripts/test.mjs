@@ -16,7 +16,7 @@ const out = path.join(root, '.tmp', 'test');
 rmSync(out, { recursive: true, force: true });
 mkdirSync(out, { recursive: true });
 
-const files = ['ballistics', 'magazine', 'terrain', 'mapgen', 'combat', 'protocol'];
+const files = ['ballistics', 'magazine', 'terrain', 'mapgen', 'combat', 'protocol', 'blocks'];
 const outFiles = [];
 for (const f of files) {
   const outFile = path.join(out, `${f}.test.mjs`);
