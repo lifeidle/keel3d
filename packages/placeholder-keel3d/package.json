@@ -1,0 +1,33 @@
+{
+  "name": "keel3d",
+  "version": "0.0.1",
+  "description": "KeeL 3D — WebGPU browser game framework placeholder (Specul). Full source: https://3d.specul.com",
+  "keywords": [
+    "keel3d",
+    "keel",
+    "specul",
+    "webgpu",
+    "game",
+    "framework",
+    "threejs"
+  ],
+  "license": "MIT",
+  "author": "Specul / KeeL 3D authors",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/specul/keel3d.git"
+  },
+  "homepage": "https://3d.specul.com",
+  "bugs": {
+    "url": "https://github.com/specul/keel3d/issues"
+  },
+  "main": "index.js",
+  "files": [
+    "index.js",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=22"
+  }
+}

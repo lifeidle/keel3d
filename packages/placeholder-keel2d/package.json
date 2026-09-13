@@ -1,0 +1,33 @@
+{
+  "name": "keel2d",
+  "version": "0.0.1",
+  "description": "KeeL 2D — planned 2D game foundation placeholder (Specul). Related: keel3d · https://2d.specul.com",
+  "keywords": [
+    "keel2d",
+    "keel",
+    "specul",
+    "2d",
+    "game",
+    "framework",
+    "canvas"
+  ],
+  "license": "MIT",
+  "author": "Specul / KeeL authors",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/specul/keel3d.git"
+  },
+  "homepage": "https://2d.specul.com",
+  "bugs": {
+    "url": "https://github.com/specul/keel3d/issues"
+  },
+  "main": "index.js",
+  "files": [
+    "index.js",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=22"
+  }
+}
