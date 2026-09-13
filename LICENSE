@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2026 Night Raid project authors
+Copyright (c) 2026 KeeL 3D / Specul authors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -22,8 +22,13 @@ SOFTWARE.
 
 ---
 
- THIRD-PARTY ASSETS: the source code in `src/` is MIT-licensed as above, but
- the shipped build also bundles third-party audio and texture assets with
- their OWN licenses. Those are listed in THIRD_PARTY_NOTICES.md and
- AUDIO_CREDITS.md — the MIT grant above does NOT cover them. If you remix or
- redistribute this build, keep those notices intact.
+Scope of this MIT grant:
+
+- Covered: framework source under src/engine, src/blocks, src/content,
+  src/physics, src/recipes, tooling scripts, and sample game CODE you write
+  or that ships as TypeScript in src/game/*.
+- NOT covered: third-party audio, textures, 3D models, and decoder binaries
+  under public/ — those keep their own licenses. See
+  docs/THIRD_PARTY_NOTICES.md and docs/LEGAL.md.
+- Trademarks: "Specul", "KeeL 3D", "KeeL 2D" are product names; MIT does not
+  grant trademark rights.

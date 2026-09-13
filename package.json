@@ -4,6 +4,13 @@
   "private": true,
   "type": "module",
   "description": "KeeL 3D — WebGPU browser game framework (Specul). Samples: nightraid / tower / cultivation.",
+  "license": "MIT",
+  "author": "Specul / KeeL 3D authors",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/specul/keel3d"
+  },
+  "homepage": "https://3d.specul.com",
   "engines": {
     "node": ">=22"
   },

@@ -13,9 +13,10 @@
 | 渲染 | **WebGPU 唯一**（three.js r186，无 WebGL 回退） |
 | 物理 | Rapier3D（标准 wasm） |
 | 语言/构建 | TypeScript + Vite |
-| 许可 | MIT |
+| 许可 | MIT（代码）· 素材见第三方声明 |
 
-> 需要支持 WebGPU 的浏览器（Chrome / Edge 新版，Safari 17+）。不支持时会显示明确提示页。
+> 需要支持 WebGPU 的浏览器（Chrome / Edge 新版，Safari 17+）。不支持时会显示明确提示页。  
+> **完整教程**：[`docs/USER_GUIDE.md`](docs/USER_GUIDE.md) · **法律与商用**：[`docs/LEGAL.md`](docs/LEGAL.md) · **第三方版权**：[`docs/THIRD_PARTY_NOTICES.md`](docs/THIRD_PARTY_NOTICES.md)
 
 ---
 
@@ -163,10 +164,15 @@ npx wrangler pages deploy dist --project-name <your-project> --branch main
 
 ---
 
-## 许可
+## 许可与合规
 
-- 源代码：**MIT**（见 `LICENSE`）  
-- 第三方素材：见 `docs/THIRD_PARTY_NOTICES.md`、`docs/AUDIO_CREDITS.md`  
+- **源代码**：**MIT**（见 `LICENSE`）— 可商用，保留版权与许可文本即可  
+- **第三方依赖 / 解码器**：MIT 或 Apache-2.0  
+- **`public/` 素材**：CC0 / CC-BY / CC-BY-SA（夜袭样例）— **不在 MIT 范围内**  
+- 义务与免责：[`docs/LEGAL.md`](docs/LEGAL.md)  
+- 完整清单与署名文本：[`docs/THIRD_PARTY_NOTICES.md`](docs/THIRD_PARTY_NOTICES.md) · [`docs/AUDIO_CREDITS.md`](docs/AUDIO_CREDITS.md)
+
+**商用提示**：只发「框架 + 你自己的游戏」通常只需 MIT + 依赖许可；若发布含夜袭音频的完整构建，必须完成 CC-BY 署名，并处理 CC-BY-SA 语音（署名/SA 或移除该文件）。
 
 ---
 
