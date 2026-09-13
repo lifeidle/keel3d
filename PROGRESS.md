@@ -248,3 +248,9 @@ $out = & $node "<è„šæœ¬ç»å¯¹è·¯å¾„>" 2>&1; $code = $LASTEXITCODE
 | `src/game/demo-cultivation/` | Sample Cï¼ˆå¾…å»ºï¼ŒPhase Eï¼‰ |
 | `scripts/test.mjs` | å•æµ‹ç®¡çº¿ï¼ˆesbuild bundle + node --testï¼‰ |
 | `scripts/selfcheck_full.mjs` / `game_state_check.mjs` | æµè§ˆå™¨è‡ªæµ‹å·¥å…·é“¾ |
+
+**2026-09-13 FRAMEWORK_V2 U1¨CU5 Íê³É**
+- Í³Ò»ËŞÖ÷ mountSampleGame£»registry ×éºÏ¸ù£»GameSpec.create/daylight/autoPlay
+- npm run new-game ½ÅÊÖ¼Ü£¨¿ÉÉú³É¶ÀÁ¢ HTML£©
+- main.ts ½ö resolve ¡ú load ¡ú mount£»Ò¹Ï® bootNightRaid ÊÊÅä
+- ÎÄµµ¶ÔÆë£»26 ²â / regress / È«ÑùÀı¼ÓÔØÈ«ÂÌ
