@@ -64,12 +64,14 @@ main.ts               ?game= / window.__GAME_ID__ 路由
 
 | 脚本 | 用途 |
 |---|---|
-| `test.mjs` | 单测（26） |
+| `test.mjs` | 单测（46） |
 | `snapshot.mjs` | 步骤快照 save/restore |
 | `game_regress.mjs` · `game_state_check.mjs` · `game_probe.mjs` · `selfcheck_full.mjs` | 浏览器回归 |
 | `net_e2e.mjs` | 联机 e2e |
 | `assets-encode.mjs` · `assets-webp.mjs` | 资产管线 |
 | `new-game.mjs` | 内容包脚手架（`npm run new-game`） |
+| `probe-all.mjs` | 全骨架浏览器探针 |
+| `bundle-report.mjs` | dist 体积报告 |
 | `site-audit.mjs` | 站点体检 |
 | `adapter_probe.mjs` · `buf_err_probe.mjs` · `webgpu_probe.mjs` | 诊断 |
 

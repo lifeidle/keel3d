@@ -1,14 +1,22 @@
 ---
 feature: framework-polish
-status: in-progress
+status: delivered
 updated: 2026-09-13
 branch: feature/framework-polish
-commits: # filled at delivery
+commits: e4eab7880a8d2e26c7b7bb7fbb4ba25408cd487a..23acb950f75d86bd68cf3e72b2f45c5c467e111d
 ---
 
 # Framework Polish — open-source quality, audio/UI, kit, cleanup
 
 ## Report
+
+**What was built** — Framework polish: bundle-report + CI, SfxPlayer/BgmLayers, ButtonBar/QuestTracker wired into ARPG, kit pillar/pad, docs consistency.
+
+**Verification** — typecheck PASS · test PASS (46) · build PASS · bundle:report PASS · probe-all PASS. Review follow-ups applied (ARPG wire, docs, kit).
+
+**Journey log** —
+1. Partial string replace left ARPG imports unwired; browser probe of quest/bar is the real check.
+2. noUnusedLocals:false hides dead imports — probe HUD ids, not only typecheck.
 
 ## [S1] Problem
 
@@ -80,9 +88,9 @@ Wire ARPG: ButtonBar 1=attack hint; QuestTracker: “击杀 10 个目标”.
 
 ## Tasks
 
-- [ ] T1: Slice A bundle-report + package scripts + CI + docs links — acceptance: script runs; CI file updated (covers: S2 A)
-- [ ] T2: SfxPlayer + BgmLayers + tests — acceptance: typecheck; no-context safe (covers: S2 B; depends: T1)
-- [ ] T3: ARPG optional SFX hook — acceptance: build green; no asset required (covers: S2 B; depends: T2)
-- [ ] T4: ButtonBar + QuestTracker + ARPG wire — acceptance: HUD shows quest text (covers: S2 C; depends: T1)
-- [ ] T5: kit extras + cleanup + BLOCKS docs — acceptance: docs list new APIs (covers: S2 D; depends: T1)
-- [ ] T6: Full verify typecheck/test/build/probe — acceptance: all green (covers: S2; depends: T2-T5)
+- [x] T1: Slice A bundle-report + package scripts + CI + docs links — acceptance: script runs; CI file updated (covers: S2 A)
+- [x] T2: SfxPlayer + BgmLayers + tests — acceptance: typecheck; no-context safe (covers: S2 B; depends: T1)
+- [x] T3: ARPG optional SFX hook — acceptance: build green; no asset required (covers: S2 B; depends: T2)
+- [x] T4: ButtonBar + QuestTracker + ARPG wire — acceptance: HUD shows quest text (covers: S2 C; depends: T1)
+- [x] T5: kit extras + cleanup + BLOCKS docs — acceptance: docs list new APIs (covers: S2 D; depends: T1)
+- [x] T6: Full verify typecheck/test/build/probe — acceptance: all green (covers: S2; depends: T2-T5)

@@ -71,6 +71,34 @@ export function createArpgGame(
   const playerHealth = new Health({ max: playerHpMax });
   const score = new Scoreboard();
   const gold = new Economy({ start: 0 });
+  const quest = new QuestTracker({ title: '任务' });
+  const bar = new ButtonBar({
+    onClick: (id) => {
+      if (id === 'attack') attack();
+    },
+  });
+  bar.setSlots([{ id: 'attack', label: '攻击', key: '空格/J' }]);
+  const KILL_GOAL = 10;
+  quest.setItems([{ id: 'k10', title: `击杀 ${KILL_GOAL} 个目标`, done: false }]);
+
+  // optional tiny SFX (no assets required)
+  let ac: AudioContext | null = null;
+  function beep(freq: number) {
+    try {
+      if (typeof AudioContext === 'undefined') return;
+      ac = ac ?? new AudioContext();
+      const o = ac.createOscillator();
+      const g = ac.createGain();
+      o.frequency.value = freq;
+      g.gain.value = 0.04;
+      o.connect(g);
+      g.connect(ac.destination);
+      o.start();
+      o.stop(ac.currentTime + 0.05);
+    } catch {
+      /* silent */
+    }
+  }
 
   interface E {
     mesh: THREE.Mesh;
@@ -131,6 +159,8 @@ export function createArpgGame(
         enemies.release(e);
         score.addKill();
         gold.add(5);
+        beep(1320);
+        if (score.kills >= KILL_GOAL) quest.complete('k10');
         // drop
         const id = 'drop' + score.kills;
         const mesh = new THREE.Mesh(dropGeo, dropMat);
@@ -164,6 +194,7 @@ export function createArpgGame(
 
   function attack() {
     if (!attackCd.tryFire()) return;
+    beep(880);
     const list = liveEnemies()
       .filter((e) => e.alive)
       .map((e) => ({
@@ -313,7 +344,7 @@ export function createArpgGame(
         if (hud) {
           hud.textContent =
             `HP ${playerHealth.hp}/${playerHpMax} · 击杀 ${score.kills} · 金 ${gold.balance}\n` +
-            `WASD 移动 · 空格/J 攻击（近战，远处发弹）`;
+            `WASD 移动 · 空格/J 或底栏「攻击」`;
         }
       },
     },

@@ -141,7 +141,7 @@ gems.update(player.x, player.z);
 | `SfxPlayer` | 一次性音效（无 AudioContext 时静默） |
 | `BgmLayers` | calm/intense 双层交叉音量 |
 
-## UI（补充）
+## UI（补充 2）
 
 `ButtonBar` 底栏按钮 · `QuestTracker` 任务列表
 
