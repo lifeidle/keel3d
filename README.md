@@ -1,71 +1,198 @@
-# 夜袭 / Night Raid
+# Yexi Game Framework
 
-> **本仓库的产品是「可开源 3D 游戏框架」**；夜袭是框架上的 Sample A 内容包之一。
-> 框架规划见 `FRAMEWORK_PLAN.md`，目录说明见 `docs/STRUCTURE.md`。
+**纯浏览器 3D 游戏基座**（WebGPU + three.js + Rapier）。
 
-免费、无需安装的网页 3D 夜战 FPS（Sample A）：夜战潜行、种子化随机战场、AI 队友协同、
-联机合作与猎杀对战。桌面与手机浏览器即开即玩——**https://yexi.org**
+不用从 `requestAnimationFrame`、刚体世界、对象池、相机机架搭起——clone 下来，只填「模型 + 玩法 + 场景」，就能做出 FPS、塔防、开放世界、飞行、赛车等不同品类的网页游戏。
 
-## 特性
-
-- **单机战役**：夜战潜行 FPS，敌军分路推进，占领/歼灭/防守多类任务，坦克与吉普载具
-- **联机合作**（P2P，最多 8 人架构）：主机权威模拟，AI 敌我双端同步，救援/补给/胜负联机化
-- **PvP 猎杀**：FFA 自由对战，死亡 3 秒复活，先到 15 杀或 10 分钟结算
-- **种子化随机战场**：同一 seed 生成完全一致的战场（联机共用 seed）
-- **中英双语**：界面与无线电语音双语言（中文语音为本地 TTS 合成）
-- **自适应**：分辨率自适应 UI，桌面/移动均可运行
-
-## 技术栈
-
-Three.js（WebGPU 唯一）+ Rapier3D（标准 wasm）+ TypeScript + Vite ·
-后端：Cloudflare Pages Functions + KV（信令）·
-传输：WebRTC DataChannel（P2P，双通道可靠/不可靠拆分，二进制协议）
-
-## 本地开发
-
-```bash
-npm install          # 安装依赖
-npm run dev          # 开发服务器（vite）
-npm test             # 单元测试（26 项：弹道/弹匣/地形/地图/战斗/网络/积木）
-npm run build        # 构建到 dist/
-npm run site-audit   # 站点体检
-npm run net:dev      # 联机联调服务器（端口 8799，双标签即可测试 P2P）
-```
-
-快速上手框架写新游戏：见 **`docs/QUICKSTART.md`**。
-
-## 部署（Cloudflare Pages，免费计划）
-
-```bash
-npx wrangler login                          # 一次性授权
-npx wrangler pages deploy dist --project-name night-raid --branch main
-```
-
-信令 KV：`NET_SIGNALING` namespace（id 见 wrangler.toml）。自定义域名在
-Pages 项目 → Custom domains 绑定（当前：yexi.org）。
-
-## 项目结构
-
-完整分层说明见 **`docs/STRUCTURE.md`**。核心：
-
-| 目录 | 用途 |
+| | |
 |---|---|
-| `src/engine/` | L1 内核（框架） |
-| `src/blocks/` · `src/content/` | L2 积木 / L3 契约 |
-| `src/game/nightraid/` | Sample A 内容包 |
-| `src/game/demo-tower/` · `demo-cultivation/` | Sample B / C |
-| `src/game/demo-flight/` · `demo-race/` · `demo-template/` | 骨架与模板 |
-| `public/` | 静态资产源，构建时拷入 dist |
-| `functions/` | Pages Functions——联机信令 API |
-| `docs/` | QUICKSTART / API / ADAPT / 许可清单 |
+| 渲染 | **WebGPU 唯一**（three.js r186，无 WebGL 回退） |
+| 物理 | Rapier3D（标准 wasm） |
+| 语言/构建 | TypeScript + Vite |
+| 许可 | MIT |
 
-联机架构详见 `docs/archive/MULTIPLAYER_PLAN.md`。
+> 需要支持 WebGPU 的浏览器（Chrome / Edge 新版，Safari 17+）。不支持时会显示明确提示页。
+
+---
+
+## 能帮你做到什么
+
+框架管「每个游戏都要写一遍、但和玩法无关」的部分；你只写自己游戏的内容。
+
+| 你不用再搭 | 框架已提供 |
+|---|---|
+| 渲染循环 / 固定步长物理 | `Engine`（rAF + fixed-dt 累加器 + System 调度） |
+| 画质档与动态分辨率 | `QualityController` |
+| 键鼠 / 触摸输入 | `Input` |
+| 对象池、路点、转向、寻路 | `Pool` · `Path` · `Steering` · `GridAStar` |
+| 第一/第三人称/俯视相机与运行时切换 | `CameraRig.setMode` |
+| 角色胶囊体 | `createUnitBody` |
+| 开放世界 chunk 加载 | `ChunkWorld` |
+| 三种地图模式 | `MapBuilder`：seeded / fixed / stream |
+| 模型加载（Draco / KTX2） | `createGltfLoader` |
+| P2P 联机协议（可选） | `src/net/`（夜袭样例已验证） |
+
+**你负责**：`GameSpec`（声明游戏）+ 几个 `System`（玩法）+ 模型与场景。
+
+已验证可承载的品类路径（仓库内有可运行样例或骨架）：
+
+- **FPS**（完整样例，含联机）— `game/nightraid`
+- **塔防** — `game/demo-tower`
+- **修仙开放世界 / 多视角** — `game/demo-cultivation`
+- **飞行 / 赛车骨架** — `game/demo-flight` · `game/demo-race`
+- **空白模板** — `game/demo-template`
+
+---
+
+## 5 分钟跑起来
+
+```bash
+npm install
+npm run build
+npm run preview          # http://localhost:4173
+```
+
+或开发模式：
+
+```bash
+npm run dev              # http://localhost:5173
+```
+
+| 入口 | 内容 |
+|---|---|
+| `/` 或 `index.html` | Sample A 夜袭（完整 FPS） |
+| `/tower.html` | Sample B 塔防 |
+| `/cultivation.html` | Sample C 修仙（1/2/3 切视角） |
+| `/?game=flight` | 飞行骨架 |
+| `/?game=race` | 赛车骨架 |
+| `/?game=template` | 空白模板 |
+
+塔防：`1/2/3` 选塔，点击空圆台放置。  
+修仙：`1/2/3` 切第一/第三人称/俯视。
+
+---
+
+## 写你自己的游戏（最短路径）
+
+1. 复制模板目录：
+
+```bash
+cp -r src/game/demo-template src/game/mygame
+```
+
+2. 在 `src/main.ts` 注册（参考现有 `createTowerGame` 分支）：
+
+```ts
+import { createMyGame } from './game/mygame';
+// ...
+const sample = createMyGame({ scene: threeEngine.scene, camera: threeEngine.camera });
+for (const s of sample.systems) engine.addSystem(s);
+```
+
+3. 写内容（`src/game/mygame/index.ts`）：
+
+```ts
+import * as THREE from 'three';
+import { defineGame } from '../../content';
+import { CameraRig, Path, Steering, Pool } from '../../blocks';
+import type { System, EngineWorld } from '../../engine/types';
+
+export function createMyGame(deps: { scene: THREE.Scene; camera: THREE.PerspectiveCamera }) {
+  const { scene, camera } = deps;
+  const root = new THREE.Group();
+  scene.add(root);
+
+  const rig = new CameraRig(camera, { defaultMode: 'chase' });
+  const systems: System[] = [
+    {
+      name: 'mygame.sim',
+      update(ft: number, world: EngineWorld) {
+        // 你的玩法；world.playing 为对局中
+        rig.update(ft, new THREE.Vector3(0, 0, 0), 0);
+      },
+    },
+  ];
+  return { systems, dispose() { scene.remove(root); } };
+}
+
+export const mygame = defineGame({
+  id: 'mygame',
+  title: 'My Game',
+  camera: { default: 'chase', allow: ['fps', 'chase', 'orbit'] },
+  map: { kind: 'seeded', gen: (seed) => ({ seed }) },
+});
+```
+
+更完整的说明：
+
+- **`docs/QUICKSTART.md`** — 分步上手  
+- **`docs/API.md`** — L1/L2/L3 契约  
+- **`docs/ADAPT.md`** — FPS / 塔防 / 修仙 / 飞行 / 赛车 一页纸  
+- **`docs/STRUCTURE.md`** — 目录与铁律  
+
+---
+
+## 架构（一眼）
+
+```
+L1  src/engine/     循环 · WebGPU · 输入 · 质量 · 资产 · 音频
+L2  src/blocks/     Pool Path Steering GridAStar CameraRig Unit
+                    ChunkWorld MapBuilder TerrainBuilder Daylight
+L3  src/content/    GameSpec · MapSpec · defineGame
+──  src/game/*      内容包（互不 import）—— 你写这里
+```
+
+铁律：
+
+1. `game/*` 之间禁止互相 import  
+2. `engine/` `blocks/` `content/` 禁止 import 任何 `game/`  
+3. 样例只通过框架 API 接入  
+
+---
+
+## 质量与验证
+
+```bash
+npm run typecheck   # 0 错误
+npm test            # 26 项单测（含 blocks）
+npm run build       # 生产构建
+
+# 浏览器回归（需先 build + preview）
+node scripts/game_regress.mjs http://localhost:4173/
+```
+
+设计原则：
+
+- **前沿**：WebGPU 唯一、最新 three/Rapier、esnext  
+- **不向下兼容**：老浏览器直接提示升级  
+- **高配拉满、低配可降**：`QualityController` 动态分辨率 + 画质档  
+- **热路径零分配**：CameraRig / Path 等 update 无每帧 GC  
+
+---
+
+## 部署
+
+静态托管即可（Vite `dist/`）。联机信令若用 Cloudflare Pages：
+
+```bash
+npx wrangler pages deploy dist --project-name <your-project> --branch main
+```
+
+信令 KV 见 `wrangler.toml`。三个样例可拆成三个域名（入口 HTML 已独立）。
+
+---
 
 ## 许可
 
-- 源代码：MIT（见 LICENSE）
-- 第三方音频/纹理：CC0 / CC-BY（署名与完整清单见 `docs/THIRD_PARTY_NOTICES.md`
-  与游戏内"操作说明 → 素材与致谢"）
-- 中文语音：本项目 TTS 本地合成，无第三方权利
-- 音乐素材清单：`docs/AUDIO_CREDITS.md`
+- 源代码：**MIT**（见 `LICENSE`）  
+- 第三方素材：见 `docs/THIRD_PARTY_NOTICES.md`、`docs/AUDIO_CREDITS.md`  
 
+---
+
+## 附：夜袭（Sample A）
+
+完整二战夜战 FPS，验证框架能承载「FPS + 程序化地图 + P2P 联机」。  
+线上：https://yexi.org  
+
+功能：任务制战役、坦克/吉普、合作 PvE / PvP 猎杀、种子化地图、中英双语。  
+它只是**内容包之一**，不是框架本体。

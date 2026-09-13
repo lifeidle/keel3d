@@ -1,77 +1,152 @@
 # Quickstart — 10 分钟上手框架
 
-> 产品是**框架**：三个样例互不相干，只通过框架 API 接入。
+> 产品是**框架**：内容包互不相干，只通过 L1/L2/L3 API 接入。
 
-## 跑起来
+## 0. 环境
+
+- Node.js ≥ 22  
+- 支持 **WebGPU** 的浏览器（Chrome/Edge 新版，Safari 17+）
+
+## 1. 跑起来
 
 ```bash
 npm install
-npm run dev          # 默认 Sample A 夜袭
-# 或
 npm run build && npm run preview
-# 然后打开：
-#   /?game=nightraid      FPS（默认）
-#   /?game=tower          塔防（1/2/3 选塔，点塔位放置）
-#   /?game=cultivation    修仙（1/2/3 切视角）
+# 默认 http://localhost:4173
 ```
 
-需要 **WebGPU** 浏览器（Chrome/Edge 新版，Safari 17+）。无 WebGPU 会显示明确错误页。
+| 地址 | 游戏 |
+|---|---|
+| `/` | 夜袭 FPS |
+| `/tower.html` | 塔防（1/2/3 选塔，点圆台放置） |
+| `/cultivation.html` | 修仙（1/2/3 切视角） |
+| `/?game=flight` | 飞行骨架 |
+| `/?game=race` | 赛车骨架 |
+| `/?game=template` | 空白模板 |
 
-## 分层
+## 2. 理解分层
 
 | 层 | 路径 | 谁写 |
 |---|---|---|
 | L1 内核 | `src/engine/` | 框架 |
 | L2 积木 | `src/blocks/` | 框架 |
 | L3 契约 | `src/content/` | 框架 |
-| 内容包 | `src/game/<name>/` | 你 |
+| 内容包 | `src/game/<name>/` | **你** |
 
-**铁律**：`game/*` 之间禁止互相 import；`engine/`+`blocks/` 禁止 import 任何 `game/`。
+**铁律**：`game/*` 之间禁止互相 import；`engine/`+`blocks/`+`content/` 禁止 import 任何 `game/`。
 
-## 写一个新游戏
+## 3. 从模板新建游戏
 
-```ts
-// src/game/mygame/index.ts
-import { defineGame } from '../../content/defineGame';
-import { CameraRig, Path, ChunkWorld, Steering } from '../../blocks';
-
-export const mygame = defineGame({
-  id: 'mygame',
-  title: 'My Game',
-  camera: { default: 'chase', allow: ['fps', 'chase', 'orbit'] },
-  map: { kind: 'seeded', gen: (seed) => ({ /* your terrain */ }) },
-  // 或 fixed / stream
-});
+```bash
+# Windows
+xcopy /E /I src\game\demo-template src\game\mygame
+# macOS / Linux
+cp -r src/game/demo-template src/game/mygame
 ```
 
-在 `src/main.ts` 的 `?game=` 路由里加一行加载逻辑（参考 tower / cultivation）。
+改 `src/game/mygame/index.ts` 里的 `id` / `title` / 场景逻辑。
 
-## L2 积木速查
+在 `src/main.ts`：
+
+1. `GAME_IDS` 数组加上 `'mygame'`  
+2. import `createTemplateGame` 改成你的 `createMyGame`  
+3. 在分支里 `createMyGame({ scene, camera })` 并注册 systems  
+
+（对照现有 `tower` / `cultivation` 分支即可。）
+
+也可用独立 HTML：复制 `tower.html` → `mygame.html`，把 `window.__GAME_ID__` 改成 `'mygame'`，并在 `vite.config.ts` 的 `rollupOptions.input` 里加上入口。
+
+## 4. 最小 System 模板
+
+```ts
+import type { System, EngineWorld } from '../../engine/types';
+
+export const mySim: System = {
+  name: 'mygame.sim',
+  update(ft: number, world: EngineWorld) {
+    if (!world.playing) return;
+    // 每帧逻辑
+  },
+  fixedUpdate(dt: number, world: EngineWorld) {
+    if (!world.playing) return;
+    // 60Hz 固定步长（物理/AI 建议放这里）
+  },
+};
+```
+
+注册顺序 = 执行顺序。`world.playing === false` 时 `fixedUpdate` 由内核跳过。
+
+## 5. 地图三选一
+
+```ts
+import { buildMap, ChunkWorld, createSeededTerrain } from '../../blocks';
+
+// A 程序化（同 seed 同图，适合联机）
+buildMap({ kind: 'seeded', gen: (seed) => ({ seed }) },
+  { seeded: (seed) => { /* 生成并返回数据 */ } }, { seed: 42 });
+
+// B 手工图包
+buildMap({ kind: 'fixed', maps: [{ id: 'a1', terrain: { size: 80 } }] },
+  { fixed: (def) => { /* 按 def 搭场景 */ } }, { fixedId: 'a1' });
+
+// C 流式开放世界
+const chunks = new ChunkWorld({
+  chunkSize: 40,
+  ring: 1,
+  buildChunk: (cx, cz) => { /* 返回 THREE.Object3D */ },
+});
+// 每帧：chunks.update(player.x, player.z);
+```
+
+## 6. 相机
+
+```ts
+const rig = new CameraRig(camera, {
+  defaultMode: 'chase',
+  chase: { distance: 8, height: 3, lookAhead: 2 },
+});
+// 每帧
+rig.update(dt, targetPos, yaw);
+// 运行时切换（修仙样例用 1/2/3）
+rig.setMode('orbit');
+```
+
+## 7. L2 积木速查
 
 | 模块 | 用途 |
 |---|---|
 | `Pool` | 对象池（灯光/特效/敌人） |
-| `Path` | 路点跟线 |
-| `Steering` | 纯函数转向（seek/flank/separation） |
-| `GridAStar` | 网格寻路（可选） |
-| `CameraRig` | fps/chase/orbit/free + 运行时 `setMode` |
-| `Unit` | 角色胶囊体工厂 |
-| `ChunkWorld` | chunk 环加载/卸载 |
-| `MapBuilder` | seeded / fixed / stream 分发 |
+| `Path` | 路点跟线 `sampleAt` / `sampleDir` |
+| `Steering` | `seekDir` / `flankDir` / `separationDelta` |
+| `GridAStar` | 网格寻路 `blockWorld` / `findPath` |
+| `CameraRig` | fps/chase/orbit/free + `setMode` |
+| `createUnitBody` | 角色胶囊体 |
+| `ChunkWorld` | chunk 环加载 |
+| `MapBuilder` | seeded / fixed / stream |
+| `createSeededTerrain` | 通用地形高度场 |
+| `applyDaylight` | 演示用白天光照 |
 
-## 验证
+## 8. 验证你的改动
 
 ```bash
 npm run typecheck
-npm test                 # 26 项（含 blocks）
+npm test
 npm run build
-node scripts/game_regress.mjs http://localhost:4188/
-node scripts/sample_probe.mjs
 ```
 
-## 文档
+浏览器回归（先 `build` + `preview`，端口按实际改）：
 
-- `FRAMEWORK_PLAN.md` — 架构与验收标准
-- `EXECUTION_STEPS.md` — 分步施工单
-- `PROGRESS.md` — 进度真相源
-- `docs/STRUCTURE.md` — 目录说明
+```bash
+node scripts/game_regress.mjs http://localhost:4173/
+```
+
+## 9. 文档索引
+
+| 文档 | 内容 |
+|---|---|
+| `README.md` | 框架能做什么、最短路径 |
+| `docs/API.md` | L1/L2/L3 契约 |
+| `docs/ADAPT.md` | 各品类一页纸 |
+| `docs/STRUCTURE.md` | 目录与铁律 |
+| `FRAMEWORK_PLAN.md` | 架构决策与验收标准 |
+| `PROGRESS.md` | 进度与已知边界 |
