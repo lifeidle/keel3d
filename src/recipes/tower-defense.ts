@@ -12,7 +12,6 @@ import { Economy } from '../blocks/gameplay/Economy';
 import { WaveDirector, type WaveDef } from '../blocks/gameplay/WaveDirector';
 import { Health } from '../blocks/gameplay/Health';
 import { PlaceGrid } from '../blocks/gameplay/PlaceGrid';
-import { Timers } from '../blocks/gameplay/Timers';
 import { BuildSystem, type BuildCatalog, type BuildingDef } from '../blocks/build/BuildCatalog';
 import { HudPanel } from '../blocks/ui/HudPanel';
 import { EndOverlay } from '../blocks/ui/EndOverlay';
@@ -177,7 +176,6 @@ export function createTowerDefenseGame(
   const hud = new HudPanel({ id: 'td-hud', position: 'tl' });
   const endOverlay = new EndOverlay();
   const toast = new Toast();
-  const timers = new Timers();
 
   const towerMeshes = new Map<string, THREE.Mesh>();
   const build = new BuildSystem({
@@ -234,10 +232,6 @@ export function createTowerDefenseGame(
     },
   });
 
-  timers.every(1, () => {
-    /* heartbeat reserved for wave countdown */
-  });
-
   function showEnd(win: boolean) {
     if (status !== 'playing') return;
     status = win ? 'win' : 'lose';
@@ -249,7 +243,7 @@ export function createTowerDefenseGame(
     hud.setText(
       `金钱 ${eco.balance} · 波次 ${director.waveNumber}/${director.totalWaves} · 基地 ${baseHp}\n` +
         `选塔 ${selectable.map((d, i) => `${i + 1}${d.key}(${d.cost})`).join(' ')} · 当前 ${sel?.key ?? '-'}\n` +
-        `场上 ${enemies.activeCount}` +
+        `左键放置/升级 · 右键售卖 · 场上 ${enemies.activeCount}` +
         (status !== 'playing' ? ` [${status}]` : ''),
     );
   }
@@ -270,16 +264,47 @@ export function createTowerDefenseGame(
     build.place(def.key, pad.ix, pad.iz);
   }
 
-  function onClick(ev: MouseEvent) {
+  function sellPad(ix: number) {
+    if (status !== 'playing') return;
+    const pad = pads[ix];
+    if (!pad || !pad.occupied) return;
+    const removed = build.remove(pad.ix, pad.iz);
+    if (!removed) return;
+    grid.release(pad.ix, pad.iz);
+    pad.occupied = false;
+    const key = `${pad.ix},${pad.iz}`;
+    const mesh = towerMeshes.get(key);
+    if (mesh) {
+      root.remove(mesh);
+      (mesh.material as THREE.Material).dispose();
+      mesh.geometry.dispose();
+      towerMeshes.delete(key);
+    }
+    const refund = Math.floor((removed.def.cost || 0) * 0.5);
+    eco.add(refund);
+    toast.show(`售出 ${removed.def.key} +${refund}`);
+  }
+
+  function pickPad(ev: MouseEvent): number {
     const el = document.getElementById('app') ?? document.body;
     const r = el.getBoundingClientRect();
     pointer.x = ((ev.clientX - r.left) / r.width) * 2 - 1;
     pointer.y = -((ev.clientY - r.top) / r.height) * 2 + 1;
     raycaster.setFromCamera(pointer, camera);
     const hits = raycaster.intersectObjects(pads.map((p) => p.mesh), false);
-    if (!hits.length) return;
-    const idx = pads.findIndex((p) => p.mesh === hits[0].object);
+    if (!hits.length) return -1;
+    return pads.findIndex((p) => p.mesh === hits[0].object);
+  }
+
+  function onClick(ev: MouseEvent) {
+    const idx = pickPad(ev);
     if (idx >= 0) placeOrUpgrade(idx);
+  }
+
+  function onContext(ev: MouseEvent) {
+    ev.preventDefault();
+    const idx = pickPad(ev);
+    if (idx >= 0) sellPad(idx);
   }
 
   function onKey(e: KeyboardEvent) {
@@ -289,6 +314,7 @@ export function createTowerDefenseGame(
 
   if (typeof window !== 'undefined') {
     window.addEventListener('click', onClick);
+    window.addEventListener('contextmenu', onContext);
     window.addEventListener('keydown', onKey);
   }
 
@@ -299,7 +325,6 @@ export function createTowerDefenseGame(
       name: `${opts.id}.sim`,
       update(ft: number, world: EngineWorld) {
         t += ft;
-        timers.update(ft);
         rig.update(ft, new THREE.Vector3(0, 0, 0), t * 0.12);
         if (!world.playing || status !== 'playing') {
           syncHud();
@@ -356,13 +381,13 @@ export function createTowerDefenseGame(
     dispose() {
       if (typeof window !== 'undefined') {
         window.removeEventListener('click', onClick);
+        window.removeEventListener('contextmenu', onContext);
         window.removeEventListener('keydown', onKey);
       }
       scene.remove(root);
       hud.dispose();
       endOverlay.dispose();
       toast.dispose();
-      timers.clear();
     },
     stats: () => ({
       money: eco.balance,

@@ -5,6 +5,7 @@ import { PlaceGrid } from '../src/blocks/gameplay/PlaceGrid';
 import { Spawner } from '../src/blocks/gameplay/Spawner';
 import { LevelTable } from '../src/blocks/progress/LevelTable';
 import { RunState } from '../src/blocks/progress/RunState';
+import { BuildSystem } from '../src/blocks/build/BuildCatalog';
 
 test('defineGame validates spec', () => {
   assert.throws(() => defineGame({} as never), /spec.id is required/);
@@ -83,4 +84,28 @@ test('RunState custom keys and snapshot', () => {
   r.reset();
   assert.equal(r.get('waves'), 0);
   assert.equal(r.kills, 0);
+});
+
+test('BuildSystem place/upgrade/remove', () => {
+  let gold = 200;
+  const bs = new BuildSystem({
+    catalog: {
+      a: { key: 'a', cost: 50, upgradeTo: 'a2', upgradeCost: 30 },
+      a2: { key: 'a2', cost: 0 },
+    },
+    canPay: (c) => gold >= c,
+    pay: (c) => {
+      gold -= c;
+    },
+  });
+  assert.ok(bs.place('a', 0, 0));
+  assert.equal(gold, 150);
+  assert.ok(bs.upgrade(0, 0));
+  assert.equal(gold, 120);
+  assert.equal(bs.at(0, 0)?.key, 'a2');
+  const removed = bs.remove(0, 0);
+  assert.equal(removed?.key, 'a2');
+  assert.equal(bs.at(0, 0), null);
+  assert.equal(bs.buildings.length, 0);
+  assert.ok(bs.place('a', 0, 0));
 });

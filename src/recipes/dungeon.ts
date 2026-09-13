@@ -74,7 +74,7 @@ export function createDungeonGame(
   const hud = new HudPanel({ id: 'dungeon-hud', position: 'tl' });
   const toast = new Toast();
   const endOverlay = new EndOverlay();
-  const worldHalf = ((roomCount - 1) * (roomW + gap) + roomW) / 2 + 4;
+  const worldHalf = (roomCount - 1) * (roomW + gap) + roomW / 2 + 6;
   const minimap = new MinimapDots({ size: 120, worldHalf });
 
   const rig = new CameraRig(camera, { defaultMode: 'chase', blend: 0.2, chase: { distance: 10, height: 5, lookAhead: 2 } });

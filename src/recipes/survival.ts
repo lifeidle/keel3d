@@ -135,7 +135,11 @@ export function createSurvivalGame(
   const director = new WaveDirector({
     waves: opts.waves ?? defaultWaves(),
     spawnFn: () => {
-      spawner.spawn('beast');
+      const u = spawner.spawn('beast');
+      if (u) {
+        // scale HP with wave (table row stays the base; unit hp gets the bonus)
+        u.hp = (u.row.hp ?? enemyHp) + director.waveNumber * 5;
+      }
     },
   });
 

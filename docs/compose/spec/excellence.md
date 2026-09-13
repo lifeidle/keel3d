@@ -52,13 +52,14 @@ Goal: every "possibly unused" block that belongs in a recipe is actually importe
 | `SfxPlayer` | arpg, fps-arena, collect | replace raw oscillator where easy; silent-safe |
 | `AreaDamage` | arpg | AOE skill (key 2) using `areaHits` |
 | `PlaceGrid` | td | snap pads to grid; occupy/release on place/sell |
-| `BuildCatalog` | td | tower defs from catalog (cost/range/rate/damage) |
-| `Spawner` | survival | unit table bookkeeping (replaces ad-hoc enemy list) |
-| `Timers` | survival, td | wave delay / spawn cadence via `after`/`every` |
+| `BuildCatalog` | td | tower defs from catalog; BuildSystem place/upgrade/**remove(sell)** |
+| `Spawner` | survival | unit table bookkeeping + wave-scaled HP |
+| `Timers` | survival | HP regen every 4s via `every` |
 | `LevelTable` | dungeon | room unlock chain + serialize |
 | `RunState` | collect, arpg | per-run stats snapshot in end overlay |
 | `MinimapDots` | dungeon | room/player dots minimap |
-| `GridAStar` | dungeon | enemy path around pillars (simple) |
+| ~~`GridAStar`~~ | — | skipped: dungeon boss is stationary; no pathfinding needed |
+| ~~`SfxPlayer`~~ | — | skipped: needs AudioEngine (recipes lack engine handle) |
 
 Rules:
 - Exact-path imports (`from '../blocks/gameplay/X'`), no barrel-star.
@@ -66,7 +67,7 @@ Rules:
 - Each recipe keeps its public opts shape backward-compatible (additive fields only).
 - `EndOverlay`/`HudPanel`/`Toast`/`HealthBar`/`DamageNumber`/`WorldBar`/`MinimapDots` must be null-safe without DOM (Node tests) — existing blocks already are.
 
-Acceptance: `node scripts/unused-check.mjs` drops the wired blocks from the "possibly unused" list (ChunkWorld/MapBuilder/TerrainBuilder stay — used by demos via other paths); probe-all PASS.
+Acceptance: `node scripts/unused-check.mjs` drops the wired blocks from the "possibly unused" list (ChunkWorld/MapBuilder/TerrainBuilder stay — used by demos via other paths); probe-all PASS. **Result: 19 → 5 unused** (SfxPlayer + GridAStar intentional; 3 demo-owned).
 
 ### Slice C — Hub & first-run
 
@@ -97,11 +98,11 @@ Acceptance: hub.html builds; README lists all HTML entries; no broken relative l
 
 - [x] T1: Quality gate policy + defineGame validate + BaseRecipeOpts + registry error (covers: S2 A)
 - [x] T2: Block unit tests PlaceGrid/Spawner/LevelTable/RunState/defineGame — acceptance: test green (covers: S2 A; depends: T1)
-- [ ] T3: Wire BaseRecipeOpts into recipe opts + STRUCTURE bundle budget note — acceptance: typecheck; docs updated (covers: S2 A; depends: T1)
-- [ ] T4: ARPG depth — DamageNumber + HealthBar + EndOverlay + WorldBar + SfxPlayer + AreaDamage skill + RunState — acceptance: probe arpg HUD; typecheck (covers: S2 B; depends: T1)
-- [ ] T5: TD depth — PlaceGrid + BuildCatalog + HudPanel + EndOverlay + Toast + Timers — acceptance: probe tower; place still works (covers: S2 B; depends: T1)
-- [ ] T6: FPS-arena depth — HealthBar + DamageNumber + EndOverlay + HudPanel + SfxPlayer — acceptance: probe fps-arena (covers: S2 B; depends: T1)
-- [ ] T7: Dungeon depth — LevelTable + MinimapDots + HudPanel + Toast + EndOverlay + GridAStar enemies — acceptance: probe dungeon (covers: S2 B; depends: T1)
-- [ ] T8: Collect/Survival/Rally depth — RunState/EndOverlay/Toast/HudPanel; survival Spawner+Timers — acceptance: probe collect/survival/rally (covers: S2 B; depends: T1)
-- [ ] T9: Hub cards + README entry table sync — acceptance: all HTML entries listed; hub builds (covers: S2 C; depends: T3)
-- [ ] T10: Full verify typecheck/test/build/probe-all + unused-check delta — acceptance: all green (covers: S2; depends: T3-T9)
+- [x] T3: Wire BaseRecipeOpts into recipe opts + STRUCTURE bundle budget note — acceptance: typecheck; docs updated (covers: S2 A; depends: T1)
+- [x] T4: ARPG depth — DamageNumber + HealthBar + EndOverlay + WorldBar + AreaDamage skill + RunState + HudPanel — acceptance: probe arpg HUD; typecheck (covers: S2 B; depends: T1). SfxPlayer skipped (needs AudioEngine).
+- [x] T5: TD depth — PlaceGrid occupy/release(sell) + BuildCatalog/BuildSystem place/upgrade/remove + HudPanel + EndOverlay + Toast — acceptance: probe tower; place/sell works (covers: S2 B; depends: T1)
+- [x] T6: FPS-arena depth — Health + HealthBar + DamageNumber + EndOverlay + HudPanel; targets fight back — acceptance: probe fps-arena (covers: S2 B; depends: T1)
+- [x] T7: Dungeon depth — LevelTable + MinimapDots + HudPanel + Toast + EndOverlay — acceptance: probe dungeon (covers: S2 B; depends: T1). GridAStar skipped (no wandering pathfinding enemies).
+- [x] T8: Collect/Survival/Rally depth — RunState/EndOverlay/Toast/HudPanel; survival Spawner+Timers — acceptance: probe collect/survival/rally (covers: S2 B; depends: T1)
+- [x] T9: Hub cards + README entry table sync — acceptance: all HTML entries listed; hub builds (covers: S2 C; depends: T3)
+- [x] T10: Full verify typecheck/test/build/probe-all + unused-check delta — acceptance: all green (covers: S2; depends: T3-T9)

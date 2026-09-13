@@ -396,13 +396,13 @@
       },
       {
         id: 'td', icon: '🏰', title: '塔防骨架',
-        blurb: '固定路线 · 放塔可升级 · 波次经济 · Toast 提示。',
+        blurb: '固定路线 · 放塔 · 波次经济（demo-tower）。',
         tags: ['fixed', 'orbit', 'Path'],
         demo: './tower.html',
         spec: { camera: 'orbit', map: 'fixed + Path' },
         cmd: 'npm run new-game mytd -- --recipe td --html',
-        note: '1/2/3 选塔，点空台放置。',
-        blocks: [['Path', '车道'], ['WaveDirector', '波次'], ['Economy', '金币'], ['BuildSystem', '放塔/升级'], ['PlaceGrid', '格子']],
+        note: '1/2/3 选塔，点空台放置。new-game --recipe td 另含 BuildSystem 升级与 Toast。',
+        blocks: [['Path', '车道'], ['WaveDirector', '波次'], ['Economy', '金币'], ['Health', '基地血量'], ['kitPad', '炮台底座']],
       },
       {
         id: 'open', icon: '🌄', title: '开放世界骨架',

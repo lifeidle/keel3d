@@ -163,4 +163,4 @@ gems.update(player.x, player.z);
 | **survival** | Pool · Health · Economy · Scoreboard · WaveDirector · **Spawner** · **Timers** · Steering · **HudPanel** · **EndOverlay** |
 | **rally** | Path · TriggerZone · BestScoreSlot · Scoreboard · **HudPanel** · **Toast** |
 
-**粗体** = 本轮新接线。`SfxPlayer` 需 `AudioEngine`（配方无引擎句柄，暂不接）；`GridAStar`/`ChunkWorld`/`MapBuilder`/`TerrainBuilder` 由 demo 骨架使用。
+**粗体** = 本轮新接线。`SfxPlayer` 需 `AudioEngine`（配方无引擎句柄，暂不接）；`GridAStar` 当前无配方调用（地牢敌人是定点 Boss，无需寻路）；`ChunkWorld`/`MapBuilder`/`TerrainBuilder` 由 demo 骨架（openworld/template）使用。

@@ -53,7 +53,7 @@ main.ts               ?game= / window.__GAME_ID__ 路由
 ## 体积预算（参考）
 
 
-pm run bundle:report 后的典型全量 dist ≈ **5.4MB**（含所有骨架入口）。
+npm run bundle:report 后的典型全量 dist ≈ **5.4MB**（含所有骨架入口）。
 
 | 类别 | 量级 | 说明 |
 |---|---|---|
