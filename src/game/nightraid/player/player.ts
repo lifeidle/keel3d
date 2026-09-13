@@ -1,9 +1,10 @@
-﻿// First-person player: Rapier kinematic character controller + camera rig.
+// First-person player: Rapier kinematic character controller + camera rig.
 import * as THREE from 'three';
 import RAPIER from '@dimforge/rapier3d';
 import { CONFIG } from '../../../config';
 import { PhysicsWorld } from '../../../physics/world';
 import { Input } from '../../../engine/input';
+import { createUnitBody } from '../../../blocks/Unit';
 
 export class Player {
   body: RAPIER.RigidBody;
@@ -22,20 +23,16 @@ export class Player {
   onFootstep: (() => void) | null = null;
 
   constructor(private physics: PhysicsWorld, spawn: THREE.Vector3) {
-    const r = CONFIG.player.radius;
-    const half = CONFIG.player.height / 2 - r; // capsule half-height
-    const center = half + r; // distance from feet to capsule center
-
-    this.body = physics.world.createRigidBody(
-      RAPIER.RigidBodyDesc.kinematicPositionBased().setTranslation(spawn.x, spawn.y + center, spawn.z)
-    );
-    this.collider = physics.world.createCollider(
-      RAPIER.ColliderDesc.capsule(half, r).setFriction(0.0),
-      this.body
-    );
-    this.controller = physics.createCharacterController(0.02);
-    this.body.userData = { type: 'player' };
-    this.pos.set(spawn.x, spawn.y + center, spawn.z);
+    const unit = createUnitBody(physics, {
+      radius: CONFIG.player.radius,
+      height: CONFIG.player.height,
+      spawn,
+      tag: 'player',
+    });
+    this.body = unit.body;
+    this.collider = unit.collider;
+    this.controller = unit.controller;
+    this.pos.copy(unit.center);
   }
 
   queueJump() {

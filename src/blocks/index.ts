@@ -10,4 +10,6 @@ export { Pool } from './Pool';
 export { Path } from './Path';
 export * as Steering from './Steering';
 export { CameraRig, type CameraMode } from './CameraRig';
-export { createUnitBody, type UnitBodyOpts } from './Unit';
+export { createUnitBody, type UnitBodyOpts, type UnitBody } from './Unit';
+export { ChunkWorld, type ChunkWorldOpts, type ChunkCoord } from './ChunkWorld';
+export { buildMap, type MapBuilderDeps, type BuiltMap } from './MapBuilder';

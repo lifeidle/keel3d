@@ -9,6 +9,8 @@ import { CameraRig, type CameraMode } from '../../blocks/CameraRig';
 import { Path } from '../../blocks/Path';
 import { Pool } from '../../blocks/Pool';
 import * as Steering from '../../blocks/Steering';
+import { ChunkWorld } from '../../blocks/ChunkWorld';
+import { buildMap } from '../../blocks/MapBuilder';
 import type { System, EngineWorld } from '../../engine/types';
 
 export interface CultivationDeps {
@@ -39,21 +41,28 @@ export function createCultivationGame(deps: CultivationDeps) {
   const root = new THREE.Group();
   scene.add(root);
 
-  // 3×3 chunk ring around origin (stream placeholder)
-  const chunk = 40;
-  for (let cx = -1; cx <= 1; cx++) {
-    for (let cz = -1; cz <= 1; cz++) {
+  // stream map via framework MapBuilder + ChunkWorld
+  buildMap(
+    { kind: 'stream', root: '/chunks', chunk: 40, lodRings: [1] },
+    { stream: () => ({ ready: true }) },
+  );
+  const chunkWorld = new ChunkWorld({
+    chunkSize: 40,
+    ring: 1,
+    buildChunk: (cx, cz) => {
+      const g = new THREE.Group();
       const m = new THREE.Mesh(
-        new THREE.PlaneGeometry(chunk * 0.95, chunk * 0.95),
+        new THREE.PlaneGeometry(38, 38),
         new THREE.MeshStandardMaterial({
           color: (cx + cz) % 2 === 0 ? 0x2f4a32 : 0x3a5640,
         }),
       );
       m.rotation.x = -Math.PI / 2;
-      m.position.set(cx * chunk, 0, cz * chunk);
-      root.add(m);
-    }
-  }
+      g.add(m);
+      return g;
+    },
+  });
+  root.add(chunkWorld.object3D);
 
   // cultivation dais
   const dais = new THREE.Mesh(
@@ -124,6 +133,7 @@ export function createCultivationGame(deps: CultivationDeps) {
         player.position.x = Math.cos(t * 0.3) * 8;
         player.position.z = Math.sin(t * 0.3) * 8;
         const yaw = t * 0.3 + Math.PI / 2;
+        chunkWorld.update(player.position.x, player.position.z);
         rig.update(ft, player.position, yaw);
 
         if (world.playing) {
@@ -171,7 +181,7 @@ export function createCultivationGame(deps: CultivationDeps) {
         if (hudEl) {
           hudEl.textContent =
             `修为 ${(progress * 100) | 0}% · 境界 ${REALMS[realmIdx]}\n` +
-            `视角 ${mode} (1第一/2第三/3俯视) · 妖兽 ${beasts.activeCount}\n` +
+            `视角 ${mode} (1第一/2第三/3俯视) · 妖兽 ${beasts.activeCount} · chunk ${chunkWorld.loadedCount}\n` +
             `站上中央修炼台涨修为`;
         }
       },
@@ -185,6 +195,7 @@ export function createCultivationGame(deps: CultivationDeps) {
     dispose() {
       if (typeof window !== 'undefined') window.removeEventListener('keydown', onKey);
       scene.remove(root);
+      chunkWorld.dispose();
       hudEl?.remove();
       hudEl = null;
     },
