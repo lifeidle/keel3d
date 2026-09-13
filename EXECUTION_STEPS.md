@@ -287,7 +287,7 @@ DOM id：`#bootFill #bootTxt #btnPlay #btnNet #btnNetHost #btnNetJoin #btnNetGo 
 | 0.2 回归基线 | | | | |
 | 1.1 资产管线 | | | | |
 | 1.2 Phase 0 验收 | | | | |
-| A1 目录拆分 | | | — | |
+| A1 目录拆分 | git | ✅ | — | 2026-09-13 |
 | A2 QualityAuto | | | | |
 | A3 RenderPresent | | | | |
 | A4 Effects | | | | |

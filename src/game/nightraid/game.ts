@@ -64,6 +64,8 @@ export class Game {
   private enemies: EnemyManager;
   private weapon: Weapon;
   private hud = new HUD();
+  /** Systems read these during Phase A extraction; A12 tightens visibility. */
+  get hudView() { return this.hud; }
   private music = new MusicDirector(this.audio);
   private tactical = new TacticalUI();
   private barrels: BarrelManager;
@@ -71,6 +73,8 @@ export class Game {
   private mission: Mission;
   private weather: Weather;
   private quality: Quality = detectQuality();
+  get qualityTier(): Quality { return this.quality; }
+  get fpsNow(): number { return this.fps; }
   private qualityCtrl: QualityController;
   private lastRenderScale = 1;
   private externalLoop = false;
@@ -123,9 +127,8 @@ export class Game {
   private showDiag = false;
   private fps = 60;
   private slowStreak = 0;
-  // adaptive quality: sustained low fps during play steps down one tier, once
-  private lowFpsTime = 0;
-  private autoDowngraded = false;
+  // adaptive quality: timer state lives on QualityAutoSystem (A2)
+  // (lowFpsTime / autoDowngraded removed from Game)
   // voice one-shots: enter line per match, tango cooldown, losing-squad flag
   private enterVoiced = false;
   private tangoCd = 0;
@@ -713,14 +716,14 @@ export class Game {
     })();
     if (savedQ === 'low' || savedQ === 'med' || savedQ === 'high') {
       this.quality = savedQ;
-      this.setQuality(savedQ);
+      this.applyQuality(savedQ);
     }
     const qBtns = document.querySelectorAll<HTMLElement>('.qualBtn');
     const syncQual = () => qBtns.forEach((b) => b.classList.toggle('sel', b.dataset.q === this.quality));
     qBtns.forEach((b) =>
       b.addEventListener('click', () => {
         const q = (b.dataset.q as Quality) || 'high';
-        this.setQuality(q);
+        this.applyQuality(q);
         save('sf-quality', q);
         syncQual();
       })
@@ -895,9 +898,9 @@ export class Game {
     void playing;
   }
 
-  /** Tier auto-downgrade after sustained low fps. */
-  hostQualityAuto(ft: number) {
-    this.updateAutoQuality(ft);
+  /** Tier auto-downgrade handled by QualityAutoSystem (A2). */
+  hostQualityAuto(_ft: number) {
+    // retained as a no-op shell until A12; QualityAutoSystem owns the logic
   }
 
   /** Present the frame + diagnostics. */
@@ -1579,25 +1582,7 @@ export class Game {
     }
   };
 
-  /**
-   * Adaptive quality: if the smoothed fps sits under ~26 for six seconds of
-   * actual play, step down one tier (high->med->low) and tell the player once.
-   * Never upgrades automatically and never persists — the environment that
-   * made it slow today may be gone tomorrow; the settings slider still wins.
-   */
-  private updateAutoQuality(ft: number) {
-    if (this.autoDowngraded || this.quality === 'low') return;
-    if (this.fps < 26) this.lowFpsTime += ft;
-    else this.lowFpsTime = Math.max(0, this.lowFpsTime - ft * 0.5); // brief stutters heal
-    if (this.lowFpsTime < 6) return;
-    this.autoDowngraded = true;
-    const next: Quality = this.quality === 'high' ? 'med' : 'low';
-    this.setQuality(next);
-    document.querySelectorAll<HTMLElement>('.qualBtn').forEach((b) =>
-      b.classList.toggle('sel', b.dataset.q === next)
-    );
-    this.hud.showHint(t('hint.autoQuality'), 4);
-  }
+  // updateAutoQuality moved to QualityAutoSystem (A2)
 
   /**
    * Amber arc toward the freshest enemy trigger pull — fires every frame an
@@ -1650,7 +1635,7 @@ export class Game {
   }
 
   /** Apply a quality tier live: shadows, shadow-map size, pixel-ratio cap, fog reach. */
-  private setQuality(q: Quality) {
+  applyQuality(q: Quality) {
     this.quality = q;
     this.qualityCtrl.setTier(q);
     const s = QUALITY[q];
