@@ -18,11 +18,9 @@
 | `public/` | 静态资产（音频/模型/Draco/Basis decoder） |
 | `test/` | 单元测试（含 blocks） |
 | `scripts/` | 验收与构建脚本 |
-| `scripts/legacy/` | 一次性调参/探针（不进主流程） |
 | `functions/` | Cloudflare Pages 信令 |
-| `docs/` | 上手与归档 |
-| `assets_new/` | 第三方模型源库（gitignore） |
-| `tools/` | Blender 等本地工具 |
+| `docs/` | 上手、API、适配、许可 |
+| `tools/` | 本地资产转换小脚本 |
 
 ## `src/` 分层
 
@@ -60,10 +58,8 @@ main.ts               ?game= / window.__GAME_ID__ 路由
 | `ADAPT.md` | 多品类适配说明 |
 | `STRUCTURE.md` | 本文件 |
 | `AUDIO_CREDITS.md` · `THIRD_PARTY_NOTICES.md` | 素材许可 |
-| `archive/` | 历史规划与 compose 规格 |
-| `reference/` | 参考截图 |
 
-## scripts/（主流程）
+## scripts/
 
 | 脚本 | 用途 |
 |---|---|
@@ -75,7 +71,7 @@ main.ts               ?game= / window.__GAME_ID__ 路由
 | `site-audit.mjs` | 站点体检 |
 | `adapter_probe.mjs` · `buf_err_probe.mjs` · `webgpu_probe.mjs` | 诊断 |
 
-## 本地演示端口
+## 本地演示
 
 | URL | 游戏 |
 |---|---|
@@ -83,3 +79,7 @@ main.ts               ?game= / window.__GAME_ID__ 路由
 | http://localhost:4189/tower.html | 塔防 |
 | http://localhost:4190/cultivation.html | 修仙 |
 | `/?game=flight` · `/?game=race` · `/?game=template` | 骨架/模板 |
+
+## 不入库 / 可再生
+
+`node_modules/` · `dist/` · `shots/` · `_snapshots/` · `.tmp/` · `.wrangler/` · `assets_new/`（已清理）
