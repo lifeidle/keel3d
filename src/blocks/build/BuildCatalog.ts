@@ -112,6 +112,13 @@ export class BuildSystem {
     return made;
   }
 
+  /** Remove a placed building; returns it so the caller can refund/cleanup. */
+  remove(ix: number, iz: number): PlacedBuilding | null {
+    const i = this.placed.findIndex((b) => b.ix === ix && b.iz === iz);
+    if (i < 0) return null;
+    return this.placed.splice(i, 1)[0];
+  }
+
   clear(): void {
     this.placed.length = 0;
   }

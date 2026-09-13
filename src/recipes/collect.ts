@@ -2,16 +2,18 @@
  * Collect recipe — gather N targets in an arena; win when complete.
  */
 import * as THREE from 'three';
-import { defineGame } from '../content/defineGame';
+import { defineGame, type BaseRecipeOpts } from '../content/defineGame';
 import { CameraRig } from '../blocks/CameraRig';
 import { Pickup, PickupField } from '../blocks/interact/Pickup';
 import { TriggerZone } from '../blocks/interact/TriggerZone';
 import { Scoreboard } from '../blocks/gameplay/Scoreboard';
+import { RunState } from '../blocks/progress/RunState';
+import { HudPanel } from '../blocks/ui/HudPanel';
+import { Toast } from '../blocks/ui/Toast';
+import { EndOverlay } from '../blocks/ui/EndOverlay';
 import type { System, EngineWorld } from '../engine/types';
 
-export interface CollectRecipeOpts {
-  id: string;
-  title?: string;
+export interface CollectRecipeOpts extends BaseRecipeOpts {
   /** How many orbs to place. */
   count?: number;
   arena?: number;
@@ -86,22 +88,24 @@ export function createCollectGame(
     shape: { kind: 'sphere', x: 0, z: 0, radius: 2.5 },
   });
   const score = new Scoreboard();
+  const run = new RunState();
   const keys = new Set<string>();
   let status: 'playing' | 'win' = 'playing';
-  let hud: HTMLElement | null = null;
-  let endEl: HTMLElement | null = null;
+  const hud = new HudPanel({ id: 'collect-hud', position: 'tl' });
+  const toast = new Toast();
+  const endOverlay = new EndOverlay();
   const rig = new CameraRig(camera, { defaultMode: 'chase', chase: { distance: 12, height: 6, lookAhead: 2 } });
 
   function restart() {
     status = 'playing';
     got = 0;
     score.reset();
+    run.reset();
     field.resetAll();
     for (const m of orbMeshes) m.visible = true;
     player.position.set(0, 1, 0);
-    endEl?.remove();
-    endEl = null;
-    }
+    endOverlay.hide();
+  }
 
     function onDn(e: KeyboardEvent) {
       keys.add(e.code);
@@ -120,10 +124,11 @@ export function createCollectGame(
       name: `${opts.id}.sim`,
       update(ft: number, world: EngineWorld) {
         if (!world.playing || status !== 'playing') {
-          if (hud) hud.textContent = `收集 ${got}/${n} [${status}]`;
+          hud.setText(`收集 ${got}/${n} [${status}]`);
           return;
         }
         score.tick(ft);
+        run.tick(ft);
         let mx = 0;
         let mz = 0;
         if (keys.has('KeyW')) mz -= 1;
@@ -143,27 +148,16 @@ export function createCollectGame(
 
         if (got >= n && zone.has('p')) {
           status = 'win';
-          if (typeof document !== 'undefined' && !endEl) {
-            endEl = document.createElement('div');
-            endEl.style.cssText =
-              'position:fixed;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.5);color:#5dcea0;font:28px/1.4 system-ui,sans-serif';
-            endEl.textContent = `收集完成 · ${score.time.toFixed(1)}s — 按 R 再来一局`;
-            document.body.appendChild(endEl);
-          }
+          run.set('time', score.time);
+          const parNote = opts.parTime ? (score.time <= opts.parTime ? ' · 达成参考' : ' · 超出参考') : '';
+          endOverlay.show(`收集完成 · ${score.time.toFixed(1)}s${parNote} — 按 R 再来一局`, true);
+          if (opts.parTime && score.time <= opts.parTime) toast.show('达成参考时间');
         }
 
-        if (!hud && typeof document !== 'undefined') {
-          hud = document.createElement('div');
-          hud.id = 'collect-hud';
-          hud.style.cssText =
-            'position:fixed;left:12px;top:12px;z-index:20;color:#e8eef7;font:14px/1.5 monospace;background:rgba(0,0,0,.5);padding:10px 14px;border-radius:8px;pointer-events:none;white-space:pre';
-          document.body.appendChild(hud);
-        }
-        if (hud) {
-          hud.textContent =
-            `收集 ${got}/${n} · 时间 ${score.time.toFixed(1)}s${opts.parTime ? ` · 参考 ${opts.parTime}s` : ''}\n` +
-            `WASD 移动 · 捡满回金圈 · R 重开`;
-        }
+        hud.setText(
+          `收集 ${got}/${n} · 时间 ${score.time.toFixed(1)}s${opts.parTime ? ` · 参考 ${opts.parTime}s` : ''}\n` +
+            `WASD 移动 · 捡满回金圈 · R 重开`,
+        );
       },
     },
   ];
@@ -176,8 +170,9 @@ export function createCollectGame(
         window.removeEventListener('keyup', onUp);
       }
       scene.remove(root);
-      hud?.remove();
-      endEl?.remove();
+      hud.dispose();
+      toast.dispose();
+      endOverlay.dispose();
     },
     stats: () => ({ got, n, status, time: score.time }),
   };

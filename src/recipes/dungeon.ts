@@ -2,17 +2,20 @@
  * Dungeon recipe — chain of rooms with locked doors + simple boss room.
  */
 import * as THREE from 'three';
-import { defineGame } from '../content/defineGame';
+import { defineGame, type BaseRecipeOpts } from '../content/defineGame';
 import { CameraRig } from '../blocks/CameraRig';
 import { Interactable } from '../blocks/interact/Interactable';
 import { TriggerZone } from '../blocks/interact/TriggerZone';
 import { Health } from '../blocks/gameplay/Health';
 import { Scoreboard } from '../blocks/gameplay/Scoreboard';
+import { LevelTable } from '../blocks/progress/LevelTable';
+import { HudPanel } from '../blocks/ui/HudPanel';
+import { Toast } from '../blocks/ui/Toast';
+import { EndOverlay } from '../blocks/ui/EndOverlay';
+import { MinimapDots } from '../blocks/ui/MinimapDots';
 import type { System, EngineWorld } from '../engine/types';
 
-export interface DungeonRecipeOpts {
-  id: string;
-  title?: string;
+export interface DungeonRecipeOpts extends BaseRecipeOpts {
   rooms?: number;
   moveSpeed?: number;
   playerHp?: number;
@@ -58,8 +61,22 @@ export function createDungeonGame(
   let roomIdx = 0;
   let bossHp = 80;
   let status: 'playing' | 'win' | 'lose' = 'playing';
-  let hud: HTMLElement | null = null;
-  let endEl: HTMLElement | null = null;
+
+  // LevelTable: each room is a level; unlock next when previous cleared
+  const levels = new LevelTable(
+    Array.from({ length: roomCount }, (_, i) => ({
+      id: `room${i}`,
+      title: i === roomCount - 1 ? 'Boss 房' : `房间 ${i + 1}`,
+      requires: i === 0 ? undefined : `room${i - 1}`,
+    })),
+  );
+
+  const hud = new HudPanel({ id: 'dungeon-hud', position: 'tl' });
+  const toast = new Toast();
+  const endOverlay = new EndOverlay();
+  const worldHalf = (roomCount - 1) * (roomW + gap) + roomW / 2 + 6;
+  const minimap = new MinimapDots({ size: 120, worldHalf });
+
   const rig = new CameraRig(camera, { defaultMode: 'chase', blend: 0.2, chase: { distance: 10, height: 5, lookAhead: 2 } });
 
   // door interactables between rooms
@@ -81,6 +98,8 @@ export function createDungeonGame(
       onUse: () => {
         doorMesh.visible = false;
         roomIdx = i + 1;
+        levels.markCleared(`room${i}`);
+        toast.show(`进入 ${levels.all[i + 1]?.title ?? `房间 ${i + 2}`}`);
       },
     });
   }
@@ -90,6 +109,7 @@ export function createDungeonGame(
     onEnter: () => {
       if (status === 'playing' && roomIdx === roomCount - 1 && bossHp <= 0) {
         status = 'win';
+        levels.markCleared(`room${roomCount - 1}`);
         showEnd(true);
       }
     },
@@ -112,19 +132,19 @@ export function createDungeonGame(
   }
 
   function showEnd(win: boolean) {
-    if (endEl || typeof document === 'undefined') return;
-    endEl = document.createElement('div');
-    endEl.style.cssText =
-      'position:fixed;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);font:28px/1.4 system-ui,sans-serif;color:#fff';
-    endEl.textContent = win ? '通关' : '阵亡';
-    endEl.style.color = win ? '#5dcea0' : '#e07070';
-    document.body.appendChild(endEl);
+    if (status !== 'playing' && status !== 'win') return;
+    status = win ? 'win' : 'lose';
+    endOverlay.show(win ? '通关' : '阵亡', win);
   }
 
   function onDn(e: KeyboardEvent) {
     keys.add(e.code);
     if (e.code === 'KeyE' || e.code === 'KeyF') {
-      for (const r of rooms) r.door?.tryUse(player.position.x, player.position.z);
+      for (const r of rooms) {
+        const before = roomIdx;
+        r.door?.tryUse(player.position.x, player.position.z);
+        if (roomIdx !== before) doorBeep();
+      }
     }
     if (e.code === 'KeyJ' || e.code === 'Space') {
       if (roomIdx === roomCount - 1 && bossHp > 0 && status === 'playing') {
@@ -132,7 +152,10 @@ export function createDungeonGame(
         if (Math.hypot(player.position.x - bx, player.position.z) < 6) {
           bossHp = Math.max(0, bossHp - 15);
           score.add('dmg', 15);
-          if (bossHp <= 0) score.addKill();
+          if (bossHp <= 0) {
+            score.addKill();
+            toast.show('Boss 已倒下 — 前往出口');
+          }
         }
       }
     }
@@ -150,7 +173,7 @@ export function createDungeonGame(
       name: `${opts.id}.sim`,
       update(ft: number, world: EngineWorld) {
         if (!world.playing || status !== 'playing') {
-          if (hud) hud.textContent = `房 ${roomIdx + 1}/${roomCount} · Boss ${bossHp} [${status}]`;
+          hud.setText(`房 ${roomIdx + 1}/${roomCount} · Boss ${bossHp} [${status}]`);
           return;
         }
         score.tick(ft);
@@ -169,29 +192,29 @@ export function createDungeonGame(
           player.position.x = THREE.MathUtils.clamp(player.position.x + mx * moveSpeed * ft, -roomW / 2 + 1, maxX);
           player.position.z = THREE.MathUtils.clamp(player.position.z + mz * moveSpeed * ft, -roomW / 2 + 1, roomW / 2 - 1);
         }
-        // clamp to current room if door still locked
         const roomMin = roomIdx * (roomW + gap) - roomW / 2 + 1;
         const roomMax = roomIdx * (roomW + gap) + roomW / 2 - 1;
         player.position.x = THREE.MathUtils.clamp(player.position.x, roomMin, roomMax);
         rig.update(ft, player.position, Math.atan2(mx, mz) || 0);
         exit.update([{ tag: 'p', x: player.position.x, z: player.position.z }]);
 
-        if (!hud && typeof document !== 'undefined') {
-          hud = document.createElement('div');
-          hud.id = 'dungeon-hud';
-          hud.style.cssText =
-            'position:fixed;left:12px;top:12px;z-index:20;color:#e8eef7;font:14px/1.5 monospace;background:rgba(0,0,0,.5);padding:10px 14px;border-radius:8px;pointer-events:none;white-space:pre';
-          document.body.appendChild(hud);
-        }
-        if (hud) {
-          const nearDoor = rooms[roomIdx]?.door;
-          const doorHint = nearDoor && nearDoor.available && nearDoor.inRange(player.position.x, player.position.z)
-            ? ' · E/F 开门'
-            : '';
-          const bossHint = roomIdx === roomCount - 1 && bossHp > 0 ? ' · J/空格 打 Boss' : '';
-          hud.textContent =
-            `房 ${roomIdx + 1}/${roomCount} · Boss ${bossHp}${doorHint}${bossHint}`;
-        }
+        // minimap: rooms as dots, player blue
+        const dots = rooms.map((r, i) => ({
+          x: r.center,
+          z: 0,
+          color: i === roomIdx ? '#6ec8ff' : i < roomIdx ? '#5dcea0' : '#888',
+        }));
+        minimap.render(dots, player.position.x, player.position.z);
+
+        const nearDoor = rooms[roomIdx]?.door;
+        const doorHint = nearDoor && nearDoor.available && nearDoor.inRange(player.position.x, player.position.z)
+          ? ' · E/F 开门'
+          : '';
+        const bossHint = roomIdx === roomCount - 1 && bossHp > 0 ? ' · J/空格 打 Boss' : '';
+        const next = levels.nextLevel();
+        hud.setText(
+          `房 ${roomIdx + 1}/${roomCount}${next ? ` · ${next.title}` : ''} · Boss ${bossHp}${doorHint}${bossHint}`,
+        );
       },
     },
   ];
@@ -204,10 +227,12 @@ export function createDungeonGame(
         window.removeEventListener('keyup', onUp);
       }
       scene.remove(root);
-      hud?.remove();
-      endEl?.remove();
+      hud.dispose();
+      toast.dispose();
+      endOverlay.dispose();
+      minimap.dispose();
     },
-    stats: () => ({ room: roomIdx, bossHp, status }),
+    stats: () => ({ room: roomIdx, bossHp, status, cleared: levels.serialize() }),
   };
 }
 

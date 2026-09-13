@@ -49,7 +49,10 @@ export function resolveGameId(): string {
 
 export async function loadGame(id: string): Promise<DefinedGame> {
   const loader = GAME_LOADERS[id];
-  if (!loader) throw new Error(`[registry] unknown game id: ${id}`);
+  if (!loader) {
+    const known = listGameIds().join(', ');
+    throw new Error(`[registry] unknown game id: "${id}". Known: ${known}`);
+  }
   const mod = await loader();
   return mod.default;
 }

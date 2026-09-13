@@ -386,23 +386,23 @@
     const GENRES = [
       {
         id: 'fps', icon: '🎯', title: 'FPS 骨架',
-        blurb: '轻量第一人称靶场；完整战役演示见 fps.html。',
+        blurb: '轻量第一人称靶场 · 目标会反击 · 血条/飘字/结算。',
         tags: ['fps', 'hitscan', 'recipe'],
         demo: './fps-arena.html',
         spec: { camera: 'fps', create: 'fpsArenaRecipe' },
         cmd: 'npm run new-game myfps -- --recipe fps-arena --html',
         note: '完整演示 fps.html；轻量起点 fps-arena.html 或 --recipe fps-arena。',
-        blocks: [['pickTarget', '选敌'], ['Cooldown', '射速'], ['kitHumanoid', '靶子']],
+        blocks: [['pickTarget', '选敌'], ['Cooldown', '射速'], ['HealthBar', '血条'], ['DamageNumber', '飘字'], ['EndOverlay', '结算']],
       },
       {
         id: 'td', icon: '🏰', title: '塔防骨架',
-        blurb: '固定路线 · 放塔 · 波次经济 · U 升级。',
+        blurb: '固定路线 · 放塔 · 波次经济（demo-tower）。',
         tags: ['fixed', 'orbit', 'Path'],
         demo: './tower.html',
         spec: { camera: 'orbit', map: 'fixed + Path' },
         cmd: 'npm run new-game mytd -- --recipe td --html',
-        note: '1/2/3 选塔，点空台放置。',
-        blocks: [['Path', '车道'], ['WaveDirector', '波次'], ['Economy', '金币']],
+        note: '1/2/3 选塔，点空台放置。new-game --recipe td 另含 BuildSystem 升级与 Toast。',
+        blocks: [['Path', '车道'], ['WaveDirector', '波次'], ['Economy', '金币'], ['Health', '基地血量'], ['kitPad', '炮台底座']],
       },
       {
         id: 'open', icon: '🌄', title: '开放世界骨架',
@@ -416,13 +416,13 @@
       },
       {
         id: 'arpg', icon: '⚔️', title: '俯视 ARPG 骨架',
-        blurb: 'WASD · 近战/弹道 · 掉落金币 · kit 点缀。',
+        blurb: 'WASD · 近战/弹道/旋风斩 · 掉落金币 · 任务追踪。',
         tags: ['orbit', 'combat'],
         demo: './arpg.html',
         spec: { camera: 'orbit' },
         cmd: 'npm run new-game myarpg -- --recipe arpg --html',
         note: '空格/J 攻击。',
-        blocks: [['Cooldown', 'CD'], ['pickTarget', '选敌'], ['Projectile', '弹道']],
+        blocks: [['Cooldown', 'CD'], ['pickTarget', '选敌'], ['Projectile', '弹道'], ['areaHits', '旋风斩'], ['WorldBar', '敌血条']],
       },
       {
         id: 'collect', icon: '✨', title: '收集骨架',
@@ -432,7 +432,7 @@
         spec: { camera: 'chase' },
         cmd: 'npm run new-game mycol -- --recipe collect --html',
         note: 'WASD 移动。',
-        blocks: [['PickupField', '自动拾取'], ['TriggerZone', '交付']],
+        blocks: [['PickupField', '自动拾取'], ['TriggerZone', '交付'], ['RunState', '局内统计'], ['EndOverlay', '结算']],
       },
       {
         id: 'rally', icon: '🏁', title: '拉力赛骨架',
@@ -442,7 +442,7 @@
         spec: { camera: 'chase' },
         note: '按序穿光圈才计完整圈。',
         cmd: 'npm run new-game myrally -- --recipe rally --html',
-        blocks: [['BestScoreSlot', '最佳成绩'], ['TriggerZone', '检查点']],
+        blocks: [['BestScoreSlot', '最佳成绩'], ['TriggerZone', '检查点'], ['Toast', '圈速提示']],
       },
       {
         id: 'dungeon', icon: '🗝️', title: '地牢骨架',
@@ -452,7 +452,7 @@
         spec: { camera: 'chase' },
         cmd: 'npm run new-game mydgn -- --recipe dungeon --html',
         note: 'E/F 开门，Boss 房 J/空格。',
-        blocks: [['Interactable', '开门'], ['TriggerZone', '出口']],
+        blocks: [['Interactable', '开门'], ['TriggerZone', '出口'], ['LevelTable', '房间链'], ['MinimapDots', '小地图']],
       },
       {
         id: 'flight', icon: '✈️', title: '飞行骨架',

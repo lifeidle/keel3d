@@ -26,10 +26,15 @@
 | 骨架 | 入口 | 说明 |
 |---|---|---|
 | **FPS 骨架** | [`fps.html`](fps.html) | 完整第一人称演示（高级） |
-| **FPS 竞技场** | [`fps-arena.html`](fps-arena.html) | 轻量 FPS 起点（配方） |
-| **塔防骨架** | [`tower.html`](tower.html) | fixed 路线 · 放塔 · 波次/经济 |
+| **FPS 竞技场** | [`fps-arena.html`](fps-arena.html) | 轻量 FPS 起点 · 血条/飘字/结算 |
+| **塔防骨架** | [`tower.html`](tower.html) | fixed 路线 · 放塔升级 · 波次/经济 |
 | **开放世界骨架** | [`openworld.html`](openworld.html) | stream · 1/2/3 切视角 |
+| **俯视 ARPG** | [`arpg.html`](arpg.html) | 近战/弹道/旋风斩 · 任务/掉落 |
+| **收集骨架** | [`collect.html`](collect.html) | 拾取交付 · 参考时间 · 局内统计 |
+| **地牢骨架** | [`dungeon.html`](dungeon.html) | 房间门锁 · Boss · 小地图 |
+| **拉力赛骨架** | [`rally.html`](rally.html) | 检查点顺序 · 最佳圈速 |
 | **飞行骨架** | [`flight.html`](flight.html) | chase · gravity 0 |
+| **飞行竞技场** | [`flight-arena.html`](flight-arena.html) | 空战配方起点 |
 | **赛车骨架** | [`race.html`](race.html) | 赛道环线 · vehicle |
 | **空白模板** | [`template.html`](template.html) | 最少代码起点 |
 | **选型页** | [`hub.html`](hub.html) | 骨架 → 基底与积木说明 |

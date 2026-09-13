@@ -1,33 +1,42 @@
 /**
- * ARPG recipe — top-down WASD, melee/ranged attack, drops, score.
+ * ARPG recipe — top-down WASD, melee/ranged attack, AOE skill, drops, score.
  * Opt-in; copy or call with your data.
  */
 import * as THREE from 'three';
-import { defineGame } from '../content/defineGame';
+import { defineGame, type BaseRecipeOpts } from '../content/defineGame';
 import { CameraRig } from '../blocks/CameraRig';
 import { Pool } from '../blocks/Pool';
 import { Health } from '../blocks/gameplay/Health';
 import { Scoreboard } from '../blocks/gameplay/Scoreboard';
 import { Economy } from '../blocks/gameplay/Economy';
+import { RunState } from '../blocks/progress/RunState';
 import { Cooldown } from '../blocks/combat/Cooldown';
 import { pickTarget } from '../blocks/combat/Targeting';
 import { Projectile, stepProjectiles } from '../blocks/combat/Projectile';
+import { areaHits } from '../blocks/combat/AreaDamage';
 import { Pickup, PickupField } from '../blocks/interact/Pickup';
 import * as Steering from '../blocks/Steering';
 import { kitScatter } from '../blocks/kit/placeholders';
 import { ButtonBar } from '../blocks/ui/ButtonBar';
 import { QuestTracker } from '../blocks/ui/QuestTracker';
+import { HudPanel } from '../blocks/ui/HudPanel';
+import { HealthBar } from '../blocks/ui/HealthBar';
+import { DamageNumbers } from '../blocks/ui/DamageNumber';
+import { WorldBar } from '../blocks/ui/WorldBar';
+import { EndOverlay } from '../blocks/ui/EndOverlay';
 import { BgmLayers } from '../blocks/audio/BgmLayers';
 import type { System, EngineWorld } from '../engine/types';
 
-export interface ArpgRecipeOpts {
-  id: string;
-  title?: string;
+export interface ArpgRecipeOpts extends BaseRecipeOpts {
   playerHp?: number;
   moveSpeed?: number;
   attackRange?: number;
   attackDamage?: number;
   attackCd?: number;
+  /** AOE skill radius (key 2). */
+  aoeRadius?: number;
+  aoeDamage?: number;
+  aoeCd?: number;
   arena?: number;
   spawnEvery?: number;
   enemyHp?: number;
@@ -44,6 +53,9 @@ export function createArpgGame(
   const attackRange = opts.attackRange ?? 3.5;
   const attackDamage = opts.attackDamage ?? 20;
   const attackCd = new Cooldown(opts.attackCd ?? 0.45);
+  const aoeRadius = opts.aoeRadius ?? 5;
+  const aoeDamage = opts.aoeDamage ?? 28;
+  const aoeCd = new Cooldown(opts.aoeCd ?? 3);
   const playerHpMax = opts.playerHp ?? 100;
   const enemyHp = opts.enemyHp ?? 40;
   const enemySpeed = opts.enemySpeed ?? 3.5;
@@ -72,13 +84,18 @@ export function createArpgGame(
   const playerHealth = new Health({ max: playerHpMax });
   const score = new Scoreboard();
   const gold = new Economy({ start: 0 });
+  const run = new RunState();
   const quest = new QuestTracker({ title: '任务' });
   const bar = new ButtonBar({
     onClick: (id) => {
       if (id === 'attack') attack();
+      if (id === 'aoe') aoeSkill();
     },
   });
-  bar.setSlots([{ id: 'attack', label: '攻击', key: '空格/J' }]);
+  bar.setSlots([
+    { id: 'attack', label: '攻击', key: '空格/J' },
+    { id: 'aoe', label: '旋风斩', key: 'K' },
+  ]);
   const KILL_GOAL = 10;
   const bgm = new BgmLayers();
   let bgmReady = false;
@@ -93,6 +110,18 @@ export function createArpgGame(
     }
   }
   quest.setItems([{ id: 'k10', title: `击杀 ${KILL_GOAL} 个目标`, done: false }]);
+
+  // UI blocks
+  const hud = new HudPanel({ id: 'arpg-hud', position: 'tl' });
+  const playerBar = new HealthBar({ width: 120, height: 8 });
+  if (playerBar.el) {
+    playerBar.el.style.cssText += ';position:fixed;left:12px;bottom:12px;z-index:20;';
+    document.body.appendChild(playerBar.el);
+  }
+  const dmgNums = new DamageNumbers();
+  const endOverlay = new EndOverlay();
+  const enemyBar = new WorldBar({ width: 44, height: 4, color: '#e07070' });
+  enemyBar.setVisible(false);
 
   // optional tiny SFX (no assets required)
   let ac: AudioContext | null = null;
@@ -147,8 +176,6 @@ export function createArpgGame(
   let spawnT = 0;
   let t = 0;
   let status: 'playing' | 'lose' = 'playing';
-  let hud: HTMLElement | null = null;
-  let endEl: HTMLElement | null = null;
   let facingX = 0;
   let facingZ = 1;
 
@@ -157,6 +184,16 @@ export function createArpgGame(
     blend: 0.2,
     orbit: { distance: 28, height: 24, pitch: 0.7 },
   });
+
+  function screenPos(obj: THREE.Object3D): { x: number; y: number } {
+    const v = obj.position.clone();
+    v.y += 1.2;
+    v.project(camera);
+    return {
+      x: (v.x * 0.5 + 0.5) * (typeof window !== 'undefined' ? window.innerWidth : 800),
+      y: (-v.y * 0.5 + 0.5) * (typeof window !== 'undefined' ? window.innerHeight : 600),
+    };
+  }
 
   function spawnEnemy() {
     const e = enemies.acquire();
@@ -171,10 +208,12 @@ export function createArpgGame(
         e.alive = false;
         enemies.release(e);
         score.addKill();
+        run.addKill();
         gold.add(5);
         beep(1320);
+        const sp = screenPos(e.mesh);
+        dmgNums.spawn(sp.x, sp.y, '击杀', true);
         if (score.kills >= KILL_GOAL) quest.complete('k10');
-        // drop
         const id = 'drop' + score.kills;
         const mesh = new THREE.Mesh(dropGeo, dropMat);
         mesh.position.copy(e.mesh.position);
@@ -205,6 +244,12 @@ export function createArpgGame(
     return out;
   }
 
+  function hitEnemy(e: E, amount: number, crit = false) {
+    const sp = screenPos(e.mesh);
+    dmgNums.spawn(sp.x, sp.y, String(Math.round(amount)), crit);
+    e.health.damage(amount);
+  }
+
   function attack() {
     if (!attackCd.tryFire()) return;
     beep(880);
@@ -224,10 +269,9 @@ export function createArpgGame(
       { range: attackRange },
     );
     if (target) {
-      target.ref.health.damage(attackDamage);
+      hitEnemy(target.ref, attackDamage);
       return;
     }
-    // projectile if nothing in melee range
     const p = new Projectile({
       x: player.position.x,
       z: player.position.z,
@@ -245,22 +289,36 @@ export function createArpgGame(
     projMeshes.set(p, m);
   }
 
+  function aoeSkill() {
+    if (!aoeCd.tryFire()) return;
+    beep(440);
+    const list = liveEnemies().map((e) => ({
+      x: e.mesh.position.x,
+      z: e.mesh.position.z,
+      alive: e.alive,
+      ref: e,
+    }));
+    const hits = areaHits(player.position.x, player.position.z, aoeRadius, list);
+    for (const h of hits) {
+      const e = h.target.ref as E;
+      if (e.alive) hitEnemy(e, aoeDamage, true);
+    }
+  }
+
   function onKeyDn(e: KeyboardEvent) {
     keys.add(e.code);
     if (e.code === 'Space' || e.code === 'KeyJ') attack();
+    if (e.code === 'KeyK') aoeSkill();
   }
   function onKeyUp(e: KeyboardEvent) {
     keys.delete(e.code);
   }
 
   function showEnd() {
-    if (endEl || typeof document === 'undefined') return;
+    if (status === 'lose') return;
     status = 'lose';
-    endEl = document.createElement('div');
-    endEl.style.cssText =
-      'position:fixed;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);color:#e07070;font:28px/1.4 system-ui,sans-serif';
-    endEl.textContent = '倒下 — 击杀 ' + score.kills;
-    document.body.appendChild(endEl);
+    run.set('kills', score.kills);
+    endOverlay.show(`倒下 — 击杀 ${score.kills} · 用时 ${run.time.toFixed(1)}s`, false);
   }
 
   if (typeof window !== 'undefined') {
@@ -275,13 +333,15 @@ export function createArpgGame(
       update(ft: number, world: EngineWorld) {
         t += ft;
         if (!world.playing || status !== 'playing') {
-          if (hud)
-            hud.textContent = `HP ${playerHealth.hp} · 击杀 ${score.kills} · 金 ${gold.balance} [${status}]`;
+          hud.setText(`HP ${playerHealth.hp} · 击杀 ${score.kills} · 金 ${gold.balance} [${status}]`);
+          playerBar.setHp(playerHealth.hp, playerHpMax);
           return;
         }
 
         score.tick(ft);
+        run.tick(ft);
         attackCd.update(ft);
+        aoeCd.update(ft);
         spawnT -= ft;
         if (spawnT <= 0) {
           spawnT = spawnEvery;
@@ -312,7 +372,6 @@ export function createArpgGame(
           );
         }
         rig.update(ft, player.position, Math.atan2(facingX, facingZ));
-        // intensity: more living enemies → more intense layer
         {
           const live = liveEnemies().length;
           bgm.setIntensity(Math.min(1, live / 8));
@@ -345,7 +404,10 @@ export function createArpgGame(
             ref: e,
           }));
         const hits = stepProjectiles(projectiles, hitTargets, ft, 0.4);
-        for (const h of hits) (h.target as E).health.damage(h.damage);
+        for (const h of hits) {
+          const e = h.target as E;
+          if (e.alive) hitEnemy(e, h.damage);
+        }
         for (const [p, m] of projMeshes) {
           if (!p.alive) {
             m.visible = false;
@@ -353,18 +415,33 @@ export function createArpgGame(
           } else m.position.set(p.x, 0.6, p.z);
         }
 
-        if (!hud && typeof document !== 'undefined') {
-          hud = document.createElement('div');
-          hud.id = 'arpg-hud';
-          hud.style.cssText =
-            'position:fixed;left:12px;top:12px;z-index:20;color:#e8eef7;font:14px/1.5 monospace;background:rgba(0,0,0,.5);padding:10px 14px;border-radius:8px;pointer-events:none;white-space:pre';
-          document.body.appendChild(hud);
+        // WorldBar on nearest living enemy
+        {
+          const live = liveEnemies();
+          let nearest: E | null = null;
+          let best = Infinity;
+          for (const e of live) {
+            const d = e.mesh.position.distanceTo(player.position);
+            if (d < best) {
+              best = d;
+              nearest = e;
+            }
+          }
+          if (nearest && best < 20) {
+            enemyBar.setVisible(true);
+            enemyBar.setRatio(nearest.health.hp / enemyHp);
+            enemyBar.update(camera, nearest.mesh.position, 1.4);
+          } else {
+            enemyBar.setVisible(false);
+          }
         }
-        if (hud) {
-          hud.textContent =
-            `HP ${playerHealth.hp}/${playerHpMax} · 击杀 ${score.kills} · 金 ${gold.balance}\n` +
-            `WASD 移动 · 空格/J 或底栏「攻击」`;
-        }
+
+        playerBar.setHp(playerHealth.hp, playerHpMax);
+        const aoeReady = aoeCd.ready ? '就绪' : `${(aoeCd.ratio * aoeCd.duration).toFixed(1)}s`;
+        hud.setText(
+          `HP ${playerHealth.hp}/${playerHpMax} · 击杀 ${score.kills} · 金 ${gold.balance}\n` +
+            `WASD 移动 · 空格/J 攻击 · K 旋风斩(${aoeReady})`,
+        );
       },
     },
   ];
@@ -377,15 +454,22 @@ export function createArpgGame(
         window.removeEventListener('keyup', onKeyUp);
       }
       scene.remove(root);
-      hud?.remove();
-      endEl?.remove();
+      hud.dispose();
+      playerBar.dispose();
+      dmgNums.dispose();
+      endOverlay.dispose();
+      enemyBar.dispose();
       quest.dispose();
       bar.dispose();
       bgm.detach();
-      hud = null;
-      endEl = null;
     },
-    stats: () => ({ hp: playerHealth.hp, kills: score.kills, gold: gold.balance, status }),
+    stats: () => ({
+      hp: playerHealth.hp,
+      kills: score.kills,
+      gold: gold.balance,
+      status,
+      time: run.time,
+    }),
   };
 }
 

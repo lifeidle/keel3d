@@ -3,22 +3,26 @@
  * Independent of the full nightraid demo.
  */
 import * as THREE from 'three';
-import { defineGame } from '../content/defineGame';
+import { defineGame, type BaseRecipeOpts } from '../content/defineGame';
 import { Pool } from '../blocks/Pool';
 import { Cooldown } from '../blocks/combat/Cooldown';
 import { pickTarget } from '../blocks/combat/Targeting';
 import { Scoreboard } from '../blocks/gameplay/Scoreboard';
+import { Health } from '../blocks/gameplay/Health';
 import { kitHumanoid } from '../blocks/kit/placeholders';
+import { HudPanel } from '../blocks/ui/HudPanel';
+import { HealthBar } from '../blocks/ui/HealthBar';
+import { DamageNumbers } from '../blocks/ui/DamageNumber';
+import { EndOverlay } from '../blocks/ui/EndOverlay';
 import type { System, EngineWorld } from '../engine/types';
 
-export interface FpsArenaOpts {
-  id: string;
-  title?: string;
+export interface FpsArenaOpts extends BaseRecipeOpts {
   moveSpeed?: number;
   lookSpeed?: number;
   fireCd?: number;
   bulletDamage?: number;
   targetHp?: number;
+  playerHp?: number;
   spawnEvery?: number;
   arena?: number;
   eyeHeight?: number;
@@ -34,6 +38,7 @@ export function createFpsArena(
   const fireCd = new Cooldown(opts.fireCd ?? 0.2);
   const bulletDamage = opts.bulletDamage ?? 25;
   const targetHp = opts.targetHp ?? 50;
+  const playerHpMax = opts.playerHp ?? 100;
   const spawnEvery = opts.spawnEvery ?? 2.5;
   const arena = opts.arena ?? 30;
   const eye = opts.eyeHeight ?? 1.65;
@@ -62,13 +67,14 @@ export function createFpsArena(
     root: THREE.Group;
     hp: number;
     alive: boolean;
+    fireT: number;
   }
   const targets = new Pool<T>(
     () => {
       const g = kitHumanoid(0xc44a4a);
       g.visible = false;
       root.add(g);
-      return { root: g, hp: 0, alive: false };
+      return { root: g, hp: 0, alive: false, fireT: 0 };
     },
     (t) => {
       t.alive = false;
@@ -78,11 +84,21 @@ export function createFpsArena(
   );
 
   const score = new Scoreboard();
+  const playerHealth = new Health({ max: playerHpMax });
+  const hud = new HudPanel({ id: 'fps-arena-hud', position: 'tl' });
+  const hpBar = new HealthBar({ width: 140, height: 8 });
+  if (hpBar.el) {
+    hpBar.el.style.cssText += ';position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:20;';
+    document.body.appendChild(hpBar.el);
+  }
+  const dmgNums = new DamageNumbers();
+  const endOverlay = new EndOverlay();
+  let status: 'playing' | 'lose' = 'playing';
+
   const keys = new Set<string>();
   let yaw = 0;
   let pitch = 0;
   let spawnT = 1;
-  let hud: HTMLElement | null = null;
 
   function onDn(e: KeyboardEvent) {
     keys.add(e.code);
@@ -112,7 +128,7 @@ export function createFpsArena(
   const playerPos = new THREE.Vector3(0, eye, 0);
 
   function shoot() {
-    if (!fireCd.tryFire()) return;
+    if (status !== 'playing' || !fireCd.tryFire()) return;
     const list = targets.units
       .filter((x) => x.alive)
       .map((x) => ({
@@ -123,7 +139,6 @@ export function createFpsArena(
       }));
     const fx = -Math.sin(yaw);
     const fz = -Math.cos(yaw);
-    // simple facing filter via minDot
     const target = pickTarget(playerPos.x, playerPos.z, list, undefined, {
       range: 40,
       facingX: fx,
@@ -133,6 +148,12 @@ export function createFpsArena(
     if (target && 'ref' in target) {
       const tg = (target as { ref: T }).ref;
       tg.hp -= bulletDamage;
+      const v = tg.root.position.clone();
+      v.y += 1.6;
+      v.project(camera);
+      const sx = (v.x * 0.5 + 0.5) * (typeof window !== 'undefined' ? window.innerWidth : 800);
+      const sy = (-v.y * 0.5 + 0.5) * (typeof window !== 'undefined' ? window.innerHeight : 600);
+      dmgNums.spawn(sx, sy, String(bulletDamage));
       if (tg.hp <= 0) {
         tg.alive = false;
         targets.release(tg);
@@ -145,6 +166,7 @@ export function createFpsArena(
     const x = targets.acquire();
     x.alive = true;
     x.hp = targetHp;
+    x.fireT = 1.5 + Math.random();
     const ang = Math.random() * Math.PI * 2;
     const r = arena * 0.5 + Math.random() * arena * 0.35;
     x.root.position.set(Math.cos(ang) * r, 0, Math.sin(ang) * r);
@@ -155,7 +177,7 @@ export function createFpsArena(
     {
       name: `${opts.id}.sim`,
       update(ft: number, world: EngineWorld) {
-        if (world.playing) {
+        if (world.playing && status === 'playing') {
           fireCd.update(ft);
           score.tick(ft);
           spawnT -= ft;
@@ -173,7 +195,6 @@ export function createFpsArena(
           if (len > 0) {
             mx /= len;
             mz /= len;
-            // move relative to yaw
             const s = Math.sin(yaw);
             const c = Math.cos(yaw);
             playerPos.x += (mx * c + mz * s) * moveSpeed * ft;
@@ -181,7 +202,6 @@ export function createFpsArena(
             playerPos.x = THREE.MathUtils.clamp(playerPos.x, -arena, arena);
             playerPos.z = THREE.MathUtils.clamp(playerPos.z, -arena, arena);
           }
-          // arrow look fallback
           if (keys.has('ArrowLeft')) yaw += lookSpeed * ft;
           if (keys.has('ArrowRight')) yaw -= lookSpeed * ft;
           if (keys.has('ArrowUp')) pitch = Math.min(1.2, pitch + lookSpeed * 0.7 * ft);
@@ -190,20 +210,29 @@ export function createFpsArena(
           camera.position.copy(playerPos);
           camera.rotation.order = 'YXZ';
           camera.rotation.set(pitch, yaw, 0);
+
+          // targets shoot back when in range
+          targets.units.forEach((tg) => {
+            if (!tg.alive) return;
+            const d = tg.root.position.distanceTo(playerPos);
+            if (d > 22) return;
+            tg.fireT -= ft;
+            if (tg.fireT <= 0) {
+              tg.fireT = 2 + Math.random();
+              playerHealth.damage(8);
+              if (!playerHealth.alive) {
+                status = 'lose';
+                endOverlay.show(`倒下 — 击杀 ${score.kills}`, false);
+              }
+            }
+          });
         }
 
-        if (!hud && typeof document !== 'undefined') {
-          hud = document.createElement('div');
-          hud.id = 'fps-arena-hud';
-          hud.style.cssText =
-            'position:fixed;left:12px;top:12px;z-index:20;color:#e8eef7;font:14px/1.5 monospace;background:rgba(0,0,0,.5);padding:10px 14px;border-radius:8px;pointer-events:none;white-space:pre';
-          document.body.appendChild(hud);
-        }
-        if (hud) {
-          hud.textContent =
-            `FPS 骨架 · 击杀 ${score.kills} · 目标 ${targets.activeCount}\n` +
-            `WASD 移动 · 鼠标/方向键转向 · 空格/J 射击（点击画面锁定指针）`;
-        }
+        hpBar.setHp(playerHealth.hp, playerHpMax);
+        hud.setText(
+          `FPS 骨架 · 击杀 ${score.kills} · 目标 ${targets.activeCount} · HP ${playerHealth.hp}\n` +
+            `WASD 移动 · 鼠标/方向键转向 · 空格/J 射击（点击画面锁定指针）`,
+        );
       },
     },
   ];
@@ -218,12 +247,14 @@ export function createFpsArena(
         window.removeEventListener('click', onClick);
       }
       scene.remove(root);
-      hud?.remove();
+      hud.dispose();
+      hpBar.dispose();
+      dmgNums.dispose();
+      endOverlay.dispose();
       cross?.remove();
-      hud = null;
       cross = null;
     },
-    stats: () => ({ kills: score.kills, targets: targets.activeCount }),
+    stats: () => ({ kills: score.kills, targets: targets.activeCount, hp: playerHealth.hp, status }),
   };
 }
 

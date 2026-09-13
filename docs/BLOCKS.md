@@ -148,3 +148,19 @@ gems.update(player.x, player.z);
 ## kit（补充）
 
 `kitPillar` · `kitPad`；`kitScatter` 已含更多变化
+
+## 配方 × 积木接线一览
+
+下列积木已在配方中**真实调用**（非仅 import），可直接对照源码：
+
+| 配方 | 接入积木 |
+|---|---|
+| **arpg** | Health · Scoreboard · Economy · RunState · Cooldown · pickTarget · Projectile · **areaHits(旋风斩 K)** · Pickup · Steering · ButtonBar · QuestTracker · **HudPanel** · **HealthBar** · **DamageNumber** · **WorldBar** · **EndOverlay** · BgmLayers |
+| **tower-defense** | Path · Pool · Economy · WaveDirector · Health · **PlaceGrid** · **Timers** · **BuildSystem/BuildCatalog(放塔+升级)** · **HudPanel** · **EndOverlay** · **Toast** |
+| **fps-arena** | Pool · Cooldown · pickTarget · Scoreboard · **Health** · **HudPanel** · **HealthBar** · **DamageNumber** · **EndOverlay** · kitHumanoid |
+| **dungeon** | Interactable · TriggerZone · Health · Scoreboard · **LevelTable** · **HudPanel** · **Toast** · **EndOverlay** · **MinimapDots** |
+| **collect** | Pickup · TriggerZone · Scoreboard · **RunState** · **HudPanel** · **Toast** · **EndOverlay** |
+| **survival** | Pool · Health · Economy · Scoreboard · WaveDirector · **Spawner** · **Timers** · Steering · **HudPanel** · **EndOverlay** |
+| **rally** | Path · TriggerZone · BestScoreSlot · Scoreboard · **HudPanel** · **Toast** |
+
+**粗体** = 本轮新接线。`SfxPlayer` 需 `AudioEngine`（配方无引擎句柄，暂不接）；`GridAStar` 当前无配方调用（地牢敌人是定点 Boss，无需寻路）；`ChunkWorld`/`MapBuilder`/`TerrainBuilder` 由 demo 骨架（openworld/template）使用。
