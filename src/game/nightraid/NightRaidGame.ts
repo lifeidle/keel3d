@@ -13,7 +13,7 @@ import {
   AtmosphereSystem,
   QualityAutoSystem,
   RenderPresentSystem,
-} from './systems/FrameSystems';
+} from './systems';
 
 export interface NightRaidDeps {
   game: Game;

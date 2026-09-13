@@ -12,10 +12,11 @@
 - ✅ 切片 1：WebGPU 唯一化（完成）
 - ✅ 切片 2：rapier3d 标准包切换（完成；tsc 0 / 测试 20/20 / build 0 警告）
 - ✅ 切片 2 收尾：**浏览器回归通过**（WebGPU 后端、75 FPS、HUD 正常、**控制台 0 错误**）
-- ⬜ 切片 3：KTX2/Draco 资产管线（未开始）
+- ✅ 切片 3：KTX2/Draco 资产管线（**Draco 完成**：soldier −41% / rifle −86% / tank −85%；KTX2 延后）
 - ✅ 规划更新：三样例 + **框架主轴**（样例互不相干）写入 FRAMEWORK_PLAN + EXECUTION_STEPS
 - ✅ **目录重组**：夜袭内容收拢 `src/game/nightraid/`；骨架 blocks/content/demo-tower/demo-cultivation；根目录清理
 - ✅ **施工准备 0.0–0.2**：本地 git + 快照机制（`_snapshots/A0`）+ **回归基线**（`shots/baseline/` 全绿）
+- 🔶 **Phase A 开工**（从最复杂样例抽出内核）
 
 ---
 
