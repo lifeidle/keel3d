@@ -107,6 +107,7 @@ export default defineConfig({
         flight: 'flight.html',
         race: 'race.html',
         template: 'template.html',
+        arpg: 'arpg.html',
       },
       output: {
         manualChunks(id) {

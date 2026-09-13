@@ -20,6 +20,7 @@ export const GAME_LOADERS: Record<string, GameLoader> = {
   template: () => import('./game/demo-template'),
   flight: () => import('./game/demo-flight'),
   race: () => import('./game/demo-race'),
+  arpgdemo: () => import('./game/demo-arpg'),
   // NEW_GAME_INSERT
 };
 
