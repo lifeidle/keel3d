@@ -38,17 +38,20 @@ npm run build && npm run preview
 ## 3. 从模板新建游戏（推荐）
 
 ```bash
+# 空白模板
 npm run new-game mygame -- --title "My Game" --html
+
+# 塔防配方（改 lane/pads/数值即可玩）
+npm run new-game mytd -- --recipe td --title "My TD" --html
 ```
 
 会：
 
-1. 复制 `demo-template` → `src/game/mygame`  
-2. 改写 `id` / `title`  
-3. 在 `src/registry.ts` 注册  
-4. 生成 `mygame.html` 并写入 Vite 多页入口  
+1. 生成 `src/game/<id>`  
+2. 在 `src/registry.ts` 注册  
+3. 可选 `<id>.html` + Vite 多页入口  
 
-打开 `/?game=mygame` 或 `/mygame.html`。
+打开 `/?game=<id>`。手写方式见 `docs/BLOCKS.md` 与 `src/recipes/tower-defense.ts`。
 
 手写方式（无脚手架）：
 

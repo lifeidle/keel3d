@@ -77,6 +77,8 @@ npm run dev              # http://localhost:5173
 
 ```bash
 npm run new-game mygame -- --title "My Game" --html
+# 或塔防配方
+npm run new-game mytd -- --recipe td --html
 # 打开 http://localhost:4173/?game=mygame
 ```
 
