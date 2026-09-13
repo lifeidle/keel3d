@@ -83,18 +83,19 @@ DOM id：`#bootFill #bootTxt #btnPlay #btnNet #btnNetHost #btnNetJoin #btnNetGo 
 
 ## 1. Phase 0 收尾：资产管线（切片 3）
 
-### 1.1 KTX2/Draco 工具链 + 运行时接入 — M
+### 1.1 KTX2/Draco 工具链 + 运行时接入 — M ✅ Draco 完成（KTX2 延后）
 - **目标**：第三方模型/纹理进项目时体积更小、加载更快；夜袭现有资产做一次转换验证。
 - **做法**：
-  1. 引入 `@gltf-transform/cli`（devDependency）：`gltf-transform draco <in.glb> <out.glb>`（模型）+ `gltf-transform etc1s/uastc`（纹理→KTX2，需要 `toktx`/basis 编码器，先装再跑）。
-  2. 写 `scripts/assets-encode.mjs`：扫描 `assets_new/`（或指定目录）→ 输出到 `public/models-opt/`、`public/textures-ktx2/`；失败资产回退原格式并打日志。
-  3. 运行时代码：`AssetHub`（`src/engine/assets/AssetHub.ts`）接入 `DRACOLoader` + `KTX2Loader`（transcoder 文件放 `public/`，不引 CDN）。
-  4. 试点验证：拿 `public/models/soldier.glb`（715KB）与一张 webp 纹理转换，测体积下降与加载正确。
-- **验收**：五连 + `soldier.glb` 转换后体积明显下降、预览页 `soldier-preview.html` 加载无报错。（不要求全量转换 assets_new —— 那是内容作者自己的事。）
-- **回滚**：`_snapshots/1.1`
-- **规模**：M。若编码器安装受阻，允许降级：只做 Draco（纯 npm 包），KTX2 留到需要时再补。
+  1. 引入 `@gltf-transform/cli` + `draco3d` + `meshoptimizer`（devDependency）✅
+  2. 写 `scripts/assets-encode.mjs`（`npm run assets:encode`）：`public/models/*.glb` → `public/models-opt/`（Draco）；失败回退拷贝原文件 ✅
+  3. 运行时：`src/engine/assets/gltf.ts` 的 `createGltfLoader()`（DRACOLoader 指向 `/draco/gltf/`）+ `modelUrl()`；enemy/tank 已改用 ✅
+  4. 试点：soldier 715→421KB（−41%）、rifle 60→8KB（−86%）、tank 637→95KB（−85%）✅
+  5. **KTX2 留到需要时再补**（需外部 basis 编码器；本期不阻塞）⬜
+- **验收**：五连 + 浏览器回归 ERRORS:none（state/regress 已过）✅
+- **回滚**：git + `_snapshots/A0`
+- **规模**：M
 
-### 1.2 Phase 0 总验收 — S
+### 1.2 Phase 0 总验收 — S ⬜
 - **做法**：跑五连 + `node scripts/selfcheck_full.mjs` + 打一局确认；更新 `PROGRESS.md`：Phase 0 全绿收尾。
 - **规模**：S
 

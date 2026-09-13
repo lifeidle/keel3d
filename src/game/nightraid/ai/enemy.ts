@@ -1,4 +1,4 @@
-﻿// Enemy AI: dynamic capsule that walks toward the player, shoots on line-of-sight,
+// Enemy AI: dynamic capsule that walks toward the player, shoots on line-of-sight,
 // and becomes a tumbling ragdoll on death. Physics + simple state machine.
 // Stats, tint, gun model and fire sound all come from the class archetype
 // (rifle / smg / marksman) picked by the EnemyManager at spawn time.
@@ -6,8 +6,8 @@
 // plus a muzzle flash sprite + tracer when they shoot so the player can spot
 // where fire is coming from in the dark.
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
+import { createGltfLoader, modelUrl } from '../../../engine/assets/gltf';
 import { buildSoldierRig } from '../soldiers/SoldierFactory';
 
 // --- soldier GLB cosmetic layer (Quaternius Animated Men, CC0) ---
@@ -22,8 +22,8 @@ function ensureSoldier(cb: (t: THREE.Object3D, c: THREE.AnimationClip[]) => void
   soldierWaiters.push(cb);
   if (soldierLoading) return;
   soldierLoading = true;
-  new GLTFLoader().load(
-    '/models/soldier.glb',
+  createGltfLoader().load(
+    modelUrl('soldier.glb'),
     (gltf) => {
       soldierTpl = gltf.scene;
       soldierClips = gltf.animations;
@@ -45,8 +45,8 @@ function ensureRifle(cb: (t: THREE.Object3D) => void) {
   rifleWaiters.push(cb);
   if (rifleLoading) return;
   rifleLoading = true;
-  new GLTFLoader().load(
-    '/models/rifle.glb',
+  createGltfLoader().load(
+    modelUrl('rifle.glb'),
     (gltf) => {
       rifleTpl = gltf.scene;
       for (const fn of rifleWaiters.splice(0)) fn(rifleTpl!);

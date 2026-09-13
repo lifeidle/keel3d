@@ -1,4 +1,4 @@
-﻿// Armoured tanks ???the H package's driveable layer.
+// Armoured tanks ???the H package's driveable layer.
 //
 // One class powers BOTH tanks: the player's driveable main battle tank and the
 // enemy AI tank that hunts the player. Movement follows the same pattern the
@@ -10,11 +10,11 @@
 // rotation is locked ???a cylinder is symmetric, so bumping geometry never
 // depends on which way the hull happens to point.
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import RAPIER from '@dimforge/rapier3d';
 import { CONFIG } from '../../../config';
 import { PhysicsWorld, type Vec3 } from '../../../physics/world';
 import { Terrain } from '../../../world/terrain';
+import { createGltfLoader, modelUrl } from '../../../engine/assets/gltf';
 import { Effects } from '../effects';
 import { Audio } from '../audio/audio';
 import type { Enemy } from '../ai/enemy';
@@ -226,7 +226,7 @@ export class Tank {
     // low-poly rig is the canonical look. Flip to true to restore the skin.
     const USE_GLB_TANK = false;
     if (USE_GLB_TANK) {
-      new GLTFLoader().load('/models/tank.glb', (gltf) => {
+      createGltfLoader().load(modelUrl('tank.glb'), (gltf) => {
         const root = gltf.scene;
         root.scale.setScalar(0.4);
         root.traverse((o) => {

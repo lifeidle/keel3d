@@ -15,7 +15,8 @@
     "test": "node scripts/test.mjs",
     "net:dev": "vite --port 8799 --host",
     "site-audit": "node scripts/site-audit.mjs",
-    "assets:webp": "node scripts/assets-webp.mjs"
+    "assets:webp": "node scripts/assets-webp.mjs",
+    "assets:encode": "node scripts/assets-encode.mjs"
   },
   "dependencies": {
     "@dimforge/rapier3d": "^0.20.0",
@@ -23,7 +24,12 @@
   },
   "devDependencies": {
     "@dimforge/rapier3d-compat": "^0.20.0",
+    "@gltf-transform/cli": "^4.5.0",
+    "@gltf-transform/core": "^4.5.0",
+    "@gltf-transform/functions": "^4.5.0",
     "@types/three": "^0.186.0",
+    "draco3d": "^1.5.7",
+    "meshoptimizer": "^1.2.0",
     "playwright": "^1.63.0",
     "sharp": "^0.34.0",
     "typescript": "^7.0.2",

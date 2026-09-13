@@ -5,5 +5,6 @@ export { QualityController } from './quality/QualityController';
 export { RendererFacade } from './render/RendererFacade';
 export { MaterialCache, materials } from './render/MaterialCache';
 export { AssetHub } from './assets/AssetHub';
+export { createGltfLoader, modelUrl } from './assets/gltf';
 export { AudioEngine } from './audio/AudioEngine';
 export { Input } from './input';
