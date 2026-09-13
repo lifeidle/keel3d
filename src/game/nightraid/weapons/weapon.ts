@@ -193,6 +193,10 @@ export class Weapon {
 
     if (outcome === 'fired') {
       this.fire();
+    } else if (outcome === 'empty' && this.arsenal.reloading && !wasReloading) {
+      // auto-reload just started — notify HUD + play SFX
+      this.audio.playReload();
+      this.onAmmoChange?.(this.mag, this.reserve, true);
     } else if (outcome === 'empty' && !this.arsenal.reloading) {
       // dry — no reserve left
       this.audio.playEmpty();

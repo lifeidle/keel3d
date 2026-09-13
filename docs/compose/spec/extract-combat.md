@@ -1,14 +1,24 @@
 ---
 feature: extract-combat
-status: designed
+status: delivered
 updated: 2026-09-13
 branch: feature/extract-combat
-commits: # filled at delivery
+commits: a7817eaae226bc0b00e671af8099261f93379209..e39cbc3
 ---
 
 # Extract Combat — Magazine + Arsenal to L2 blocks
 
 ## Report
+
+**What was built** — Extracted pure combat bookkeeping from Night Raid into L2 blocks. `Magazine` moved to `blocks/combat/Magazine.ts` (API unchanged). New `Arsenal` owns multi-slot ammo, fire cooldown, swap lockout, and recoil decay; `update(dt, held, clicked)` returns a `FireOutcome` and consumes a round on `'fired'`. nightraid `weapon.ts` now delegates that state to Arsenal and keeps hitscan/effects/audio; `weapons/magazine.ts` deleted. fps-arena uses a one-slot semi-auto Arsenal with R-reload and HUD ammo (`mag/reserve`). Review fix: auto-reload now plays reload SFX and notifies HUD. fps-arena opts: `fireCd` replaced by `fireRate` (shots/s) plus `magSize`/`reserve`/`reloadTime`.
+
+**Verification** — typecheck PASS · test PASS (58) · build PASS · probe-all PASS (13 entries).
+
+**Journey log** —
+1. Arsenal `'empty'` is overloaded (auto-reload started vs true dry) — callers must branch on `reloading` or feedback paths silently drop.
+2. Do not double-consume: Arsenal owns the round; weapon.hitscan only runs on `'fired'`.
+3. Private field named `recoil` collides with a `recoil` getter under `useDefineForClassFields` — use a distinct backing name (`kick`).
+4. Fire immediately then probe empty without waiting out cooldown returns `'cooldown'`, not `'empty'`.
 
 ## [S1] Problem
 
@@ -128,9 +138,9 @@ const arsenal = new Arsenal([{
 
 ## Tasks
 
-- [ ] T1: Add `blocks/combat/Magazine.ts` + `Arsenal.ts` + export from combat/index — acceptance: typecheck (covers: S2)
-- [ ] T2: Migrate tests — magazine.test.ts new path + arsenal.test.ts + test.mjs list — acceptance: test green (covers: S2; depends: T1)
-- [ ] T3: nightraid weapon.ts uses Arsenal; delete weapons/magazine.ts — acceptance: typecheck; magazine test still green (covers: S2; depends: T1)
-- [ ] T4: fps-arena Arsenal + R reload + HUD ammo — acceptance: typecheck; probe fps-arena (covers: S2; depends: T1)
-- [ ] T5: BLOCKS.md + API.md entries — acceptance: docs list new APIs (covers: S2; depends: T1)
-- [ ] T6: Full verify typecheck/test/build/probe — acceptance: all green (covers: S2; depends: T2-T5)
+- [x] T1: Add `blocks/combat/Magazine.ts` + `Arsenal.ts` + export from combat/index — acceptance: typecheck (covers: S2)
+- [x] T2: Migrate tests — magazine.test.ts new path + arsenal.test.ts + test.mjs list — acceptance: test green (covers: S2; depends: T1)
+- [x] T3: nightraid weapon.ts uses Arsenal; delete weapons/magazine.ts — acceptance: typecheck; magazine test still green (covers: S2; depends: T1)
+- [x] T4: fps-arena Arsenal + R reload + HUD ammo — acceptance: typecheck; probe fps-arena (covers: S2; depends: T1)
+- [x] T5: BLOCKS.md + API.md entries — acceptance: docs list new APIs (covers: S2; depends: T1)
+- [x] T6: Full verify typecheck/test/build/probe — acceptance: all green (covers: S2; depends: T2-T5)
