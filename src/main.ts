@@ -1,6 +1,6 @@
 ﻿// Entry point. Rapier ships as a standalone .wasm (ESM import, ready at module load).
-// Boot: Engine kernel owns the rAF loop + system schedule; NightRaid is a
-// GameModule whose systems drive the sample combat game.
+// Boot: Engine kernel owns the rAF loop + system schedule.
+// ?game=nightraid (default) | tower | cultivation — samples are independent.
 import { Game } from './game/nightraid/game';
 import { Engine } from './engine/Engine';
 import { QualityController } from './engine/quality/QualityController';
@@ -10,14 +10,37 @@ import { initI18n, t } from './i18n';
 import { prefetchHD } from './game/nightraid/world/phototex';
 import { FullscreenUI } from './ui/fullscreen';
 import { createNightRaidGame } from './game/nightraid/NightRaidGame';
+import { createTowerGame } from './game/demo-tower';
+import { createCultivationGame } from './game/demo-cultivation';
+import type { System } from './engine/types';
+
+function gameFromUrl(): string {
+  const id = new URLSearchParams(location.search).get('game') ?? 'nightraid';
+  if (id === 'tower' || id === 'cultivation' || id === 'nightraid') return id;
+  return 'nightraid';
+}
+
+/** Present system for samples that reuse the engine's WebGPU canvas. */
+function presentSystem(engine: { renderer: { render(s: unknown, c: unknown): void }; scene: unknown; camera: unknown }): System {
+  return {
+    name: 'sample.present',
+    update() {
+      engine.renderer.render(engine.scene, engine.camera);
+    },
+  };
+}
 
 async function boot() {
   const fill = document.getElementById('bootFill')!;
-  const bootTxt = document.getElementById('bootTxt')!;
+  const gameId = gameFromUrl();
 
-  fill.style.width = '30%';
-  prefetchHD(); // start HD texture downloads early; menu time covers decoding
-  fill.style.width = '70%';
+  if (gameId === 'nightraid') {
+    fill.style.width = '30%';
+    prefetchHD();
+    fill.style.width = '70%';
+  } else {
+    fill.style.width = '50%';
+  }
 
   initI18n();
   const fullscreen = new FullscreenUI();
@@ -26,22 +49,50 @@ async function boot() {
   if (!app) throw new Error('#app not found');
 
   const qualityCtrl = new QualityController(detectQuality());
-  // Live canvas: WebGPU-only (no WebGL fallback — see createEngineAsync).
   const threeEngine = await createEngineAsync(app, qualityCtrl.current);
-  // Framework kernel: headless host owns loop order + dynamic-resolution sampling.
   const engine = new Engine({ parent: app, qualityCtrl, headless: true });
-  const game = new Game(app, { qualityCtrl, externalLoop: true, engine: threeEngine });
-  const module = createNightRaidGame({ game });
-  for (const s of module.systems) engine.addSystem(s);
-  module.mount(engine);
 
+  if (gameId === 'nightraid') {
+    const game = new Game(app, { qualityCtrl, externalLoop: true, engine: threeEngine });
+    const module = createNightRaidGame({ game });
+    for (const s of module.systems) engine.addSystem(s);
+    module.mount(engine);
+    fill.style.width = '100%';
+    setTimeout(() => {
+      document.getElementById('boot')!.classList.add('hidden');
+      game.mount();
+      engine.start();
+      fullscreen.maybePrompt();
+    }, 250);
+    return;
+  }
+
+  // Sample B / C — independent content packages on the same engine canvas.
+  engine.addSystem({
+    name: 'sample.playing',
+    update(_ft, world) {
+      world.playing = true;
+    },
+  });
+  if (gameId === 'tower') {
+    const sample = createTowerGame({
+      scene: threeEngine.scene,
+      camera: threeEngine.camera,
+    });
+    for (const s of sample.systems) engine.addSystem(s);
+  } else {
+    const sample = createCultivationGame({
+      scene: threeEngine.scene,
+      camera: threeEngine.camera,
+    });
+    for (const s of sample.systems) engine.addSystem(s);
+  }
+  engine.addSystem(presentSystem(threeEngine));
   fill.style.width = '100%';
   setTimeout(() => {
     document.getElementById('boot')!.classList.add('hidden');
-    game.mount(); // reveals the main menu (no rAF — Engine drives)
     engine.start();
-    fullscreen.maybePrompt();
-  }, 250);
+  }, 150);
 }
 
 boot().catch((err) => {
@@ -49,7 +100,6 @@ boot().catch((err) => {
   const bootTxt = document.getElementById('bootTxt');
   const fill = document.getElementById('bootFill');
   if (err instanceof WebGpuRequiredError) {
-    // WebGPU-only framework: no silent WebGL fallback — tell the user clearly.
     if (bootTxt)
       bootTxt.textContent =
         '本框架需要 WebGPU — 请用最新版 Chrome / Edge / Safari(17+) 或开启 Chrome 实验性 WebGPU 后刷新。' +
