@@ -19,10 +19,8 @@
 - ✅ **Phase A 完成**：A1–A12 全绿。系统：StateSync / Movement / CombatSim / Vehicle / Combat / Net / Mission / Gameplay / Hud / Effects / Atmosphere / QualityAuto / RenderPresent。`game.ts` 2347→**2071** 行。
 - ✅ **Phase B 骨架落地**：`blocks/` Pool · Path · Steering · CameraRig · Unit；PhysicsWorld 注入化；enemy flank/separation 改用 Steering。
 - ✅ **Phase C 契约**：`content/define.ts` + `defineGame()`。
-- 🔶 **Phase D/E 骨架**：`?game=tower`（fixed+orbit+HUD）与 `?game=cultivation`（stream 占位+多视角）可启动，**玩法链未完**（波次/放塔/战斗交互）。
-- ⬜ Phase B 剩余：Unit 全量接入 Player、mapgen→blocks、B8 fixed 加载器接菜单。
-- ⬜ Phase D 剩余：波次生成、放塔交互、塔攻击、胜负。
-- ⬜ Phase E 剩余：真实 chunk 流式、Steering/GridAStar 妖兽、修仙 GLB。
+- 🔶 **Phase D 玩法链**：波次生成 + 放塔（1/2/3 选型、点击塔位）+ 塔攻击 + 基地扣血 + 三读数 HUD。胜负结算页未做（基地归零仅计数）。
+- 🔶 **Phase E 骨架**：`?game=cultivation` 可启动（stream 占位 + 视角切换）；妖兽/真实 chunk/GLB 未做。
 
 ---
 

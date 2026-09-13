@@ -127,6 +127,8 @@ export function createTowerGame(deps: TowerDeps) {
   let t = 0;
   let selected: TowerKind = 'rapid';
   let hudEl: HTMLElement | null = null;
+  let endEl: HTMLElement | null = null;
+  let status: 'playing' | 'win' | 'lose' = 'playing';
   const towers: TowerMesh[] = [];
   const pos = { x: 0, y: 0, z: 0 };
 
@@ -139,17 +141,29 @@ export function createTowerGame(deps: TowerDeps) {
     document.body.appendChild(hudEl);
   }
 
+  function showEnd(win: boolean) {
+    if (endEl || typeof document === 'undefined') return;
+    status = win ? 'win' : 'lose';
+    endEl = document.createElement('div');
+    endEl.id = 'tower-end';
+    endEl.style.cssText =
+      'position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);color:#fff;font:28px/1.4 monospace;pointer-events:none';
+    endEl.textContent = win ? '胜利 — 基地守住了' : '失败 — 基地被攻破';
+    document.body.appendChild(endEl);
+  }
+
   function syncHud() {
     ensureHud();
     if (!hudEl) return;
     const alive = enemyPool.activeCount;
     hudEl.textContent =
-      `金钱 ${money} · 波次 ${wave} · 基地 ${baseHp}\n` +
+      `金钱 ${money} · 波次 ${wave}/5 · 基地 ${baseHp}\n` +
       `选塔 1速射/2重炮/3减速 (${selected}) · 点击空塔位放置\n` +
-      `场上敌人 ${alive}`;
+      `场上敌人 ${alive}` + (status !== 'playing' ? `\n[${status}]` : '');
   }
 
   function placeTower(padIdx: number) {
+    if (status !== 'playing') return;
     const pad = pads[padIdx];
     if (!pad || pad.occupied) return;
     const cost = TOWER_COST[selected];
@@ -206,14 +220,14 @@ export function createTowerGame(deps: TowerDeps) {
       update(ft: number, world: EngineWorld) {
         t += ft;
         rig.update(ft, new THREE.Vector3(0, 0, 0), t * 0.12);
-        if (!world.playing) {
+        if (!world.playing || status !== 'playing') {
           syncHud();
           return;
         }
 
-        // waves
+        // waves (5-wave campaign)
         waveT += ft;
-        if (toSpawn === 0 && waveT > 6) {
+        if (toSpawn === 0 && waveT > 6 && wave < 5) {
           wave++;
           toSpawn = 3 + wave * 2;
           spawnT = 0;
@@ -236,6 +250,7 @@ export function createTowerGame(deps: TowerDeps) {
             e.alive = false;
             enemyPool.release(e);
             baseHp = Math.max(0, baseHp - 1);
+            if (baseHp <= 0) showEnd(false);
             return;
           }
           LANE.sampleAt(e.dist, pos);
@@ -271,6 +286,11 @@ export function createTowerGame(deps: TowerDeps) {
           }
         }
 
+        // win: cleared 5 waves with no enemies left
+        if (wave >= 5 && toSpawn === 0 && enemyPool.activeCount === 0) {
+          showEnd(true);
+        }
+
         syncHud();
       },
     },
@@ -286,8 +306,10 @@ export function createTowerGame(deps: TowerDeps) {
       scene.remove(root);
       hudEl?.remove();
       hudEl = null;
+      endEl?.remove();
+      endEl = null;
     },
-    stats: () => ({ money, wave, baseHp, towers: towers.length }),
+    stats: () => ({ money, wave, baseHp, towers: towers.length, status }),
   };
 }
 
