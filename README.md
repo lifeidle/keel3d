@@ -136,7 +136,7 @@ L3  src/content/    GameSpec · MapSpec · defineGame
 
 ```bash
 npm run typecheck   # 0 错误
-npm test            # 26 项单测（含 blocks）
+npm test            # 33 项单测（含 blocks / gameplay）
 npm run build       # 生产构建
 
 # 浏览器回归（需先 build + preview）
@@ -173,6 +173,8 @@ npx wrangler pages deploy dist --project-name <your-project> --branch main
 - 完整清单与署名文本：[`docs/THIRD_PARTY_NOTICES.md`](docs/THIRD_PARTY_NOTICES.md) · [`docs/AUDIO_CREDITS.md`](docs/AUDIO_CREDITS.md)
 
 **商用提示**：只发「框架 + 你自己的游戏」通常只需 MIT + 依赖许可；若发布含夜袭音频的完整构建，必须完成 CC-BY 署名，并处理 CC-BY-SA 语音（署名/SA 或移除该文件）。
+
+更多：[`docs/USER_GUIDE.md`](docs/USER_GUIDE.md) · [`docs/QUICKSTART.md`](docs/QUICKSTART.md) · [`docs/API.md`](docs/API.md) · [`docs/BLOCKS.md`](docs/BLOCKS.md) · [`docs/ADAPT.md`](docs/ADAPT.md) · [`docs/STRUCTURE.md`](docs/STRUCTURE.md) · [`hub.html`](hub.html)
 
 ---
 
