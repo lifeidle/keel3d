@@ -85,7 +85,7 @@ export class Game {
   private activeGun: THREE.Group | null = null;
   private casings: CasingManager;
   private gunKick = 0; // viewmodel recoil impulse (decays each render frame)
-  private bobPhase = 0; // walk-cycle phase driving the viewmodel bob
+  // bobPhase lives on HudSystem (A6)
 
   private state: State = 'menu';
   private victory = false;
@@ -812,7 +812,7 @@ export class Game {
     this.fixedUpdate(dt);
   }
 
-  /** Variable gameplay: menus, HUD, net, viewmodel, tactical map. */
+  /** Variable gameplay: menus, net, shake (HUD slice → HudSystem, A6). */
   hostGameplayFrame(ft: number) {
     if (this.state === 'menu') {
       this.updateMenuCamera(ft);
@@ -820,37 +820,6 @@ export class Game {
     }
     if (this.state === 'intro') this.updateIntro(ft);
 
-    const hudEl = document.getElementById('hud');
-    if (hudEl) {
-      hudEl.style.display =
-        this.state === 'playing' || this.state === 'paused' ? '' : 'none';
-    }
-
-    if (this.state === 'playing' || this.state === 'paused') {
-      this.tactical.update(
-        this.player.pos.x,
-        this.player.pos.z,
-        this.player.yaw,
-        this.enemyTargets(),
-        this.map.obstacles,
-        CONFIG.map.half,
-        this.barrels.getBlips(),
-        this.mission.exfilBlip(),
-        this.map.ammoDumps.map((d, i) => ({ x: d.x, z: d.z, used: this.resupplied.has(i) }))
-      );
-    }
-    if (this.state === 'playing') {
-      if (this.driving) {
-        for (const g of this.gunModels.values()) g.visible = false;
-        this.hud.setSpread(0);
-      } else {
-        const mv = this.input.moveAxis();
-        const moving = mv.x !== 0 || mv.z !== 0;
-        const spread = 4 + this.weapon.recoilLevel * 26 + (moving ? (mv.sprint ? 9 : 5) : 0);
-        this.hud.setSpread(spread);
-        this.animateViewmodel(ft);
-      }
-    }
     if (this.shake > 0.001) this.shake = Math.max(0, this.shake - ft * 2.2);
     if (this.state === 'playing' && this.shake > 0.001) {
       const s = this.shake;
@@ -860,19 +829,40 @@ export class Game {
       cam.position.x += (Math.random() - 0.5) * s * 0.07;
       cam.position.y += (Math.random() - 0.5) * s * 0.07;
     }
-    if (this.state === 'playing' && this.fullmapOpen) {
-      this.tactical.drawFullMap(
-        this.player.pos.x,
-        this.player.pos.z,
-        this.player.yaw,
-        this.enemies.getSoldiers(),
-        this.map.obstacles,
-        CONFIG.map.half,
-        this.map.ammoDumps.map((d, i) => ({ x: d.x, z: d.z, used: this.resupplied.has(i) })),
-        this.map.camp,
-        this.map.base
-      );
-    }
+  }
+
+  /** Collaborators for HudSystem (A6). */
+  get hudFrame() {
+    return {
+      state: this.state,
+      hud: this.hud,
+      tactical: this.tactical,
+      playerPos: this.player.pos,
+      playerYaw: this.player.yaw,
+      driving: !!this.driving,
+      fullmapOpen: this.fullmapOpen,
+      recoilLevel: this.weapon.recoilLevel,
+      map: this.map,
+      activeGun: this.activeGun,
+      gunKick: this.gunKick,
+      stepGunKick: (ft: number) => {
+        this.gunKick = Math.max(0, this.gunKick - ft * 8);
+      },
+      moveAxis: () => this.input.moveAxis(),
+      hideGunModels: () => {
+        for (const g of this.gunModels.values()) g.visible = false;
+      },
+      enemyTargets: () => this.enemyTargets(),
+      soldiers: () => this.enemies.getSoldiers(),
+      enemies: () => this.enemies.getEnemies(),
+      barrelBlips: () => this.barrels.getBlips(),
+      exfilBlip: () => this.mission.exfilBlip(),
+      ammoDumps: this.map.ammoDumps.map((d, i) => ({
+        x: d.x,
+        z: d.z,
+        used: this.resupplied.has(i),
+      })),
+    };
   }
 
   /** Pooled VFX + ballistic debris → EffectsSystem (A4). */
@@ -987,32 +977,7 @@ export class Game {
     this.activeGun = this.gunModels.get(def.key) ?? null;
   }
 
-  /**
-   * Render-frame viewmodel motion: a kick that spikes on fire and settles, plus
-   * a subtle walk/sprint bob. Runs on the active gun group only while playing;
-   * the base resting pose is (0.26, -0.24, -0.7) from construction.
-   */
-  private animateViewmodel(ft: number) {
-    const g = this.activeGun;
-    if (!g) return;
-    this.gunKick = Math.max(0, this.gunKick - ft * 8);
-    const k = this.gunKick;
-    const mv = this.input.moveAxis();
-    const moving = mv.x !== 0 || mv.z !== 0;
-    if (moving) this.bobPhase += ft * (mv.sprint ? 12 : 7.5);
-    const amp = moving ? (mv.sprint ? 1 : 0.55) : 0;
-    const b = Math.sin(this.bobPhase);
-    g.position.set(
-      0.26 + Math.cos(this.bobPhase) * 0.014 * amp + (Math.random() - 0.5) * k * 0.012,
-      -0.24 + Math.abs(b) * 0.02 * amp + k * 0.015,
-      -0.7 + k * 0.07
-    );
-    g.rotation.set(
-      k * 0.16, // muzzle kicks up with the shot, settles back
-      0,
-      Math.cos(this.bobPhase) * 0.022 * amp + (Math.random() - 0.5) * k * 0.04
-    );
-  }
+  // animateViewmodel moved to HudSystem (A6)
 
   /** Player spawn: their base camp at one end of the map, on the terrain. */
   private spawnPos(): THREE.Vector3 {
@@ -1632,33 +1597,7 @@ export class Game {
 
   // updateAutoQuality moved to QualityAutoSystem (A2)
 
-  /**
-   * Amber arc toward the freshest enemy trigger pull — fires every frame an
-   * enemy has pulled the trigger within the last ~90ms, so a burst keeps the
-   * arc pinned and it fades ~700ms after the shooting stops. Misses included:
-   * knowing WHERE fire comes from is the point, not just being hit by it.
-   */
-  private updateFireIndicators() {
-    const now = performance.now() / 1000;
-    let best: { x: number; z: number } | null = null;
-    let bestAge = Infinity;
-    for (const e of this.enemies.getEnemies()) {
-      if (!e.alive) continue;
-      const age = now - e.lastShot;
-      if (age < bestAge) {
-        bestAge = age;
-        const t = e.body.translation();
-        best = { x: t.x, z: t.z };
-      }
-    }
-    if (!best || bestAge > 0.09) return;
-    const dx = best.x - this.player.pos.x;
-    const dz = best.z - this.player.pos.z;
-    const yaw = this.player.yaw;
-    const fwd = dx * -Math.sin(yaw) + dz * -Math.cos(yaw);
-    const right = dx * Math.cos(yaw) + dz * -Math.sin(yaw);
-    this.hud.gunfireDirection(Math.atan2(right, fwd));
-  }
+  // updateFireIndicators moved to HudSystem (A6)
 
   /** Kill-streak milestones: one-shot radio flourish as the count climbs. */
   private checkStreak() {
@@ -1887,7 +1826,7 @@ export class Game {
     // sniper glass at 2x+: vignette + crosshair overlay
     this.hud.setScope(this.weapon.ads && (this.weapon.def.zoom ?? 1) >= 2);
     this.enemies.update(dt, this.player, this.damagePlayer);
-    this.updateFireIndicators();
+    // fire-indicator arc lives on HudSystem (A6)
     this.barrels.update(dt);
     this.map.destructibles.update(dt);
     this.physics.step();

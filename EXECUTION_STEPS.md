@@ -288,10 +288,10 @@ DOM id：`#bootFill #bootTxt #btnPlay #btnNet #btnNetHost #btnNetJoin #btnNetGo 
 | 1.1 资产管线 | | | | |
 | 1.2 Phase 0 验收 | | | | |
 | A1 目录拆分 | git | ✅ | — | 2026-09-13 |
-| A2 QualityAuto | | | | |
-| A3 RenderPresent | | | | |
-| A4 Effects | | | | |
-| A5 Atmosphere | | | | |
+| A2 QualityAuto | git | ✅ | 自动降档逻辑已入 System | 2026-09-13 |
+| A3 RenderPresent | git | ✅ | 75 FPS / 诊断正常 | 2026-09-13 |
+| A4 Effects | git | ✅ | state_check 0 错误 | 2026-09-13 |
+| A5 Atmosphere | git | ✅ | regress 0 错误 | 2026-09-13 |
 | A6 HUD | | | | |
 | A7 Mission | | | | |
 | A8 Movement | | | | |
