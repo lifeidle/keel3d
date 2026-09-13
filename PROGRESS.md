@@ -263,3 +263,6 @@ $out = & $node "<鑴氭湰缁濆璺緞>" 2>&1; $code = $LASTEXITCODE
 
 **2026-09-13 TD 配方**
 - src/recipes/tower-defense.ts；new-game --recipe td 已验证可 typecheck/build
+
+**2026-09-13 生存配方 + 修仙血条**
+- recipes/survival.ts；new-game --recipe survival；cultivation 用 HealthBar 显示修为
