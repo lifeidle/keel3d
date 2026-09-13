@@ -98,6 +98,11 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: false, // production: no .map artifacts (nothing internal to leak)
     rollupOptions: {
+      input: {
+        main: 'index.html',
+        tower: 'tower.html',
+        cultivation: 'cultivation.html',
+      },
       output: {
         manualChunks(id) {
           if (id.includes('node_modules/three')) return 'three';

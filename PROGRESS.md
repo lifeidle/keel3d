@@ -19,7 +19,10 @@
 - ✅ **Phase A 完成**：A1–A12 全绿。系统：StateSync / Movement / CombatSim / Vehicle / Combat / Net / Mission / Gameplay / Hud / Effects / Atmosphere / QualityAuto / RenderPresent。`game.ts` 2347→**2071** 行。
 - ✅ **L2 补全**：`ChunkWorld`（环加载/卸载）+ `MapBuilder` + `GridAStar` + `Player`→`createUnitBody`。
 - ✅ **框架单测**：`test/blocks.test.ts`（Pool/Path/Steering/GridAStar/ChunkWorld/MapBuilder）→ **26/26**。
-- ✅ **文档**：`docs/QUICKSTART.md`（10 分钟上手 + 积木速查）。
+- ✅ **L2 场景**：`blocks/scene/TerrainBuilder`（通用地形高度场 + 可选物理）。
+- ✅ **KTX2 运行时**：`createGltfLoader` 挂 KTX2Loader；transcoder 在 `public/basis/`。
+- ✅ **模板与文档**：`src/game/demo-template` + `?game=template`；`docs/API.md`、`docs/ADAPT.md`、`docs/QUICKSTART.md`。
+- ✅ **验收状态**：typecheck 0 / **26 单测** / build 0 错误 / 夜袭 regress 0 错误 / net e2e COOP+PVP PASS / 三样例+模板可启动。
 - ✅ **Phase C 契约**：`content/define.ts` + `defineGame()`。
 - 🔶 **Phase D 玩法链**：波次（5 波）+ 放塔 + 塔攻击 + 基地 HP + **胜负结算叠层** + 三读数 HUD。
 - 🔶 **Phase E 玩法链**：修炼台涨修为/境界 + Path+Steering 妖兽 + 视角 1/2/3 切换。真实 chunk 流式与修仙 GLB 仍缺。

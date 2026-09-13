@@ -16,6 +16,10 @@ import { createTemplateGame } from './game/demo-template';
 import type { System } from './engine/types';
 
 function gameFromUrl(): string {
+  const fromWindow = (window as unknown as { __GAME_ID__?: string }).__GAME_ID__;
+  if (fromWindow === 'nightraid' || fromWindow === 'tower' || fromWindow === 'cultivation' || fromWindow === 'template') {
+    return fromWindow;
+  }
   const id = new URLSearchParams(location.search).get('game') ?? 'nightraid';
   if (id === 'nightraid' || id === 'tower' || id === 'cultivation' || id === 'template') return id;
   return 'nightraid';
