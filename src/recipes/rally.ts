@@ -2,17 +2,17 @@
  * Rally recipe — loop track with checkpoints + best lap (localStorage).
  */
 import * as THREE from 'three';
-import { defineGame } from '../content/defineGame';
+import { defineGame, type BaseRecipeOpts } from '../content/defineGame';
 import { CameraRig } from '../blocks/CameraRig';
 import { Path } from '../blocks/Path';
 import { TriggerZone } from '../blocks/interact/TriggerZone';
 import { BestScoreSlot } from '../blocks/progress/SaveSlot';
 import { Scoreboard } from '../blocks/gameplay/Scoreboard';
+import { HudPanel } from '../blocks/ui/HudPanel';
+import { Toast } from '../blocks/ui/Toast';
 import type { System, EngineWorld } from '../engine/types';
 
-export interface RallyRecipeOpts {
-  id: string;
-  title?: string;
+export interface RallyRecipeOpts extends BaseRecipeOpts {
   speed?: number;
   checkpoints?: number;
 }
@@ -88,11 +88,12 @@ export function createRallyGame(
 
   const best = new BestScoreSlot('keel3d-rally-best');
   const score = new Scoreboard();
+  const hud = new HudPanel({ id: 'rally-hud', position: 'tl' });
+  const toast = new Toast();
   let dist = 0;
   let lapT = 0;
   let nextCp = 0;
   let lap = 0;
-  let hud: HTMLElement | null = null;
   const rig = new CameraRig(camera, { defaultMode: 'chase', chase: { distance: 9, height: 3.5, lookAhead: 3 } });
 
   const systems: System[] = [
@@ -112,12 +113,15 @@ export function createRallyGame(
           if (passed && nextCp < nCp) {
             nextCp++;
             score.add('cp', 1);
+            if (nextCp === nCp) toast.show('检查点全过 — 冲线计圈');
           }
           if (dist < prev) {
             // lap wrap
             if (nextCp >= nCp) {
               lap++;
+              const prevBest = best.read('bestLap');
               best.submit(Math.round(lapT * 100) / 100, 'bestLap', true);
+              if (prevBest == null || lapT < prevBest) toast.show('新最佳圈速');
             }
             nextCp = 0;
             lapT = 0;
@@ -129,18 +133,12 @@ export function createRallyGame(
         car.rotation.y = Math.atan2(dir.x, dir.z);
         rig.update(ft, car.position, car.rotation.y);
 
-        if (!hud && typeof document !== 'undefined') {
-          hud = document.createElement('div');
-          hud.id = 'rally-hud';
-          hud.style.cssText =
-            'position:fixed;left:12px;top:12px;z-index:20;color:#e8eef7;font:14px/1.5 monospace;background:rgba(0,0,0,.5);padding:10px 14px;border-radius:8px;pointer-events:none;white-space:pre';
-          document.body.appendChild(hud);
-        }
-        if (hud) {
+        {
           const b = best.read('bestLap');
-          hud.textContent =
+          hud.setText(
             `圈 ${lap} · 检查点 ${nextCp}/${nCp} · 用时 ${lapT.toFixed(1)}s\n` +
-            `最佳圈 ${b == null ? '—' : b + 's'} · 按顺序穿过光圈才算完整圈`;
+              `最佳圈 ${b == null ? '—' : b + 's'} · 按顺序穿过光圈才算完整圈`,
+          );
         }
       },
     },
@@ -150,7 +148,8 @@ export function createRallyGame(
     systems,
     dispose() {
       scene.remove(root);
-      hud?.remove();
+      hud.dispose();
+      toast.dispose();
     },
     stats: () => ({ lap, cp: nextCp, best: best.read('bestLap') }),
   };

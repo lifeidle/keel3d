@@ -2,7 +2,7 @@
  * Flight-arena recipe — spawn drones, shoot them down, score.
  */
 import * as THREE from 'three';
-import { defineGame } from '../content/defineGame';
+import { defineGame, type BaseRecipeOpts } from '../content/defineGame';
 import { CameraRig } from '../blocks/CameraRig';
 import { Pool } from '../blocks/Pool';
 import { Cooldown } from '../blocks/combat/Cooldown';
@@ -11,9 +11,7 @@ import { pickTarget } from '../blocks/combat/Targeting';
 import { Scoreboard } from '../blocks/gameplay/Scoreboard';
 import type { System, EngineWorld } from '../engine/types';
 
-export interface FlightArenaOpts {
-  id: string;
-  title?: string;
+export interface FlightArenaOpts extends BaseRecipeOpts {
   spawnEvery?: number;
   droneHp?: number;
   arena?: number;

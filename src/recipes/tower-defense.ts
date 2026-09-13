@@ -4,13 +4,19 @@
  * Opt-in only: nothing here is auto-registered by the host.
  */
 import * as THREE from 'three';
-import { defineGame } from '../content/defineGame';
+import { defineGame, type BaseRecipeOpts } from '../content/defineGame';
 import { CameraRig } from '../blocks/CameraRig';
 import { Path, type PathPoint } from '../blocks/Path';
 import { Pool } from '../blocks/Pool';
 import { Economy } from '../blocks/gameplay/Economy';
 import { WaveDirector, type WaveDef } from '../blocks/gameplay/WaveDirector';
 import { Health } from '../blocks/gameplay/Health';
+import { PlaceGrid } from '../blocks/gameplay/PlaceGrid';
+import { Timers } from '../blocks/gameplay/Timers';
+import { BuildSystem, type BuildCatalog, type BuildingDef } from '../blocks/build/BuildCatalog';
+import { HudPanel } from '../blocks/ui/HudPanel';
+import { EndOverlay } from '../blocks/ui/EndOverlay';
+import { Toast } from '../blocks/ui/Toast';
 import type { System, EngineWorld } from '../engine/types';
 
 export interface TdTowerDef {
@@ -20,11 +26,12 @@ export interface TdTowerDef {
   rate: number; // shots / s
   damage: number;
   color: number;
+  /** Upgrade target key + extra cost (optional depth). */
+  upgradeTo?: string;
+  upgradeCost?: number;
 }
 
-export interface TowerDefenseRecipeOpts {
-  id: string;
-  title?: string;
+export interface TowerDefenseRecipeOpts extends BaseRecipeOpts {
   /** Lane polyline (XZ). */
   lane: PathPoint[];
   /** Buildable pad centers. */
@@ -40,7 +47,8 @@ export interface TowerDefenseRecipeOpts {
 }
 
 const DEFAULT_TOWERS: TdTowerDef[] = [
-  { key: 'rapid', cost: 50, range: 11, rate: 4, damage: 8, color: 0x6a9bd1 },
+  { key: 'rapid', cost: 50, range: 11, rate: 4, damage: 8, color: 0x6a9bd1, upgradeTo: 'rapid2', upgradeCost: 80 },
+  { key: 'rapid2', cost: 0, range: 13, rate: 5.5, damage: 12, color: 0x8eb6e8 },
   { key: 'cannon', cost: 120, range: 14, rate: 0.8, damage: 28, color: 0xc17a4a },
   { key: 'frost', cost: 90, range: 11, rate: 1.2, damage: 6, color: 0x7ad1c9 },
 ];
@@ -52,6 +60,22 @@ function defaultWaves(): WaveDef[] {
     delay: i === 0 ? 2 : 4,
     unit: 'grunt',
   }));
+}
+
+function toCatalog(towers: TdTowerDef[]): BuildCatalog {
+  const cat: BuildCatalog = {};
+  for (const t of towers) {
+    const def: BuildingDef = {
+      key: t.key,
+      name: t.key,
+      cost: t.cost,
+      color: t.color,
+      upgradeTo: t.upgradeTo,
+      upgradeCost: t.upgradeCost,
+    };
+    cat[t.key] = def;
+  }
+  return cat;
 }
 
 export function createTowerDefenseGame(
@@ -66,6 +90,8 @@ export function createTowerDefenseGame(
   const bounty = opts.bounty ?? 10;
   const enemyHp = opts.enemyHp ?? 40;
   const enemySpeed = opts.enemySpeed ?? 3.5;
+  const defByKey = new Map(towerDefs.map((d) => [d.key, d]));
+  const selectable = towerDefs.filter((d) => d.cost > 0);
 
   const root = new THREE.Group();
   scene.add(root);
@@ -99,7 +125,9 @@ export function createTowerDefenseGame(
   base.castShadow = true;
   root.add(base);
 
-  const pads = opts.pads.map((p) => {
+  // PlaceGrid tracks pad occupancy (cell = pad index for this recipe)
+  const grid = new PlaceGrid({ originX: -30, originZ: -30, cell: 4, width: 16, height: 16 });
+  const pads = opts.pads.map((p, i) => {
     const m = new THREE.Mesh(
       new THREE.CylinderGeometry(1.3, 1.3, 0.2, 18),
       new THREE.MeshStandardMaterial({ color: 0x8a9a7a }),
@@ -107,7 +135,8 @@ export function createTowerDefenseGame(
     m.position.set(p.x, 0.1, p.z);
     m.receiveShadow = true;
     root.add(m);
-    return { x: p.x, z: p.z, mesh: m, occupied: false };
+    const cell = grid.worldToCell(p.x, p.z);
+    return { x: p.x, z: p.z, mesh: m, ix: cell.ix, iz: cell.iz, index: i, occupied: false };
   });
 
   interface E {
@@ -144,7 +173,45 @@ export function createTowerDefenseGame(
   let status: 'playing' | 'win' | 'lose' = 'playing';
   let selected = 0;
   let t = 0;
-  const towers: { def: TdTowerDef; mesh: THREE.Mesh; cd: number }[] = [];
+
+  const hud = new HudPanel({ id: 'td-hud', position: 'tl' });
+  const endOverlay = new EndOverlay();
+  const toast = new Toast();
+  const timers = new Timers();
+
+  const towerMeshes = new Map<string, THREE.Mesh>();
+  const build = new BuildSystem({
+    catalog: toCatalog(towerDefs),
+    canPay: (cost) => eco.balance >= cost,
+    pay: (cost) => {
+      eco.spend(cost);
+    },
+    onPlace: (b) => {
+      const def = defByKey.get(b.key);
+      const pad = pads.find((p) => p.ix === b.ix && p.iz === b.iz);
+      if (!def || !pad) return;
+      pad.occupied = true;
+      grid.occupy(b.ix, b.iz);
+      const mesh = new THREE.Mesh(
+        new THREE.BoxGeometry(1.3, 1.7, 1.3),
+        new THREE.MeshStandardMaterial({ color: def.color }),
+      );
+      mesh.position.set(pad.x, 0.9, pad.z);
+      mesh.castShadow = true;
+      root.add(mesh);
+      towerMeshes.set(`${b.ix},${b.iz}`, mesh);
+      toast.show(`放置 ${def.key}`);
+    },
+    onUpgrade: (b) => {
+      const def = defByKey.get(b.key);
+      const mesh = towerMeshes.get(`${b.ix},${b.iz}`);
+      if (def && mesh) {
+        (mesh.material as THREE.MeshStandardMaterial).color.setHex(def.color);
+        mesh.scale.setScalar(1 + (b.level - 1) * 0.15);
+      }
+      toast.show(`升级 → ${b.key} Lv${b.level}`);
+    },
+  });
 
   const director = new WaveDirector({
     waves: opts.waves ?? defaultWaves(),
@@ -167,58 +234,40 @@ export function createTowerDefenseGame(
     },
   });
 
-  let hud: HTMLElement | null = null;
-  let endEl: HTMLElement | null = null;
-
-  function ensureHud() {
-    if (hud || typeof document === 'undefined') return;
-    hud = document.createElement('div');
-    hud.id = 'td-hud';
-    hud.style.cssText =
-      'position:fixed;left:12px;top:12px;z-index:20;color:#e8eef7;font:14px/1.5 monospace;background:rgba(0,0,0,.5);padding:10px 14px;border-radius:8px;pointer-events:none;white-space:pre';
-    document.body.appendChild(hud);
-  }
+  timers.every(1, () => {
+    /* heartbeat reserved for wave countdown */
+  });
 
   function showEnd(win: boolean) {
-    if (endEl || typeof document === 'undefined') return;
+    if (status !== 'playing') return;
     status = win ? 'win' : 'lose';
-    endEl = document.createElement('div');
-    endEl.style.cssText =
-      'position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);color:#fff;font:28px/1.4 system-ui,sans-serif;pointer-events:none';
-    endEl.textContent = win ? '胜利' : '失败';
-    endEl.style.color = win ? '#5dcea0' : '#e07070';
-    document.body.appendChild(endEl);
+    endOverlay.show(win ? '胜利' : '失败', win);
   }
 
   function syncHud() {
-    ensureHud();
-    if (!hud) return;
-    const tw = towerDefs[selected];
-    hud.textContent =
+    const sel = selectable[Math.min(selected, selectable.length - 1)];
+    hud.setText(
       `金钱 ${eco.balance} · 波次 ${director.waveNumber}/${director.totalWaves} · 基地 ${baseHp}\n` +
-      `选塔 ${towerDefs.map((d, i) => `${i + 1}${d.key}(${d.cost})`).join(' ')}\n` +
-      `场上 ${enemies.activeCount}` + (status !== 'playing' ? ` [${status}]` : '');
-    void tw;
+        `选塔 ${selectable.map((d, i) => `${i + 1}${d.key}(${d.cost})`).join(' ')} · 当前 ${sel?.key ?? '-'}\n` +
+        `场上 ${enemies.activeCount}` +
+        (status !== 'playing' ? ` [${status}]` : ''),
+    );
   }
 
   const raycaster = new THREE.Raycaster();
   const pointer = new THREE.Vector2();
 
-  function place(ix: number) {
+  function placeOrUpgrade(ix: number) {
     if (status !== 'playing') return;
     const pad = pads[ix];
-    if (!pad || pad.occupied) return;
-    const def = towerDefs[selected];
-    if (!eco.spend(def.cost)) return;
-    pad.occupied = true;
-    const mesh = new THREE.Mesh(
-      new THREE.BoxGeometry(1.3, 1.7, 1.3),
-      new THREE.MeshStandardMaterial({ color: def.color }),
-    );
-    mesh.position.set(pad.x, 0.9, pad.z);
-    mesh.castShadow = true;
-    root.add(mesh);
-    towers.push({ def, mesh, cd: 0 });
+    if (!pad) return;
+    if (pad.occupied) {
+      build.upgrade(pad.ix, pad.iz);
+      return;
+    }
+    const def = selectable[Math.min(selected, selectable.length - 1)];
+    if (!def) return;
+    build.place(def.key, pad.ix, pad.iz);
   }
 
   function onClick(ev: MouseEvent) {
@@ -230,12 +279,12 @@ export function createTowerDefenseGame(
     const hits = raycaster.intersectObjects(pads.map((p) => p.mesh), false);
     if (!hits.length) return;
     const idx = pads.findIndex((p) => p.mesh === hits[0].object);
-    if (idx >= 0) place(idx);
+    if (idx >= 0) placeOrUpgrade(idx);
   }
 
   function onKey(e: KeyboardEvent) {
     const n = parseInt(e.key, 10);
-    if (n >= 1 && n <= towerDefs.length) selected = n - 1;
+    if (n >= 1 && n <= selectable.length) selected = n - 1;
   }
 
   if (typeof window !== 'undefined') {
@@ -250,6 +299,7 @@ export function createTowerDefenseGame(
       name: `${opts.id}.sim`,
       update(ft: number, world: EngineWorld) {
         t += ft;
+        timers.update(ft);
         rig.update(ft, new THREE.Vector3(0, 0, 0), t * 0.12);
         if (!world.playing || status !== 'playing') {
           syncHud();
@@ -271,22 +321,27 @@ export function createTowerDefenseGame(
           e.mesh.position.set(pos.x, 0.6, pos.z);
         });
 
-        for (const tw of towers) {
-          tw.cd -= ft;
-          if (tw.cd > 0) continue;
+        for (const b of build.buildings) {
+          const def = defByKey.get(b.key);
+          if (!def) continue;
+          const mesh = towerMeshes.get(`${b.ix},${b.iz}`);
+          if (!mesh) continue;
+          // reuse produceT as shot timer for towers (rate = shots/s)
+          b.produceT -= ft;
+          if (b.produceT > 0) continue;
           let target: E | null = null;
           let best = Infinity;
           enemies.forEachLive((e) => {
             if (!e.alive) return;
-            const d = e.mesh.position.distanceTo(tw.mesh.position);
-            if (d < tw.def.range && d < best) {
+            const d = e.mesh.position.distanceTo(mesh.position);
+            if (d < def.range && d < best) {
               best = d;
               target = e;
             }
           });
           if (target) {
-            tw.cd = 1 / tw.def.rate;
-            (target as E).health.damage(tw.def.damage);
+            b.produceT = 1 / def.rate;
+            (target as E).health.damage(def.damage);
           }
         }
 
@@ -304,16 +359,17 @@ export function createTowerDefenseGame(
         window.removeEventListener('keydown', onKey);
       }
       scene.remove(root);
-      hud?.remove();
-      endEl?.remove();
-      hud = null;
-      endEl = null;
+      hud.dispose();
+      endOverlay.dispose();
+      toast.dispose();
+      timers.clear();
     },
     stats: () => ({
       money: eco.balance,
       wave: director.waveNumber,
       baseHp,
       status,
+      towers: build.buildings.length,
     }),
   };
 }

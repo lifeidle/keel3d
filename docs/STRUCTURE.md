@@ -44,6 +44,26 @@ game/
 main.ts               ?game= / window.__GAME_ID__ 路由
 ```
 
+## 质量门禁说明
+
+- `noUnusedLocals` 暂对**全仓库关闭**（夜袭遗留样例仍有死变量）。
+- **新代码**（blocks / recipes / content）应保持无死代码；审查以 call site 为准。
+- CI：typecheck + test + build + bundle:report。
+
+## 体积预算（参考）
+
+
+pm run bundle:report 后的典型全量 dist ≈ **5.4MB**（含所有骨架入口）。
+
+| 类别 | 量级 | 说明 |
+|---|---|---|
+| rapier wasm | ~2.0MB | 独立缓存；gzip 后 ~770KB |
+| three.js | ~1.0MB | 共享 chunk |
+| draco / basis 解码器 | ~1.5MB | 按需加载，不进首屏关键路径 |
+| 单骨架 JS | 1–7KB | 配方/tree-shake 后极小 |
+
+**单入口实际首屏**远小于全量：浏览器只拉该 HTML 对应的 chunk + 共享运行时。新积木请保持无顶层副作用，避免被误打进无关入口。
+
 ## 积木 import 规则
 
 1. **精确路径**：`import { X } from '../../blocks/gameplay/X'`

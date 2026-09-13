@@ -3,19 +3,21 @@
  * Opt-in; copy or call with your data.
  */
 import * as THREE from 'three';
-import { defineGame } from '../content/defineGame';
+import { defineGame, type BaseRecipeOpts } from '../content/defineGame';
 import { CameraRig } from '../blocks/CameraRig';
 import { Pool } from '../blocks/Pool';
 import { Health } from '../blocks/gameplay/Health';
 import { Economy } from '../blocks/gameplay/Economy';
 import { Scoreboard } from '../blocks/gameplay/Scoreboard';
 import { WaveDirector, type WaveDef } from '../blocks/gameplay/WaveDirector';
+import { Spawner } from '../blocks/gameplay/Spawner';
+import { Timers } from '../blocks/gameplay/Timers';
 import * as Steering from '../blocks/Steering';
+import { HudPanel } from '../blocks/ui/HudPanel';
+import { EndOverlay } from '../blocks/ui/EndOverlay';
 import type { System, EngineWorld } from '../engine/types';
 
-export interface SurvivalRecipeOpts {
-  id: string;
-  title?: string;
+export interface SurvivalRecipeOpts extends BaseRecipeOpts {
   /** Player max hp. */
   playerHp?: number;
   /** Move speed (units/s) while WASD held. */
@@ -74,33 +76,53 @@ export function createSurvivalGame(
   const playerHealth = new Health({ max: playerHp });
   const eco = new Economy({ start: 0 });
   const score = new Scoreboard();
+  const hud = new HudPanel({ id: 'survival-hud', position: 'tl' });
+  const endOverlay = new EndOverlay();
+  const timers = new Timers();
 
   interface E {
     mesh: THREE.Mesh;
-    alive: boolean;
-    health: Health;
     cd: number;
   }
   const enemyGeo = new THREE.BoxGeometry(0.9, 1.1, 0.9);
   const enemyMat = new THREE.MeshStandardMaterial({ color: 0xb85c2a });
-  const enemies = new Pool<E>(
+  const meshPool = new Pool<E>(
     () => {
       const mesh = new THREE.Mesh(enemyGeo, enemyMat);
       mesh.visible = false;
       root.add(mesh);
-      return { mesh, alive: false, health: new Health({ max: 1 }), cd: 0 };
+      return { mesh, cd: 0 };
     },
     (e) => {
-      e.alive = false;
       e.mesh.visible = false;
     },
     12,
   );
 
+  // Spawner owns unit table + HP bookkeeping; meshPool owns meshes
+  const spawner = new Spawner<E>({
+    table: { beast: { hp: enemyHp, speed: enemySpeed } },
+    create: (_key, row) => {
+      const e = meshPool.acquire();
+      e.cd = 0;
+      const ang = Math.random() * Math.PI * 2;
+      const r = arena * 0.85;
+      e.mesh.position.set(Math.cos(ang) * r, 0.55, Math.sin(ang) * r);
+      e.mesh.visible = true;
+      void row;
+      return e;
+    },
+    destroy: (e) => {
+      meshPool.release(e);
+    },
+    onDeath: () => {
+      eco.add(5);
+      score.addKill();
+    },
+  });
+
   let status: 'playing' | 'win' | 'lose' = 'playing';
   let t = 0;
-  let hud: HTMLElement | null = null;
-  let endEl: HTMLElement | null = null;
 
   const keys = new Set<string>();
   function onKeyDn(e: KeyboardEvent) {
@@ -113,43 +135,21 @@ export function createSurvivalGame(
   const director = new WaveDirector({
     waves: opts.waves ?? defaultWaves(),
     spawnFn: () => {
-      const e = enemies.acquire();
-      e.alive = true;
-      e.cd = 0;
-      const ang = Math.random() * Math.PI * 2;
-      const r = arena * 0.85;
-      e.mesh.position.set(Math.cos(ang) * r, 0.55, Math.sin(ang) * r);
-      e.mesh.visible = true;
-      e.health = new Health({
-        max: enemyHp + director.waveNumber * 5,
-        onDeath: () => {
-          e.alive = false;
-          enemies.release(e);
-          eco.add(5);
-          score.addKill();
-        },
-      });
+      spawner.spawn('beast');
     },
   });
 
-  function ensureHud() {
-    if (hud || typeof document === 'undefined') return;
-    hud = document.createElement('div');
-    hud.id = 'survival-hud';
-    hud.style.cssText =
-      'position:fixed;left:12px;top:12px;z-index:20;color:#e8eef7;font:14px/1.5 monospace;background:rgba(0,0,0,.5);padding:10px 14px;border-radius:8px;pointer-events:none;white-space:pre';
-    document.body.appendChild(hud);
-  }
+  // slow health regen every 4s while alive (proves Timers)
+  timers.every(4, () => {
+    if (status === 'playing' && playerHealth.alive && playerHealth.hp < playerHealth.max) {
+      playerHealth.heal(4);
+    }
+  });
 
   function showEnd(win: boolean) {
-    if (endEl || typeof document === 'undefined') return;
+    if (status !== 'playing') return;
     status = win ? 'win' : 'lose';
-    endEl = document.createElement('div');
-    endEl.style.cssText =
-      'position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);font:28px/1.4 system-ui,sans-serif;pointer-events:none;color:#fff';
-    endEl.textContent = win ? '生还 — 波次清空' : '陨落';
-    endEl.style.color = win ? '#5dcea0' : '#e07070';
-    document.body.appendChild(endEl);
+    endOverlay.show(win ? '生还 — 波次清空' : '陨落', win);
   }
 
   const rig = new CameraRig(camera, {
@@ -163,17 +163,15 @@ export function createSurvivalGame(
       name: `${opts.id}.sim`,
       update(ft: number, world: EngineWorld) {
         t += ft;
+        timers.update(ft);
         if (!world.playing || status !== 'playing') {
-          ensureHud();
-          if (hud)
-            hud.textContent = `HP ${playerHealth.hp}/${playerHealth.max} · 击杀 ${score.kills} [${status}]`;
+          hud.setText(`HP ${playerHealth.hp}/${playerHealth.max} · 击杀 ${score.kills} [${status}]`);
           return;
         }
 
         score.tick(ft);
         director.update(ft);
 
-        // WASD move on XZ
         let mx = 0;
         let mz = 0;
         if (keys.has('KeyW')) mz -= 1;
@@ -198,14 +196,15 @@ export function createSurvivalGame(
         const yaw = Math.atan2(mx, mz) || t * 0.05;
         rig.update(ft, player.position, yaw);
 
-        enemies.forEachLive((e) => {
-          if (!e.alive) return;
+        for (const u of spawner.units) {
+          if (!u.alive) continue;
+          const e = u.handle;
           const dx = player.position.x - e.mesh.position.x;
           const dz = player.position.z - e.mesh.position.z;
           const d = Math.hypot(dx, dz);
           if (d > 0.05) {
             const dir = Steering.normalizeXZ(dx, dz);
-            const step = Math.min(d, enemySpeed * ft);
+            const step = Math.min(d, (u.row.speed ?? enemySpeed) * ft);
             e.mesh.position.x += dir.x * step;
             e.mesh.position.z += dir.z * step;
           }
@@ -215,18 +214,17 @@ export function createSurvivalGame(
             playerHealth.damage(contactDamage);
             if (!playerHealth.alive) showEnd(false);
           }
-        });
+        }
+        spawner.reap();
 
-        if (director.finished && enemies.activeCount === 0 && playerHealth.alive) {
+        if (director.finished && spawner.aliveCount === 0 && playerHealth.alive) {
           showEnd(true);
         }
 
-        ensureHud();
-        if (hud) {
-          hud.textContent =
-            `HP ${playerHealth.hp}/${playerHealth.max} · 击杀 ${score.kills} · 波次 ${director.waveNumber}/${director.totalWaves}\n` +
-            `场上 ${enemies.activeCount} · WASD 移动`;
-        }
+        hud.setText(
+          `HP ${playerHealth.hp}/${playerHealth.max} · 击杀 ${score.kills} · 波次 ${director.waveNumber}/${director.totalWaves}\n` +
+            `场上 ${spawner.aliveCount} · WASD 移动`,
+        );
       },
     },
   ];
@@ -243,11 +241,11 @@ export function createSurvivalGame(
         window.removeEventListener('keydown', onKeyDn);
         window.removeEventListener('keyup', onKeyUp);
       }
+      spawner.clear();
       scene.remove(root);
-      hud?.remove();
-      endEl?.remove();
-      hud = null;
-      endEl = null;
+      hud.dispose();
+      endOverlay.dispose();
+      timers.clear();
     },
     stats: () => ({
       hp: playerHealth.hp,
