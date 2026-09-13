@@ -1818,7 +1818,7 @@ export class Game {
       return;
     }
 
-    this.player.update(dt, this.input, this.engine.camera);
+    // player.update → MovementSystem (A8); weapon/enemies/physics stay here (A9)
     const fireClick = this.input.consumeFireClick();
     this.weapon.ads = this.input.adsToggle && !this.driving;
     this.weapon.update(dt, this.input.fireDown, fireClick, this.engine.camera);
@@ -1851,6 +1851,16 @@ export class Game {
         this.hud.showHint(t('tank.board'), 2.2);
       }
     }
+  }
+
+  /** Collaborators for MovementSystem (A8). */
+  get movementFrame() {
+    return {
+      player: this.player,
+      input: this.input,
+      camera: this.engine.camera,
+      driving: !!this.driving,
+    };
   }
 
   /** Enemy tank AI (runs every fixed step in every mode except menus). */

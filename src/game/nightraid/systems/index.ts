@@ -4,6 +4,7 @@
  * out of game.ts one slice at a time.
  */
 export { StateSyncSystem } from './StateSyncSystem';
+export { MovementSystem } from './MovementSystem';
 export { CombatSimSystem } from './CombatSimSystem';
 export { GameplayFrameSystem } from './GameplayFrameSystem';
 export { EffectsSystem } from './EffectsSystem';

@@ -292,8 +292,8 @@ DOM id：`#bootFill #bootTxt #btnPlay #btnNet #btnNetHost #btnNetJoin #btnNetGo 
 | A3 RenderPresent | git | ✅ | 75 FPS / 诊断正常 | 2026-09-13 |
 | A4 Effects | git | ✅ | state_check 0 错误 | 2026-09-13 |
 | A5 Atmosphere | git | ✅ | regress 0 错误 | 2026-09-13 |
-| A6 HUD | | | | |
-| A7 Mission | | | | |
+| A6 HUD | git | ✅ | HUD/地图/准星正常 | 2026-09-13 |
+| A7 Mission | git | ✅ | 任务目标/击杀播报入 System；net 留 A11 | 2026-09-13 |
 | A8 Movement | | | | |
 | A9 Combat | | | | |
 | A10 Vehicle | | | | |

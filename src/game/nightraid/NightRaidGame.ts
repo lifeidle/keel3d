@@ -7,6 +7,7 @@ import type { GameModule, System, EngineHost } from '../../engine/types';
 import type { Game } from './game';
 import {
   StateSyncSystem,
+  MovementSystem,
   CombatSimSystem,
   GameplayFrameSystem,
   EffectsSystem,
@@ -23,8 +24,10 @@ export interface NightRaidDeps {
 
 export function createNightRaidGame(deps: NightRaidDeps): GameModule {
   const g = deps.game;
+  // Order matters: Movement (player pose) BEFORE Combat (weapon/enemies/physics).
   const systems: System[] = [
     new StateSyncSystem(g),
+    new MovementSystem(g),
     new CombatSimSystem(g),
     new MissionSystem(g),
     new GameplayFrameSystem(g),
