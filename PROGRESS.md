@@ -16,7 +16,13 @@
 - ✅ 规划更新：三样例 + **框架主轴**（样例互不相干）写入 FRAMEWORK_PLAN + EXECUTION_STEPS
 - ✅ **目录重组**：夜袭内容收拢 `src/game/nightraid/`；骨架 blocks/content/demo-tower/demo-cultivation；根目录清理
 - ✅ **施工准备 0.0–0.2**：本地 git + 快照机制（`_snapshots/A0`）+ **回归基线**（`shots/baseline/` 全绿）
-- ✅ **Phase A 完成**：A1–A12 全绿。系统：StateSync / Movement / CombatSim / Vehicle / Combat / Net / Mission / Gameplay / Hud / Effects / Atmosphere / QualityAuto / RenderPresent。`game.ts` 2347→**2071** 行（余量为菜单/生成/坦克 UI 等内容包逻辑，Phase C `defineGame` 再收）。
+- ✅ **Phase A 完成**：A1–A12 全绿。系统：StateSync / Movement / CombatSim / Vehicle / Combat / Net / Mission / Gameplay / Hud / Effects / Atmosphere / QualityAuto / RenderPresent。`game.ts` 2347→**2071** 行。
+- ✅ **Phase B 骨架落地**：`blocks/` Pool · Path · Steering · CameraRig · Unit；PhysicsWorld 注入化；enemy flank/separation 改用 Steering。
+- ✅ **Phase C 契约**：`content/define.ts` + `defineGame()`。
+- 🔶 **Phase D/E 骨架**：`?game=tower`（fixed+orbit+HUD）与 `?game=cultivation`（stream 占位+多视角）可启动，**玩法链未完**（波次/放塔/战斗交互）。
+- ⬜ Phase B 剩余：Unit 全量接入 Player、mapgen→blocks、B8 fixed 加载器接菜单。
+- ⬜ Phase D 剩余：波次生成、放塔交互、塔攻击、胜负。
+- ⬜ Phase E 剩余：真实 chunk 流式、Steering/GridAStar 妖兽、修仙 GLB。
 
 ---
 
