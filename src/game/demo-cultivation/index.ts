@@ -11,6 +11,7 @@ import { Pool } from '../../blocks/Pool';
 import * as Steering from '../../blocks/Steering';
 import { ChunkWorld } from '../../blocks/ChunkWorld';
 import { buildMap } from '../../blocks/MapBuilder';
+import { HealthBar } from '../../blocks/ui/HealthBar';
 import type { System, EngineWorld } from '../../engine/types';
 
 export interface CultivationDeps {
@@ -125,6 +126,7 @@ export function createCultivationGame(deps: CultivationDeps) {
   let t = 0;
   let spawnCd = 4;
   let hudEl: HTMLElement | null = null;
+  let xpBar: HealthBar | null = null;
   const pos = { x: 0, y: 0, z: 0 };
 
   function setMode(m: CameraMode) {
@@ -145,6 +147,11 @@ export function createCultivationGame(deps: CultivationDeps) {
     hudEl.style.cssText =
       'position:fixed;left:12px;top:12px;z-index:20;color:#e8eef7;font:14px/1.5 monospace;background:rgba(0,0,0,.45);padding:8px 12px;border-radius:6px;pointer-events:none;white-space:pre';
     document.body.appendChild(hudEl);
+    xpBar = new HealthBar({ width: 120, height: 6, color: '#ffd27a' });
+    if (xpBar.el) {
+      xpBar.el.style.cssText += 'position:fixed;left:12px;top:72px;z-index:20;';
+      document.body.appendChild(xpBar.el);
+    }
   }
 
   const systems: System[] = [
@@ -201,6 +208,7 @@ export function createCultivationGame(deps: CultivationDeps) {
         }
 
         ensureHud();
+        xpBar?.setRatio(progress);
         if (hudEl) {
           hudEl.textContent =
             `修为 ${(progress * 100) | 0}% · 境界 ${REALMS[realmIdx]}\n` +
@@ -221,6 +229,8 @@ export function createCultivationGame(deps: CultivationDeps) {
       chunkWorld.dispose();
       hudEl?.remove();
       hudEl = null;
+      xpBar?.dispose();
+      xpBar = null;
     },
     stats: () => ({ realm: REALMS[realmIdx], progress, mode, beasts: beasts.activeCount }),
   };

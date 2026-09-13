@@ -9,3 +9,8 @@ export {
   type TowerDefenseRecipeOpts,
   type TdTowerDef,
 } from './tower-defense';
+export {
+  survivalRecipe,
+  createSurvivalGame,
+  type SurvivalRecipeOpts,
+} from './survival';
