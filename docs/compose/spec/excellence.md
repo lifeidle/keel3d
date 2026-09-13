@@ -1,14 +1,25 @@
 ---
 feature: excellence
-status: in-progress
+status: delivered
 updated: 2026-09-13
 branch: feature/excellence
-commits: # filled at delivery
+commits: d45d8377b7b8eacd17fe405784ac9664c26ab574..e8f3545
 ---
 
 # Excellence — block proof, recipe depth, quality gates, first-run polish
 
 ## Report
+
+**What was built** — Proved 14 previously-unused blocks by wiring them into recipes with real call sites (not import-only). Deepened all 7 gameplay recipes: ARPG gained AOE skill + damage numbers + enemy world-bar + player health bar + end overlay + run stats; TD gained BuildSystem place/upgrade/sell with PlaceGrid occupy/release + toast feedback; FPS-arena targets now fight back with player HP; dungeon gained LevelTable room chain + minimap + toast; collect gained RunState + par feedback; survival uses Spawner with wave-scaled HP + Timers regen; rally gained lap toasts. Quality/DX: defineGame validates id/title (create optional for legacy nightraid), BaseRecipeOpts on all recipes, registry unknown-id lists keys, 52 unit tests, STRUCTURE bundle budget, hub card block tags, README full entry table.
+
+**Verification** — typecheck PASS · test PASS (52) · build PASS · probe-all PASS (13 entries) · unused-check 19→5 (SfxPlayer/GridAStar intentional skips; ChunkWorld/MapBuilder/TerrainBuilder demo-owned).
+
+**Journey log** —
+1. defineGame create-required broke nightraid (legacy mount path, no create) — make create optional at define, required at instantiate.
+2. SfxPlayer needs AudioEngine which recipes don't have — skip honestly rather than fake-wire.
+3. hub TD card advertised recipe blocks but tower.html runs demo-tower — cards must match the actual entry.
+4. BuildSystem needed a remove() for TD sell; PlaceGrid.release is now genuinely called.
+5. Reviewer caught dungeon minimap worldHalf clipping the boss room — compute from max room extent, not average.
 
 ## [S1] Problem
 
