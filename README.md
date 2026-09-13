@@ -26,11 +26,13 @@ Three.js（WebGPU 唯一）+ Rapier3D（标准 wasm）+ TypeScript + Vite ·
 ```bash
 npm install          # 安装依赖
 npm run dev          # 开发服务器（vite）
-npm test             # 单元测试（20 项：弹道/弹匣/地形/地图/战斗/网络协议）
+npm test             # 单元测试（26 项：弹道/弹匣/地形/地图/战斗/网络/积木）
 npm run build        # 构建到 dist/
 npm run site-audit   # 站点体检
 npm run net:dev      # 联机联调服务器（端口 8799，双标签即可测试 P2P）
 ```
+
+快速上手框架写新游戏：见 **`docs/QUICKSTART.md`**。
 
 ## 部署（Cloudflare Pages，免费计划）
 

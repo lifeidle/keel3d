@@ -17,7 +17,9 @@
 - ✅ **目录重组**：夜袭内容收拢 `src/game/nightraid/`；骨架 blocks/content/demo-tower/demo-cultivation；根目录清理
 - ✅ **施工准备 0.0–0.2**：本地 git + 快照机制（`_snapshots/A0`）+ **回归基线**（`shots/baseline/` 全绿）
 - ✅ **Phase A 完成**：A1–A12 全绿。系统：StateSync / Movement / CombatSim / Vehicle / Combat / Net / Mission / Gameplay / Hud / Effects / Atmosphere / QualityAuto / RenderPresent。`game.ts` 2347→**2071** 行。
-- ✅ **L2 补全**：`ChunkWorld`（环加载/卸载，修仙实测 chunk=9）+ `MapBuilder`（seeded/fixed/stream 分发）+ `Player` 改用 `createUnitBody`。
+- ✅ **L2 补全**：`ChunkWorld`（环加载/卸载）+ `MapBuilder` + `GridAStar` + `Player`→`createUnitBody`。
+- ✅ **框架单测**：`test/blocks.test.ts`（Pool/Path/Steering/GridAStar/ChunkWorld/MapBuilder）→ **26/26**。
+- ✅ **文档**：`docs/QUICKSTART.md`（10 分钟上手 + 积木速查）。
 - ✅ **Phase C 契约**：`content/define.ts` + `defineGame()`。
 - 🔶 **Phase D 玩法链**：波次（5 波）+ 放塔 + 塔攻击 + 基地 HP + **胜负结算叠层** + 三读数 HUD。
 - 🔶 **Phase E 玩法链**：修炼台涨修为/境界 + Path+Steering 妖兽 + 视角 1/2/3 切换。真实 chunk 流式与修仙 GLB 仍缺。
