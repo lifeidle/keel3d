@@ -8,21 +8,20 @@
 
 ## 0. 一句话现状
 
-框架化改造已开工。**Phase 0（前沿技术基线）进行中**：
-- ✅ 切片 1：WebGPU 唯一化（完成）
-- ✅ 切片 2：rapier3d 标准包切换（完成；tsc 0 / 测试 20/20 / build 0 警告）
-- ✅ 切片 2 收尾：**浏览器回归通过**（WebGPU 后端、75 FPS、HUD 正常、**控制台 0 错误**）
-- ✅ 切片 3：KTX2/Draco 资产管线（**Draco 完成**：soldier −41% / rifle −86% / tank −85%；KTX2 延后）
-- ✅ 规划更新：三样例 + **框架主轴**（样例互不相干）写入 FRAMEWORK_PLAN + EXECUTION_STEPS
-- ✅ **目录重组**：夜袭内容收拢 `src/game/nightraid/`；骨架 blocks/content/demo-tower/demo-cultivation；根目录清理
-- ✅ **施工准备 0.0–0.2**：本地 git + 快照机制（`_snapshots/A0`）+ **回归基线**（`shots/baseline/` 全绿）
-- ✅ **Phase A 完成**：A1–A12 全绿。系统：StateSync / Movement / CombatSim / Vehicle / Combat / Net / Mission / Gameplay / Hud / Effects / Atmosphere / QualityAuto / RenderPresent。`game.ts` 2347→**2071** 行。
-- ✅ **L2 补全**：`ChunkWorld`（环加载/卸载）+ `MapBuilder` + `GridAStar` + `Player`→`createUnitBody`。
-- ✅ **框架单测**：`test/blocks.test.ts`（Pool/Path/Steering/GridAStar/ChunkWorld/MapBuilder）→ **26/26**。
-- ✅ **L2 场景**：`blocks/scene/TerrainBuilder`（通用地形高度场 + 可选物理）。
-- ✅ **KTX2 运行时**：`createGltfLoader` 挂 KTX2Loader；transcoder 在 `public/basis/`。
-- ✅ **模板与文档**：`src/game/demo-template` + `?game=template`；`docs/API.md`、`docs/ADAPT.md`、`docs/QUICKSTART.md`。
-- ✅ **验收状态**：typecheck 0 / **26 单测** / build 0 错误 / 夜袭 regress 0 错误 / net e2e COOP+PVP PASS / 三样例+模板可启动。
+**框架 Definition of Done 已对齐（2026-09-13）**。
+
+| DoD 项 | 状态 |
+|---|---|
+| 样例互相独立（零 import） | ✅ |
+| 三样例可跑 | ✅ 夜袭 / 塔防 / 修仙 |
+| 飞行 / 赛车 spec 骨架可加载 | ✅ `?game=flight` · `?game=race` |
+| 地图三模式 | ✅ seeded / fixed / stream（ChunkWorld） |
+| 运行时相机切换 | ✅ 修仙 1/2/3 |
+| 三重验证 | ✅ typecheck / 26 测 / build |
+| Sample A 不回归 | ✅ regress + net e2e |
+| 别人能填 | ✅ template + QUICKSTART/API/ADAPT |
+
+**后续（不挡框架使用）**：游戏内容打磨、修仙正式 GLB、KTX2 编码工具链、npm 发包与线上三域名部署。
 - ✅ **Phase C 契约**：`content/define.ts` + `defineGame()`。
 - 🔶 **Phase D 玩法链**：波次（5 波）+ 放塔 + 塔攻击 + 基地 HP + **胜负结算叠层** + 三读数 HUD。
 - 🔶 **Phase E 玩法链**：修炼台涨修为/境界 + Path+Steering 妖兽 + 视角 1/2/3 切换。真实 chunk 流式与修仙 GLB 仍缺。
