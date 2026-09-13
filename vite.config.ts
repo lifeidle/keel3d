@@ -108,6 +108,9 @@ export default defineConfig({
         race: 'race.html',
         template: 'template.html',
         arpg: 'arpg.html',
+        collect: 'collect.html',
+        rally: 'rally.html',
+        dungeon: 'dungeon.html',
       },
       output: {
         manualChunks(id) {

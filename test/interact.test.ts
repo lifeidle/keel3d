@@ -4,6 +4,7 @@ import { TriggerZone } from '../src/blocks/interact/TriggerZone';
 import { Pickup, PickupField } from '../src/blocks/interact/Pickup';
 import { Interactable } from '../src/blocks/interact/Interactable';
 import { SaveSlot, BestScoreSlot } from '../src/blocks/progress/SaveSlot';
+import { RunState } from '../src/blocks/progress/RunState';
 
 test('TriggerZone enter/exit/stay', () => {
   const log: string[] = [];
@@ -71,4 +72,16 @@ test('SaveSlot and BestScoreSlot without localStorage (Node)', () => {
   assert.equal(best.read(), null);
   assert.equal(best.submit(10, 't', true), true);
   assert.equal(best.read('t'), null); // no localStorage in Node
+});
+
+test('RunState snapshot', () => {
+  const r = new RunState();
+  r.tick(1.5);
+  r.addKill(2);
+  r.set('waves', 3);
+  assert.equal(r.kills, 2);
+  assert.ok(Math.abs(r.time - 1.5) < 1e-9);
+  assert.equal(r.get('waves'), 3);
+  r.reset();
+  assert.equal(r.kills, 0);
 });

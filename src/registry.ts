@@ -21,6 +21,9 @@ export const GAME_LOADERS: Record<string, GameLoader> = {
   flight: () => import('./game/demo-flight'),
   race: () => import('./game/demo-race'),
   arpgdemo: () => import('./game/demo-arpg'),
+  collectdemo: () => import('./game/demo-collect'),
+  rallydemo: () => import('./game/demo-rally'),
+  dungeondemo: () => import('./game/demo-dungeon'),
   // NEW_GAME_INSERT
 };
 

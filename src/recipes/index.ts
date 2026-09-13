@@ -19,3 +19,23 @@ export {
   createArpgGame,
   type ArpgRecipeOpts,
 } from './arpg';
+export {
+  collectRecipe,
+  createCollectGame,
+  type CollectRecipeOpts,
+} from './collect';
+export {
+  rallyRecipe,
+  createRallyGame,
+  type RallyRecipeOpts,
+} from './rally';
+export {
+  dungeonRecipe,
+  createDungeonGame,
+  type DungeonRecipeOpts,
+} from './dungeon';
+export {
+  flightArenaRecipe,
+  createFlightArena,
+  type FlightArenaOpts,
+} from './flight-arena';

@@ -27,7 +27,7 @@ if (!id || !/^[a-z][a-z0-9-]*$/.test(id)) {
 }
 const title = arg('title', id.replace(/(^|-)([a-z])/g, (_, __, c) => c.toUpperCase()));
 const wantHtml = process.argv.includes('--html');
-const recipe = arg('recipe', 'blank'); // blank | td
+const recipe = arg('recipe', 'blank'); // blank | td | survival | arpg | collect | rally | dungeon | flight-arena
 
 const srcDir = path.join(root, 'src/game', id);
 if (fs.existsSync(srcDir)) {
@@ -89,6 +89,42 @@ export default survivalRecipe({
   title: '${title}',
   playerHp: 100,
   // waves: omit for defaults
+});
+`;
+  fs.writeFileSync(path.join(srcDir, 'index.ts'), code);
+} else if (recipe === 'collect') {
+  const code = `import { collectRecipe } from '../../recipes/collect';
+
+export default collectRecipe({
+  id: '${id}',
+  title: '${title}',
+});
+`;
+  fs.writeFileSync(path.join(srcDir, 'index.ts'), code);
+} else if (recipe === 'rally') {
+  const code = `import { rallyRecipe } from '../../recipes/rally';
+
+export default rallyRecipe({
+  id: '${id}',
+  title: '${title}',
+});
+`;
+  fs.writeFileSync(path.join(srcDir, 'index.ts'), code);
+} else if (recipe === 'dungeon') {
+  const code = `import { dungeonRecipe } from '../../recipes/dungeon';
+
+export default dungeonRecipe({
+  id: '${id}',
+  title: '${title}',
+});
+`;
+  fs.writeFileSync(path.join(srcDir, 'index.ts'), code);
+} else if (recipe === 'flight-arena') {
+  const code = `import { flightArenaRecipe } from '../../recipes/flight-arena';
+
+export default flightArenaRecipe({
+  id: '${id}',
+  title: '${title}',
 });
 `;
   fs.writeFileSync(path.join(srcDir, 'index.ts'), code);

@@ -50,6 +50,11 @@ npm run new-game mysurv -- --recipe survival --html
 
 # 俯视 ARPG
 npm run new-game myarpg -- --recipe arpg --html
+
+# 收集 / 拉力 / 地牢
+npm run new-game mycol -- --recipe collect --html
+npm run new-game myrally -- --recipe rally --html
+npm run new-game mydgn -- --recipe dungeon --html
 ```
 
 会：

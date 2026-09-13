@@ -123,3 +123,12 @@ gems.update(player.x, player.z);
 ## 进度（补充）
 
 `LevelTable` — 关卡解锁链；赛车骨架已用 `BestScoreSlot` 存最佳圈速。
+
+
+## UI（补充）
+
+`DamageNumber` 飘字 · `MinimapDots` 小地图点
+
+## 进度（补充）
+
+`RunState` 单局统计快照
