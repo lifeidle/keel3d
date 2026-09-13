@@ -43,6 +43,9 @@ npm run new-game mygame -- --title "My Game" --html
 
 # 塔防配方（改 lane/pads/数值即可玩）
 npm run new-game mytd -- --recipe td --title "My TD" --html
+
+# 波次生存配方（WASD 移动，撑过波次）
+npm run new-game mysurv -- --recipe survival --html
 ```
 
 会：
