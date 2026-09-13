@@ -1,5 +1,5 @@
 // MusicDirector: adaptive combat soundtrack from fully licensed tracks
-// (public/audio/music — see AUDIO_CREDITS.md). The calm/tense/battle loops
+// (public/audio/music — see docs/AUDIO_CREDITS.md). The calm/tense/battle loops
 // crossfade with combat intensity, and victory/defeat one-shots close the
 // round. All audio routes under the master gain so the volume slider governs
 // it too.

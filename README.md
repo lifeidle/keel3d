@@ -51,19 +51,21 @@ Pages 项目 → Custom domains 绑定（当前：yexi.org）。
 | 目录 | 用途 |
 |---|---|
 | `src/engine/` | L1 内核（框架） |
-| `src/blocks/` · `src/content/` | L2 积木 / L3 契约（框架，建设中） |
-| `src/game/nightraid/` | Sample A 内容包（本游戏） |
-| `src/game/demo-tower/` · `demo-cultivation/` | Sample B / C（骨架） |
+| `src/blocks/` · `src/content/` | L2 积木 / L3 契约 |
+| `src/game/nightraid/` | Sample A 内容包 |
+| `src/game/demo-tower/` · `demo-cultivation/` | Sample B / C |
+| `src/game/demo-flight/` · `demo-race/` · `demo-template/` | 骨架与模板 |
 | `public/` | 静态资产源，构建时拷入 dist |
 | `functions/` | Pages Functions——联机信令 API |
-| `docs/` | 规划、归档、参考（含 `FRAMEWORK_PLAN.md` 指引） |
+| `docs/` | QUICKSTART / API / ADAPT / 许可清单 |
 
 联机架构详见 `docs/archive/MULTIPLAYER_PLAN.md`。
 
 ## 许可
 
 - 源代码：MIT（见 LICENSE）
-- 第三方音频/纹理：CC0 / CC-BY（署名与完整清单见 THIRD_PARTY_NOTICES.md
+- 第三方音频/纹理：CC0 / CC-BY（署名与完整清单见 `docs/THIRD_PARTY_NOTICES.md`
   与游戏内"操作说明 → 素材与致谢"）
 - 中文语音：本项目 TTS 本地合成，无第三方权利
+- 音乐素材清单：`docs/AUDIO_CREDITS.md`
 

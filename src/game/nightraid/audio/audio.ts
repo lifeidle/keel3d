@@ -1,4 +1,4 @@
-// (historical provenance note removed — see AUDIO_CREDITS.md)
+// (historical provenance note removed — see docs/AUDIO_CREDITS.md)
 // with a procedural WebAudio fallback when a sample is missing or the context is suspended.
 //
 // Event -> one or more sample paths (relative to /public, served at /audio/...).
@@ -52,7 +52,7 @@ const BANK: Record<string, Variant> = {
 /**
  * Voice lines come in TWO languages and follow the UI language. `zh` entries
  * are synthesized locally (Windows SAPI, Huihui — no third-party rights); `en`
- * entries are CC packs from OpenGameArt (see AUDIO_CREDITS.md).
+ * entries are CC packs from OpenGameArt (see docs/AUDIO_CREDITS.md).
  */
 const VOICE_LANG: Record<string, { zh: Variant; en: Variant }> = {
   death: {

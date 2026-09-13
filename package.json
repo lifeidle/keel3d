@@ -1,9 +1,9 @@
 {
-  "name": "night-raid",
+  "name": "yexi-game-framework",
   "version": "0.2.0",
   "private": true,
   "type": "module",
-  "description": "夜袭 / Night Raid — Three.js + Rapier game framework sample (Vite + TypeScript)",
+  "description": "WebGPU 3D game framework — three independent samples (nightraid / tower / cultivation)",
   "engines": {
     "node": ">=22"
   },

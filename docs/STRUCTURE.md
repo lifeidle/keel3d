@@ -1,67 +1,85 @@
-# 项目结构（框架主轴）
+# 项目结构（框架主轴 · 终态）
 
-> 主轴：**框架是产品**。三个样例互不相干，只通过框架 API 接入。
-> 本文描述**当前目录**与**目标分层**；迁移步骤见 `EXECUTION_STEPS.md`。
+> **产品是框架**。样例互不相干，只通过 L1/L2/L3 API 接入。
 
 ## 顶层
 
 | 路径 | 用途 |
 |---|---|
-| `src/` | 源代码（见下） |
-| `public/` | 静态资产（构建时拷入 dist） |
-| `test/` | 单元测试 |
-| `scripts/` | 构建 / 测试 / 资产 / 部署脚本 |
-| `functions/` | Cloudflare Pages Functions（联机信令） |
-| `docs/` | 规划、归档、参考图 |
-| `assets_new/` | 第三方模型源资产库（不直接进包） |
+| `FRAMEWORK_PLAN.md` | 战略规划（真相源） |
+| `EXECUTION_STEPS.md` | 分步施工单 |
+| `PROGRESS.md` | 进度真相源 |
+| `README.md` · `LICENSE` | 说明与许可 |
+| `index.html` | Sample A 入口（夜袭） |
+| `tower.html` | Sample B 独立入口 |
+| `cultivation.html` | Sample C 独立入口 |
+| `package.json` · `tsconfig.json` · `vite.config.ts` · `wrangler.toml` | 工程配置 |
+| `src/` | 源代码 |
+| `public/` | 静态资产（音频/模型/Draco/Basis decoder） |
+| `test/` | 单元测试（含 blocks） |
+| `scripts/` | 验收与构建脚本 |
+| `scripts/legacy/` | 一次性调参/探针（不进主流程） |
+| `functions/` | Cloudflare Pages 信令 |
+| `docs/` | 上手与归档 |
+| `assets_new/` | 第三方模型源库（gitignore） |
 | `tools/` | Blender 等本地工具 |
-| `index.html` · `vite.config.ts` · `package.json` · `tsconfig.json` · `wrangler.toml` | 工程配置 |
-| `FRAMEWORK_PLAN.md` · `EXECUTION_STEPS.md` · `PROGRESS.md` | 框架改造三件套（真相源） |
 
-## `src/` 分层（当前 → 目标）
+## `src/` 分层
 
 ```
-src/
-  main.ts                 # 入口：按 ?game= 路由内容包（Phase C）
-  config.ts               # 全局配置（Phase B7 注入化后下沉）
-  i18n.ts                 # 文案
-  engine/                 # L1 内核 ✅ 框架
-  physics/                # L1 物理封装（Phase B 并入/注入）
-  util/                   # L1 小工具
-  net/                    # 联机（Phase B 定为 L2 可选能力）
-  ui/                     # 输入/全屏等 L2 候选（fullscreen/touch/gyro）
-  world/                  # L2 候选：quality/mapgen/terrain/textures/scale/ballistics
-  blocks/                 # L2 积木 ✅ 骨架已建
-  content/                # L3 契约 ✅ 骨架已建
-  game/
-    nightraid/            # Sample A（独立内容包）
-    demo-tower/           # Sample B（骨架，Phase D）
-    demo-cultivation/     # Sample C（骨架，Phase E）
+engine/     L1 内核（WebGPU · 循环 · 输入 · 质量 · 资产 · 音频）
+blocks/     L2 积木（Pool Path Steering GridAStar CameraRig Unit
+            ChunkWorld MapBuilder scene/*）
+content/    L3 契约（GameSpec · MapSpec · defineGame）
+physics/    物理封装（参数注入）
+net/        联机协议（L2 可选能力）
+ui/ util/   输入辅助与小工具
+world/      L2 候选：quality / mapgen / terrain / textures（夜袭仍用）
+game/
+  nightraid/           Sample A（完整 FPS + 联机）
+  demo-tower/          Sample B 塔防
+  demo-cultivation/    Sample C 修仙
+  demo-flight/         飞行骨架
+  demo-race/           赛车骨架
+  demo-template/       新游戏模板
+main.ts               ?game= / window.__GAME_ID__ 路由
 ```
 
-### Sample A `src/game/nightraid/`（已收拢）
+## 独立性铁律
 
-| 子路径 | 内容 |
-|---|---|
-| `game.ts` | 原 `core/game.ts` 大脑（Phase A 逐步拆空） |
-| `NightRaidGame.ts` · `systems/` | GameModule 接线 |
-| `soldiers/` | 士兵工厂 |
-| `ai/` · `player/` · `weapons/` · `audio/` | 玩法实体 |
-| `ui/` | 夜袭 HUD / 战术地图 |
-| `world/` | 坦克/吉普/油桶/任务/天气等场景内容 |
-| `effects.ts` | 特效（Phase B 脱敏后可能上移 L2） |
-
-### 独立性铁律（DoD 验收）
-
-1. `game/<name>/` 两两**禁止互相 import**
-2. 样例只 import `engine/` / `blocks/` / `content/`（以及过渡期的 `physics/` `world/` 等）
-3. 框架 `engine/`+`blocks/` **不得** import 任一样例
-4. 上移 L2 前必须**脱敏**（去掉夜袭专名）
+1. `game/*` 两两禁止互相 import
+2. `engine/` + `blocks/` + `content/` 禁止 import 任何 `game/`
+3. 上移 L2 前必须脱敏（去夜袭专名）
 
 ## docs/
 
 | 路径 | 用途 |
 |---|---|
-| `docs/archive/` | 历史规划（已被 FRAMEWORK_PLAN 取代） |
-| `docs/reference/` | 参考截图、素材清单 |
-| `docs/compose/` | 历史 compose 规格 |
+| `QUICKSTART.md` | 10 分钟上手 |
+| `API.md` | 三层契约 |
+| `ADAPT.md` | 多品类适配说明 |
+| `STRUCTURE.md` | 本文件 |
+| `AUDIO_CREDITS.md` · `THIRD_PARTY_NOTICES.md` | 素材许可 |
+| `archive/` | 历史规划与 compose 规格 |
+| `reference/` | 参考截图 |
+
+## scripts/（主流程）
+
+| 脚本 | 用途 |
+|---|---|
+| `test.mjs` | 单测（26） |
+| `snapshot.mjs` | 步骤快照 save/restore |
+| `game_regress.mjs` · `game_state_check.mjs` · `game_probe.mjs` · `selfcheck_full.mjs` | 浏览器回归 |
+| `net_e2e.mjs` | 联机 e2e |
+| `assets-encode.mjs` · `assets-webp.mjs` | 资产管线 |
+| `site-audit.mjs` | 站点体检 |
+| `adapter_probe.mjs` · `buf_err_probe.mjs` · `webgpu_probe.mjs` | 诊断 |
+
+## 本地演示端口
+
+| URL | 游戏 |
+|---|---|
+| http://localhost:4188/ | 夜袭 |
+| http://localhost:4189/tower.html | 塔防 |
+| http://localhost:4190/cultivation.html | 修仙 |
+| `/?game=flight` · `/?game=race` · `/?game=template` | 骨架/模板 |
