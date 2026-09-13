@@ -254,3 +254,9 @@ $out = & $node "<鑴氭湰缁濆璺緞>" 2>&1; $code = $LASTEXITCODE
 - npm run new-game 脚手架（可生成独立 HTML）
 - main.ts 仅 resolve → load → mount；夜袭 bootNightRaid 适配
 - 文档对齐；26 测 / regress / 全样例加载全绿
+
+**2026-09-13 V3 积木落地**
+- gameplay: Health/Timers/Economy/Scoreboard/WaveDirector/PlaceGrid/Spawner
+- ui: HudPanel/Toast/EndOverlay/HealthBar
+- 塔防接入 Economy+WaveDirector+Health；33 单测；docs/BLOCKS.md + REMAINING.md
+- 按需 import，宿主不自动注册
