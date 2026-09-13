@@ -11,6 +11,7 @@
 | `collect` | collect.html | WASD 捡满后回金圈 | PickupField · TriggerZone |
 | `rally` | rally.html | 自动行驶，按序穿检查点 | Path · BestScoreSlot · TriggerZone |
 | `dungeon` | dungeon.html | E/F 开门，Boss 房 J/空格 | Interactable · TriggerZone |
+| `fps-arena` | fps-arena.html | WASD + 鼠标/方向键，空格/J 射击 | pickTarget · Pool · kit |
 | `flight-arena` | （new-game） | WASD 飞行，空格/J 射击 | Projectile · pickTarget |
 
 ---

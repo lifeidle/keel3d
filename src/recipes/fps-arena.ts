@@ -4,7 +4,6 @@
  */
 import * as THREE from 'three';
 import { defineGame } from '../content/defineGame';
-import { CameraRig } from '../blocks/CameraRig';
 import { Pool } from '../blocks/Pool';
 import { Cooldown } from '../blocks/combat/Cooldown';
 import { pickTarget } from '../blocks/combat/Targeting';
@@ -83,9 +82,7 @@ export function createFpsArena(
   let yaw = 0;
   let pitch = 0;
   let spawnT = 1;
-  let t = 0;
   let hud: HTMLElement | null = null;
-  const rig = new CameraRig(camera, { defaultMode: 'fps', blend: 0 });
 
   function onDn(e: KeyboardEvent) {
     keys.add(e.code);
@@ -158,7 +155,6 @@ export function createFpsArena(
     {
       name: `${opts.id}.sim`,
       update(ft: number, world: EngineWorld) {
-        t += ft;
         if (world.playing) {
           fireCd.update(ft);
           score.tick(ft);
@@ -208,7 +204,6 @@ export function createFpsArena(
             `FPS 骨架 · 击杀 ${score.kills} · 目标 ${targets.activeCount}\n` +
             `WASD 移动 · 鼠标/方向键转向 · 空格/J 射击（点击画面锁定指针）`;
         }
-        void rig;
       },
     },
   ];

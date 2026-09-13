@@ -27,7 +27,7 @@ if (!id || !/^[a-z][a-z0-9-]*$/.test(id)) {
 }
 const title = arg('title', id.replace(/(^|-)([a-z])/g, (_, __, c) => c.toUpperCase()));
 const wantHtml = process.argv.includes('--html');
-const recipe = arg('recipe', 'blank'); // blank | td | survival | arpg | collect | rally | dungeon | flight-arena
+const recipe = arg('recipe', 'blank'); // blank | td | survival | arpg | fps-arena | ... | survival | arpg | collect | rally | dungeon | flight-arena
 
 const srcDir = path.join(root, 'src/game', id);
 if (fs.existsSync(srcDir)) {
