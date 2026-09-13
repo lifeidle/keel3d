@@ -16,7 +16,7 @@
 - ✅ 规划更新：三样例 + **框架主轴**（样例互不相干）写入 FRAMEWORK_PLAN + EXECUTION_STEPS
 - ✅ **目录重组**：夜袭内容收拢 `src/game/nightraid/`；骨架 blocks/content/demo-tower/demo-cultivation；根目录清理
 - ✅ **施工准备 0.0–0.2**：本地 git + 快照机制（`_snapshots/A0`）+ **回归基线**（`shots/baseline/` 全绿）
-- 🔶 **Phase A 进行中**：A1 拆分 · A2 QualityAuto · A3 RenderPresent · A4 Effects · A5 Atmosphere · A6 HUD · A7 Mission ✅；A8–A12 待做（联机 tick 仍在 Game，归 A11）
+- 🔶 **Phase A 进行中**：A1–A10 ✅（拆分/画质/呈现/特效/气氛/HUD/任务/移动/战斗/载具）；**A11 联机 + A12 收尾** 待做
 
 ---
 

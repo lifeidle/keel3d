@@ -294,9 +294,9 @@ DOM id：`#bootFill #bootTxt #btnPlay #btnNet #btnNetHost #btnNetJoin #btnNetGo 
 | A5 Atmosphere | git | ✅ | regress 0 错误 | 2026-09-13 |
 | A6 HUD | git | ✅ | HUD/地图/准星正常 | 2026-09-13 |
 | A7 Mission | git | ✅ | 任务目标/击杀播报入 System；net 留 A11 | 2026-09-13 |
-| A8 Movement | | | | |
-| A9 Combat | | | | |
-| A10 Vehicle | | | | |
+| A8 Movement | git | ✅ | player.update 入 System | 2026-09-13 |
+| A9 Combat | git | ✅ | probe 敌我正常 | 2026-09-13 |
+| A10 Vehicle | git | ✅ | regress 0 错误 | 2026-09-13 |
 | A11 Net | | | | |
 | A12 收尾 | | | | |
 | B1–B9 | | | | |

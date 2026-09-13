@@ -2101,95 +2101,54 @@ export class Game {
     if (this.tangoCd > 0) this.tangoCd -= dt;
     if (this.allyVoiceCd > 0) this.allyVoiceCd -= dt;
 
-    // --- netplay sync ---
-    if (this.netMode === 'host' && this.net.state === 'ready' && this.remotePlayer) {
-      // remote ghost movement + AI targeting the remote body
-      this.remotePlayer.update(dt, this.map.terrain);
-      this.enemies.setRemoteTarget(this.remotePlayer);
-      // 20Hz world snapshot
-      this.netSnapT += dt;
-      if (this.netSnapT >= 0.05) {
-        this.netSnapT = 0;
-        const enemies: SnapshotEnemy[] = [];
-        this.enemies.getEnemies().forEach((e, i) => {
-          if (!e.alive) return;
-          const ep = e.pos();
-          const hp = Math.max(0, Math.round((e as unknown as { health: number }).health));
-          enemies.push({ id: i, x: ep.x, z: ep.z, yaw: 0, hp, flags: 0 });
-        });
-        const allies: SnapshotAlly[] = this.enemies.getAlliesSnapshot();
-        const w = window as unknown as Record<string, number>;
-        w.__sfSent = (w.__sfSent ?? 0) + 1;
-        this.net.sendSnapshot(
-          encodeSnapshot(this.snapTick++ & 0xffff, this.player.health, this.player.pos.x, this.player.pos.y, this.player.pos.z, enemies, allies)
-        );
-      }
-    }
-    // --- PvP hunt tick ---
-    const pvpActive = this.netPvp && this.net.state === 'ready';
-    if (pvpActive) {
-      this.pvpTimeLeft -= dt;
-      if (this.pvpTimeLeft <= 0) {
-        // time's up: higher score wins (host authoritative, ties favour host)
-        this.gameOver(this.pvpScoreSelf >= this.pvpScoreFoe);
-      }
-      // host respawn countdown
-      if (this.pvpRespawnT > 0) {
-        this.pvpRespawnT -= dt;
-        if (this.pvpRespawnT <= 0) {
-          const sp = this.map.allySpawns[(Math.random() * this.map.allySpawns.length) | 0] ?? new THREE.Vector3(this.map.base.x, 0.1, this.map.base.z);
-          this.player.respawnAt(sp.x, sp.z);
-          this.hud.setHealth(this.player.health, CONFIG.player.maxHealth);
-          this.net.sendEvent(NET_EVENTS.RESPAWN, new Uint8Array([1]).buffer);
-        }
-      }
-      // host wins when the foe is down 15 — score broadcast on every change
-      if (this.pvpScoreSelf >= 15) this.gameOver(true);
-      else if (this.pvpScoreFoe >= 15) this.gameOver(false);
-    }
-    // PvP hunt: the tick above owns win/lose — the co-op mission must NEVER
-    // run here (aliveCount is 0 by design, which read as an instant victory)
-    if (pvpActive) return;
+    // net sync / PvP / client input → NetSystem (A11)
+  }
 
-    if (this.netMode === 'client' && this.net.state === 'ready') {
-      // 30Hz input upload
-      this.netInputT += dt;
-      if (this.netInputT >= 0.033) {
-        this.netInputT = 0;
-        const ax = this.input.moveAxis();
-        const btn =
-          (this.input.fireDown ? BTN.FIRE : 0) |
-          (this.input.adsToggle ? BTN.ADS : 0) |
-          (this.input.crouchHeld ? BTN.CROUCH : 0) |
-          (this.input.consumeProneToggle() ? BTN.PRONE : 0);
-        this.net.sendInput(btn, this.player.yaw, this.player.pitch, ax.x, ax.z);
-      }
-      this.ghostSwarm?.update(dt);
-      const pp = this.player.pos;
-      const canRescue = this.ghostSwarm?.downedAllyNear(pp.x, pp.z, 2.6) ?? false;
-      const canSupply = this.map.ammoDumps.some((d) => Math.hypot(d.x - pp.x, d.z - pp.z) < 3);
-      const hint = canRescue ? t('rescue.hint') : canSupply ? t('resupply.hint') : null;
-      if (hint && !this.dumpHintOn) {
-        this.dumpHintOn = true;
-        this.hud.showHint(hint, 1.2);
-      } else if (!hint && this.dumpHintOn) {
-        this.dumpHintOn = false;
-        this.hud.hideHint();
-      }
-      // client respawn countdown (PvP hunt)
-      if (this.pvpRespawnT > 0) {
-        this.pvpRespawnT -= dt;
-        if (this.pvpRespawnT <= 0) {
-          const sp = this.map.allySpawns[(Math.random() * this.map.allySpawns.length) | 0] ?? new THREE.Vector3(this.map.base.x, 0.1, this.map.base.z);
-          this.player.respawnAt(sp.x, sp.z);
-          this.hud.setHealth(this.player.health, CONFIG.player.maxHealth);
-        }
-      }
-      // client skips local AI/mission — the host decides everything
-      return;
-    }
+  /** Collaborators for NetSystem (A11). */
+  get netFrame() {
+    const self = this;
+    return {
+      net: this.net,
+      netMode: this.netMode,
+      netPvp: this.netPvp,
+      remotePlayer: this.remotePlayer,
+      ghostSwarm: this.ghostSwarm,
+      player: this.player,
+      input: this.input,
+      hud: this.hud,
+      audio: this.audio,
+      effects: this.effects,
+      weapon: this.weapon,
+      enemies: this.enemies,
+      terrain: this.map.terrain,
+      ammoDumps: this.map.ammoDumps,
+      allySpawns: this.map.allySpawns,
+      base: this.map.base,
+      resupplied: this.resupplied,
+      dumpHintOn: this.dumpHintOn,
+      pvpScoreSelf: this.pvpScoreSelf,
+      pvpScoreFoe: this.pvpScoreFoe,
+      get pvpRespawnT() {
+        return self.pvpRespawnT;
+      },
+      set pvpRespawnT(v: number) {
+        self.pvpRespawnT = v;
+      },
+      setDumpHint: (on: boolean) => {
+        this.dumpHintOn = on;
+      },
+      markResupplied: (i: number) => {
+        this.resupplied.add(i);
+      },
+      damagePlayer: (d: number, src?: { x: number; z: number }) => this.damagePlayer(d, src),
+      gameOver: (v: boolean) => this.gameOver(v),
+    };
+  }
 
-    // mission objective / kill-feed → MissionSystem (A7)
+  /** Attach NetSystem so bindEvents can route (A11). */
+  private netSys: { handleEvent(sub: number, args: DataView): void } | null = null;
+  bindNetSystem(sys: { handleEvent(sub: number, args: DataView): void }): void {
+    this.netSys = sys;
   }
 
   private loop = (now: number) => {
@@ -2238,90 +2197,9 @@ export class Game {
       : this.enemies.getEnemies();
   }
 
-  /** Netplay event router: host settles client requests; client renders host truth. */
+  /** Netplay event router → NetSystem.handleEvent (A11). */
   private onNetEvent(sub: number, args: DataView) {
-    if (this.netMode === 'host') {
-      // client respawned → its ghost is whole again
-      if (sub === NET_EVENTS.RESPAWN && this.remotePlayer) {
-        this.remotePlayer.hp = 100;
-        return;
-      }
-      // PvP: the client shot US (target 1 = host body) → settle locally
-      if (sub === NET_EVENTS.HIT && args.byteLength >= 2 && args.getUint8(0) === 1) {
-        this.damagePlayer(args.getUint8(1));
-        return;
-      }
-      // INTERACT from the client: kind 0 = rescue, 1 = supply
-      if (sub === NET_EVENTS.INTERACT) {
-        const kind = args.getUint8(0);
-        const rp = this.remotePlayer;
-        if (!rp) return;
-        const rpPos = rp.pos();
-        if (kind === 0) {
-          const downed = this.enemies.nearestDowned(rpPos.x, rpPos.z, 2.6);
-          if (downed) {
-            downed.revive();
-            this.net.sendEvent(NET_EVENTS.RESC, new ArrayBuffer(0));
-            this.hud.addKill(`<b>${t('rescue.done')}</b>`);
-          }
-        } else if (kind === 1) {
-          const dump = this.map.ammoDumps.findIndex(
-            (d, i) => !this.resupplied.has(i) && Math.hypot(d.x - rpPos.x, d.z - rpPos.z) < 3
-          );
-          if (dump >= 0) {
-            this.resupplied.add(dump);
-            this.net.sendEvent(NET_EVENTS.MEDKIT, new ArrayBuffer(1));
-          }
-        }
-      }
-      return;
-    }
-    // CLIENT: render the host's truth
-    if (sub === NET_EVENTS.SHOT) {
-      // args: muzzle f32x3 + dir f32x3 — remote gunfire visual
-      const mx = args.getFloat32(0);
-      const my = args.getFloat32(4);
-      const mz = args.getFloat32(8);
-      const dx = args.getFloat32(12);
-      const dy = args.getFloat32(16);
-      const dz = args.getFloat32(20);
-      const muzzle = new THREE.Vector3(mx, my, mz);
-      const end = muzzle.clone().addScaledVector(new THREE.Vector3(dx, dy, dz).normalize(), 60);
-      this.effects.tracer(muzzle, end);
-      this.effects.muzzle(muzzle);
-      this.audio.playJeepMG();
-    } else if (sub === NET_EVENTS.HIT) {
-      // host settled damage against THIS client (target 0 = self)
-      if (args.getUint8(0) === 0) {
-        const dmg = args.getUint8(1);
-        if (dmg > 0) {
-          this.player.damage(dmg);
-          this.hud.setHealth(this.player.health, CONFIG.player.maxHealth);
-          this.hud.flashDamage();
-          if (this.player.health <= 0 && this.netPvp) {
-            // hunt death: 3s respawn handled by the local tick
-            this.pvpRespawnT = 3;
-          }
-        }
-      }
-    } else if (sub === NET_EVENTS.SCORE) {
-      // host broadcasts {host, client} — flip for the client's point of view
-      this.hud.setPvpScore(args.getUint8(1), args.getUint8(0));
-    } else if (sub === NET_EVENTS.RESC) {
-      this.hud.showHint(t('rescue.done'), 2.5);
-    } else if (sub === NET_EVENTS.MISSION) {
-      // host decided the outcome: 1 = win, 0 = loss
-      this.gameOver(args.getUint8(0) === 1);
-    } else if (sub === NET_EVENTS.MEDKIT) {
-      this.weapon.refillAllReserves();
-      this.hud.showHint(t('resupply.done'), 2.5);
-    } else if (sub === NET_EVENTS.RESPAWN) {
-      // host respawned — clear its downed state on our scoreboard view
-      if (this.netPvp && args.byteLength >= 1) {
-        const who = args.getUint8(0);
-        void who; // 1 = host; its ghost hp resets via the next snapshot
-      }
-    }
+    this.netSys?.handleEvent(sub, args);
   }
 
   /** M: show / hide the full-screen tactical map (whole battlefield view). */

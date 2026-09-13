@@ -15,3 +15,4 @@ export { QualityAutoSystem } from './QualityAutoSystem';
 export { RenderPresentSystem } from './RenderPresentSystem';
 export { HudSystem } from './HudSystem';
 export { MissionSystem } from './MissionSystem';
+export { NetSystem } from './NetSystem';

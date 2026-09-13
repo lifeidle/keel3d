@@ -18,6 +18,7 @@ import {
   RenderPresentSystem,
   HudSystem,
   MissionSystem,
+  NetSystem,
 } from './systems';
 
 export interface NightRaidDeps {
@@ -26,13 +27,15 @@ export interface NightRaidDeps {
 
 export function createNightRaidGame(deps: NightRaidDeps): GameModule {
   const g = deps.game;
-  // Order: Movement → CombatSim (dyn) → Vehicle | Combat → Mission.
+  const netSys = new NetSystem(g);
+  g.bindNetSystem(netSys);
   const systems: System[] = [
     new StateSyncSystem(g),
     new MovementSystem(g),
     new CombatSimSystem(g),
     new VehicleSystem(g),
     new CombatSystem(g),
+    netSys,
     new MissionSystem(g),
     new GameplayFrameSystem(g),
     new HudSystem(g),
