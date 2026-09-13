@@ -1,7 +1,6 @@
-﻿// Physics wrapper around Rapier (compat WASM build — runs without SharedArrayBuffer,
-// so it works on Cloudflare Pages AND plain static hosting).
+﻿// Physics wrapper around Rapier (standard .wasm package).
+// World params are injected so L2 blocks stay free of sample CONFIG.
 import RAPIER from '@dimforge/rapier3d';
-import { CONFIG } from '../config';
 
 export type Vec3 = { x: number; y: number; z: number };
 
@@ -12,13 +11,31 @@ export interface RayHit {
   normal: Vec3;
 }
 
+export interface PhysicsWorldOpts {
+  gravity: number;
+  fixedDt: number;
+  /** Safety floor half-extent (usually map half-size). */
+  groundSize: number;
+  /** How far below y=0 to place the catch-floor. */
+  floorDepth: number;
+}
+
+export const DEFAULT_PHYSICS: PhysicsWorldOpts = {
+  gravity: -22,
+  fixedDt: 1 / 60,
+  groundSize: 80,
+  floorDepth: 50,
+};
+
 export class PhysicsWorld {
   readonly RAPIER = RAPIER;
   world: RAPIER.World;
+  private opts: PhysicsWorldOpts;
 
-  constructor() {
-    this.world = new RAPIER.World({ x: 0, y: CONFIG.world.gravity, z: 0 });
-    this.world.timestep = CONFIG.world.fixedDt;
+  constructor(opts: Partial<PhysicsWorldOpts> = {}) {
+    this.opts = { ...DEFAULT_PHYSICS, ...opts };
+    this.world = new RAPIER.World({ x: 0, y: this.opts.gravity, z: 0 });
+    this.world.timestep = this.opts.fixedDt;
   }
 
   step() {
@@ -31,8 +48,8 @@ export class PhysicsWorld {
    * (blast knockback, edge cases) from falling forever.
    */
   addSafetyFloor() {
-    const h = CONFIG.world.groundSize;
-    const y = -(CONFIG.terrain.amplitude + 10);
+    const h = this.opts.groundSize;
+    const y = -this.opts.floorDepth;
     const desc = RAPIER.ColliderDesc.cuboid(h, 1, h)
       .setTranslation(0, y - 1, 0)
       .setFriction(0.9)

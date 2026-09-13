@@ -186,7 +186,12 @@ export class Game {
     // WebGPU-only: the engine must be prebuilt async (createEngineAsync).
     if (!opts.engine) throw new WebGpuRequiredError('pass a prebuilt engine from createEngineAsync');
     this.engine = opts.engine;
-    this.physics = new PhysicsWorld();
+    this.physics = new PhysicsWorld({
+      gravity: CONFIG.world.gravity,
+      fixedDt: CONFIG.world.fixedDt,
+      groundSize: CONFIG.world.groundSize,
+      floorDepth: CONFIG.terrain.amplitude + 10,
+    });
     const sky = buildWorld(this.engine.scene, this.physics);
     this.engine.skyNight = sky.night;
     this.engine.skyDay = sky.day;

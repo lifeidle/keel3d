@@ -298,7 +298,7 @@ DOM id：`#bootFill #bootTxt #btnPlay #btnNet #btnNetHost #btnNetJoin #btnNetGo 
 | A9 Combat | git | ✅ | probe 敌我正常 | 2026-09-13 |
 | A10 Vehicle | git | ✅ | regress 0 错误 | 2026-09-13 |
 | A11 Net | git | ✅ | 单机回归 0 错误；e2e 待跑 | 2026-09-13 |
-| A12 收尾 | | | | |
+| A12 收尾 | git | ✅ | 空壳已删；2071 行（余量归 Phase C） | 2026-09-13 |
 | B1–B9 | | | | |
 | C1–C4 | | | | |
 | D1–D4（塔防） | | | | |

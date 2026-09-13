@@ -9,6 +9,7 @@ import * as THREE from 'three';
 import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
 import { createGltfLoader, modelUrl } from '../../../engine/assets/gltf';
 import { buildSoldierRig } from '../soldiers/SoldierFactory';
+import * as Steering from '../../../blocks/Steering';
 
 // --- soldier GLB cosmetic layer (Quaternius Animated Men, CC0) ---
 // One template is fetched once; every Enemy clones it (skinned meshes must
@@ -946,9 +947,8 @@ export class Enemy implements CombatTarget {
   /** Squad tactic: flanking allies circle toward the target instead of
    *  closing head-on, so two soldiers never stack in one firing lane. */
   private flankVec(dirX: number, dirZ: number): [number, number] {
-    const px = -dirZ * this.flankSide * 0.45;
-    const pz = dirX * this.flankSide * 0.45;
-    return [dirX + px, dirZ + pz];
+    const f = Steering.flankDir(dirX, dirZ, this.flankSide);
+    return [f.x, f.z];
   }
 
   /** A squadmate called out a position: remember it as the last confirmed spot. */
@@ -1464,17 +1464,12 @@ export class EnemyManager {
     const pushPair = (a: Enemy, b: Enemy) => {
       const ta = a.body.translation();
       const tb = b.body.translation();
-      const dx = tb.x - ta.x;
-      const dz = tb.z - ta.z;
-      const d = Math.hypot(dx, dz);
-      if (d >= PUSH_D || d < 0.001) return;
-      const k = ((PUSH_D - d) / PUSH_D) * 2.2; // firm when touching, soft at range
-      const nx = dx / d;
-      const nz = dz / d;
+      const sep = Steering.separationDelta(ta.x, ta.z, tb.x, tb.z);
+      if (!sep) return;
       const va = a.body.linvel();
       const vb = b.body.linvel();
-      a.body.setLinvel({ x: va.x - nx * k, y: va.y, z: va.z - nz * k }, true);
-      b.body.setLinvel({ x: vb.x + nx * k, y: vb.y, z: vb.z + nz * k }, true);
+      a.body.setLinvel({ x: va.x + sep.ax, y: va.y, z: va.z + sep.az }, true);
+      b.body.setLinvel({ x: vb.x + sep.bx, y: vb.y, z: vb.z + sep.bz }, true);
     };
     for (let i = 0; i < this.enemies.length; i++) {
       if (!this.enemies[i].alive) continue;
