@@ -19,6 +19,7 @@ const pages = [
   ['dungeon', '/dungeon.html', '#dungeon-hud'],
   ['template', '/template.html', '#boot'],
   ['flight-arena', '/flight-arena.html', '#boot'],
+  ['fps-arena', '/fps-arena.html', '#fps-arena-hud'],
 ];
 
 const browser = await chromium.launch({ channel: 'chrome' });

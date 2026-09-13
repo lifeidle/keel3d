@@ -128,6 +128,15 @@ export default flightArenaRecipe({
 });
 `;
   fs.writeFileSync(path.join(srcDir, 'index.ts'), code);
+} else if (recipe === 'fps-arena') {
+  const code = `import { fpsArenaRecipe } from '../../recipes/fps-arena';
+
+export default fpsArenaRecipe({
+  id: '${id}',
+  title: '${title}',
+});
+`;
+  fs.writeFileSync(path.join(srcDir, 'index.ts'), code);
 } else {
   const template = path.join(root, 'src/game/demo-template');
   fs.cpSync(template, srcDir, { recursive: true });

@@ -25,7 +25,8 @@
 
 | 骨架 | 入口 | 说明 |
 |---|---|---|
-| **FPS 骨架** | [`fps.html`](fps.html) | 第一人称 · seeded 地图 · 可选 P2P |
+| **FPS 骨架** | [`fps.html`](fps.html) | 完整第一人称演示（高级） |
+| **FPS 竞技场** | [`fps-arena.html`](fps-arena.html) | 轻量 FPS 起点（配方） |
 | **塔防骨架** | [`tower.html`](tower.html) | fixed 路线 · 放塔 · 波次/经济 |
 | **开放世界骨架** | [`openworld.html`](openworld.html) | stream · 1/2/3 切视角 |
 | **飞行骨架** | [`flight.html`](flight.html) | chase · gravity 0 |

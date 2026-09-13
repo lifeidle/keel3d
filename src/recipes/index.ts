@@ -39,3 +39,8 @@ export {
   createFlightArena,
   type FlightArenaOpts,
 } from './flight-arena';
+export {
+  fpsArenaRecipe,
+  createFpsArena,
+  type FpsArenaOpts,
+} from './fps-arena';

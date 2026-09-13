@@ -387,10 +387,10 @@
         id: 'fps', icon: '🎯', title: 'FPS 骨架',
         blurb: '第一人称 · 程序化地图 · 可选 P2P。',
         tags: ['seeded', 'fps', 'P2P'],
-        demo: './fps.html',
+        demo: './fps-arena.html',
         spec: { camera: "'fps'", map: "seeded", player: 'ground' },
         cmd: 'npm run new-game myfps -- --html',
-        note: '完整 DOM 与战役逻辑在 fps.html。',
+        note: '完整演示 fps.html；轻量起点 fps-arena.html 或 --recipe fps-arena。',
         blocks: [['createUnitBody', '角色'], ['CameraRig', 'fps'], ['MapBuilder', 'seeded']],
       },
       {
