@@ -391,7 +391,7 @@
         demo: './fps-arena.html',
         spec: { camera: 'fps', create: 'fpsArenaRecipe' },
         cmd: 'npm run new-game myfps -- --recipe fps-arena --html',
-        note: '完整演示 fps.html；轻量起点 fps-arena.html 或 --recipe fps-arena。',
+        note: '完整战役见 fps.html。竞技场：击杀 15 得胜；空格/J 射击，R 换弹，受击有红闪。',
         blocks: [['pickTarget', '选敌'], ['Cooldown', '射速'], ['HealthBar', '血条'], ['DamageNumber', '飘字'], ['EndOverlay', '结算']],
       },
       {
@@ -401,7 +401,7 @@
         demo: './tower.html',
         spec: { camera: 'orbit', map: 'fixed + Path' },
         cmd: 'npm run new-game mytd -- --recipe td --html',
-        note: '1/2/3 选塔，左键放置/升级，右键售卖。tower.html 与 --recipe td 同源。',
+        note: '守住 180 秒清完波次则胜。1/2/3 选塔，左键放置/升级，右键售卖，R 重开。',
         blocks: [['Path', '车道'], ['WaveDirector', '波次'], ['Economy', '金币'], ['BuildSystem', '升级/卖'], ['PlaceGrid', '格子']],
       },
       {
@@ -411,7 +411,7 @@
         demo: './openworld.html',
         spec: { camera: 'chase/orbit/fps', map: 'stream' },
         cmd: 'npm run new-game myworld -- --html',
-        note: '灵珠自动拾取；中央台 TriggerZone。',
+        note: '探索：捡灵珠、上中央台。1/2/3 切视角。',
         blocks: [['ChunkWorld', '环加载'], ['Pickup', '拾取'], ['TriggerZone', '触发']],
       },
       {
@@ -421,7 +421,7 @@
         demo: './arpg.html',
         spec: { camera: 'orbit' },
         cmd: 'npm run new-game myarpg -- --recipe arpg --html',
-        note: '空格/J 攻击。',
+        note: '击杀 12 得胜。空格/J 攻击，K 旋风斩，I 背包，E 无；受伤有闪屏。',
         blocks: [['Cooldown', 'CD'], ['pickTarget', '选敌'], ['Projectile', '弹道'], ['areaHits', '旋风斩'], ['WorldBar', '敌血条']],
       },
       {
@@ -431,7 +431,7 @@
         demo: './collect.html',
         spec: { camera: 'chase' },
         cmd: 'npm run new-game mycol -- --recipe collect --html',
-        note: 'WASD 移动。',
+        note: '60 秒内收满灵珠回金圈。WASD 移动，R 重开。',
         blocks: [['PickupField', '自动拾取'], ['TriggerZone', '交付'], ['RunState', '局内统计'], ['EndOverlay', '结算']],
       },
       {
@@ -440,7 +440,7 @@
         tags: ['Path', 'SaveSlot'],
         demo: './rally.html',
         spec: { camera: 'chase' },
-        note: '按序穿光圈才计完整圈。',
+        note: '按序穿光圈冲线才算完整圈；比最佳圈速。',
         cmd: 'npm run new-game myrally -- --recipe rally --html',
         blocks: [['BestScoreSlot', '最佳成绩'], ['TriggerZone', '检查点'], ['Toast', '圈速提示']],
       },
@@ -451,7 +451,7 @@
         demo: './dungeon.html',
         spec: { camera: 'chase' },
         cmd: 'npm run new-game mydgn -- --recipe dungeon --html',
-        note: 'E/F 开门，Boss 房 J/空格。',
+        note: '清怪开门到 Boss 房，击杀 Boss 后去出口。E/F 开门，J/空格 打 Boss，R 重开。',
         blocks: [['Interactable', '开门'], ['TriggerZone', '出口'], ['LevelTable', '房间链'], ['MinimapDots', '小地图']],
       },
       {
@@ -461,7 +461,7 @@
         demo: './flight.html',
         spec: { camera: 'chase', player: 'air' },
         cmd: 'npm run new-game myflight -- --html',
-        note: '空战配方可用 --recipe flight-arena。',
+        note: '探索飞行；空战见 flight-arena。',
         blocks: [['CameraRig', '跟机'], ['Path', '航线']],
       },
       {
@@ -481,11 +481,11 @@
         demo: './tps.html',
         spec: { camera: 'shoulder', create: 'tpsRecipe' },
         cmd: 'npm run new-game mytps -- --recipe tps --html',
-        note: 'Shift/Ctrl 跳，空格/J 或 RT 射击，R 换弹。',
+        note: '肩扛第三人称。击杀 12 得胜；Shift 跳，空格/J 射击，R 换弹/重开。',
         blocks: [['CharacterController', '移动'], ['Gamepad', '手柄'], ['Arsenal', '弹匣'], ['shoulder', '肩扛相']],
       },
       {
-        id: 'rogue', icon: '🗡️', title: 'Roguelike',
+        id: 'rogue', icon: '🗡️', title: 'Roguelike · 旗舰可通关',
         blurb: '程序化房间 · 战利品背包 · Boss。',
         tags: ['roguelike', 'procgen'],
         demo: './roguelike.html',
@@ -579,7 +579,7 @@
         demo: './template.html',
         spec: { camera: 'orbit' },
         cmd: 'npm run new-game mygame -- --title "My Game" --html',
-        note: '只 import 需要的积木。',
+        note: '先到 3 球获胜。WASD 靠近球推射，R 重开。',
         blocks: [['CameraRig', '视角'], ['MapBuilder', '地图']],
       },
     ];

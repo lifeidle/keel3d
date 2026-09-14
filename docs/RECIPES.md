@@ -130,3 +130,27 @@ flightArenaRecipe({ id: 'myfa', spawnEvery: 2.2, droneHp: 20 })
 - 配方 **默认导出** `defineGame(...)`，宿主自动挂 present/daylight  
 - 不需要的积木不会进你的包（精确 import）  
 - 可把 `src/recipes/*.ts` 整份拷进 `src/game/<id>/` 自行改写  
+
+
+## 怎么玩 / 胜负条件
+
+| 配方 | 操作 | 胜 | 负 |
+|---|---|---|---|
+| roguelike | WASD · 空格攻击 · E 喝药 · I 背包 | 击杀 Boss | HP 归零 |
+| arpg | WASD · 空格/J · K 旋风斩 · I 背包 | 击杀 12 | HP 归零 |
+| td | 1/2/3 选塔 · 左键放/升 · 右键卖 | 清完波次 | 基地被毁或超时 |
+| collect | WASD | 限时收满回金圈 | 时间到 |
+| platformer | WASD · 空格/Shift 跳 | 登顶 | 3 命用尽 |
+| fps-arena | WASD · 空格/J 射击 · R 换弹 | 击杀 15 | HP 归零 |
+| tps | WASD · Shift 跳 · 空格/J | 击杀 12 | HP 归零 |
+| rts-lite | 左键选 · 右键令 | 消灭红方 | 蓝方全灭 |
+| stealth | WASD · 空格噪声 | 抵达出口 | 被持续发现 |
+| combat-arena | WASD · 空格主炮 · K 冲击 | 击落 10 | 载具被毁 |
+| br-lite | WASD · 射击 | 存活到最后 | 阵亡 |
+| tycoon | 1/2/3 建筑 · 点空地 | 人口 50 | — |
+| puzzle | WASD 推箱 | 箱上金点 | — |
+| sports | WASD 推球 | 先到 3 球 | 对方先到 3 |
+| rhythm | 空格/J 卡拍 | 连击 20 | — |
+| sandbox | 点击/X/1-5 | 放置 10 块 | — |
+
+结束画面均支持 **R 重开**（除注明外）。
