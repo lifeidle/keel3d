@@ -16,7 +16,7 @@ const out = path.join(root, '.tmp', 'test');
 rmSync(out, { recursive: true, force: true });
 mkdirSync(out, { recursive: true });
 
-const files = ['ballistics', 'magazine', 'arsenal', 'extract-rest', 'char-tps', 'loot-inv', 'proc-dungeon', 'terrain', 'mapgen', 'combat', 'protocol', 'blocks', 'gameplay', 'interact', 'combat-blocks', 'excellence'];
+const files = ['ballistics', 'magazine', 'arsenal', 'extract-rest', 'char-tps', 'loot-inv', 'proc-dungeon', 'dialogue-xp', 'terrain', 'mapgen', 'combat', 'protocol', 'blocks', 'gameplay', 'interact', 'combat-blocks', 'excellence'];
 const outFiles = [];
 for (const f of files) {
   const outFile = path.join(out, `${f}.test.mjs`);
