@@ -49,3 +49,8 @@ export {
   createTpsGame,
   type TpsRecipeOpts,
 } from './tps';
+export {
+  roguelikeRecipe,
+  createRoguelikeGame,
+  type RoguelikeRecipeOpts,
+} from './roguelike';

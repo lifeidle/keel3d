@@ -114,6 +114,7 @@ export default defineConfig({
         'flight-arena': 'flight-arena.html',
         'fps-arena': 'fps-arena.html',
         tps: 'tps.html',
+        roguelike: 'roguelike.html',
       },
       output: {
         manualChunks(id) {
