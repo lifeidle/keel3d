@@ -1,4 +1,4 @@
-// Ambient battlefield fires (campfires / brush blazes) — purely cosmetic
+// Ambient battlefield fires (campfires / brush blazes) ?purely cosmetic
 // light+flame scenery placed by generateMap and disposed with the map.
 //
 // LIGHT DISCIPLINE: one PointLight per site, created once at map build and
@@ -10,7 +10,7 @@
 // (mapgen.test.ts calls generateMap headlessly) so flame textures degrade to a
 // neutral 1x1 when there is no document.
 import * as THREE from 'three';
-import { CONFIG } from '../../../config';
+import { CONFIG } from '../../config';
 
 const HAS_DOM = typeof document !== 'undefined';
 
@@ -28,7 +28,7 @@ interface Site {
 let _flameTex: THREE.Texture | null = null;
 let _glowTex: THREE.Texture | null = null;
 
-/** Radial flame gradient — white-hot core, orange falloff, transparent rim. */
+/** Radial flame gradient ?white-hot core, orange falloff, transparent rim. */
 function flameTexture(): THREE.Texture {
   if (_flameTex) return _flameTex;
   if (!HAS_DOM) {
@@ -79,10 +79,10 @@ function flicker(t: number, phase: number): number {
   return THREE.MathUtils.clamp(f * 0.42 + j * 0.33 + k * 0.25, 0, 1);
 }
 
-export class Fires {
+export class FireSites {
   group = new THREE.Group();
   private sites: Site[] = [];
-  /** Day dimming — flames stay visible, their light fades to embers. */
+  /** Day dimming ?flames stay visible, their light fades to embers. */
   private dayFactor = 1;
 
   /**
@@ -117,7 +117,7 @@ export class Fires {
     const outer = new THREE.Sprite(matOuter);
     outer.scale.set(1.0, 1.25, 1);
 
-    // flat additive halo on the ground — sprites would read edge-on from the
+    // flat additive halo on the ground ?sprites would read edge-on from the
     // menu's high orbit camera, so a horizontal plane is used instead
     const halo = new THREE.Mesh(
       new THREE.PlaneGeometry(3.4 * scale, 3.4 * scale),

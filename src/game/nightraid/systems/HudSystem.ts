@@ -4,9 +4,35 @@
  */
 import { CONFIG } from '../../../config';
 import type { System } from '../../../engine/types';
+import type { MapContact } from '../../../blocks/ui/TacticalMap';
 import type { Game } from '../game';
 
 type HudFrame = Game['hudFrame'];
+
+/** Adapt a game Enemy / net ghost into a flat tactical-map contact. */
+function toContacts(
+  list: Array<{
+    alive: boolean;
+    side: string;
+    downed: boolean;
+    classKey: string;
+    lastShot: number;
+    body: { translation(): { x: number; y: number; z: number } };
+  }>
+): MapContact[] {
+  return list.map((e) => {
+    const t = e.body.translation();
+    return {
+      x: t.x,
+      z: t.z,
+      team: e.side === 'ally' ? 'ally' : 'hostile',
+      alive: e.alive,
+      downed: e.downed,
+      classKey: e.classKey,
+      lastShot: e.lastShot,
+    };
+  });
+}
 
 export class HudSystem implements System {
   readonly name = 'nightraid.hud';
@@ -28,7 +54,7 @@ export class HudSystem implements System {
         frame.playerPos.x,
         frame.playerPos.z,
         frame.playerYaw,
-        frame.enemyTargets(),
+        toContacts(frame.enemyTargets()),
         frame.map.obstacles,
         CONFIG.map.half,
         frame.barrelBlips(),
@@ -57,7 +83,7 @@ export class HudSystem implements System {
         frame.playerPos.x,
         frame.playerPos.z,
         frame.playerYaw,
-        frame.soldiers(),
+        toContacts(frame.soldiers()),
         frame.map.obstacles,
         CONFIG.map.half,
         frame.ammoDumps,

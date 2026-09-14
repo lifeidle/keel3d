@@ -1,4 +1,4 @@
-﻿// Procedural night-map generator: seeded (reproducible via ?seed=), disposal-safe
+// Procedural night-map generator: seeded (reproducible via ?seed=), disposal-safe
 // (clear + regenerate for a fresh random battlefield each operation).
 //
 // Terrain first: every prop sits on terrain.heightAt(), so nothing floats or
@@ -10,14 +10,14 @@ import { CONFIG } from '../config';
 import { PhysicsWorld } from '../physics/world';
 import { Audio } from '../game/nightraid/audio/audio';
 import { Terrain } from './terrain';
-import { Destructibles } from '../game/nightraid/world/destructibles';
-import { Fires } from '../game/nightraid/world/fires';
-import { Plumes } from '../game/nightraid/world/plumes';
+import { DestructibleCover } from '../blocks/props/DestructibleCover';
+import { FireSites } from '../blocks/fx/FireSites';
+import { SmokeColumns } from '../blocks/fx/SmokeColumns';
 import { placeHamlet } from '../game/nightraid/world/hamlet';
-import { Vegetation } from '../game/nightraid/world/vegetation';
-import { pickWeather } from '../game/nightraid/world/weather';
+import { Vegetation } from '../blocks/scene/Vegetation';
+import { pickWeather } from '../blocks/scene/Weather';
 import { placeTankHulk,
-  placeJeep,
+  placeScoutWreck,
   placePlaneWreck,
   placeFenceRow,
   placeMgNest,
@@ -30,13 +30,13 @@ import { placeTankHulk,
   placeUtilityPole,
   placeAmmoDump,
   placeSignpost,
-} from '../game/nightraid/world/vehicles';
+} from '../blocks/props/VehicleHulk';
 import { opScale } from './scale';
 import { QUALITY, type Quality } from './quality';
-import { CampBanners } from '../game/nightraid/world/banners';
-import { Searchlight } from '../game/nightraid/world/searchlight';
+import { ClothFlags } from '../blocks/props/ClothFlags';
+import { Searchlight } from '../blocks/props/Searchlight';
 import { concreteTexture, sandbagTexture, scorchTexture, rutTexture } from './textures';
-import { upgrade, prefetchHD, type HDName } from '../game/nightraid/world/phototex';
+import { upgrade, prefetchHD, type HDName } from '../blocks/assets/PhotoTex';
 import { mulberry32 } from '../util/rng';
 
 /** Obstacle footprint shared with the minimap. */
@@ -54,9 +54,9 @@ export interface GeneratedMap {
   spawnPoints: THREE.Vector3[]; // enemy spawn points, clear of obstacles
   obstacles: MapObstacle[]; // footprints for the tactical minimap
   terrain: Terrain;
-  destructibles: Destructibles;
-  fires: Fires; // ambient flicker lights (cosmetic, no colliders)
-  plumes: Plumes; // rising smoke columns (cosmetic, no colliders)
+  destructibles: DestructibleCover;
+  fires: FireSites; // ambient flicker lights (cosmetic, no colliders)
+  plumes: SmokeColumns; // rising smoke columns (cosmetic, no colliders)
   /** night-only glows to dim when the sun is up (windows, lanterns) */
   dayNight?: (day: boolean) => void;
   /** per-frame scenery animation (banners, searchlights— */
@@ -134,7 +134,10 @@ export function generateMap(
   terrain.buildCollider(physics);
 
   // --- destructible wooden cover ---
-  const destructibles = new Destructibles(scene, physics, audio, rand);
+  const destructibles = new DestructibleCover(scene, physics, rand, {
+    sfx: { playWoodCrack: () => audio.playWoodCrack() },
+    upgradeMaterial: (m, n, r, s) => upgrade(m, n as HDName, r ?? 1, s ?? 0.85),
+  });
 
   /**
    * Add a static box sitting ON the terrain.
@@ -291,7 +294,7 @@ export function generateMap(
   }
 
   // --- ambient fires: cosmetic flicker light + flame scenery (no collider) ---
-  const fires = new Fires();
+  const fires = new FireSites();
   for (let i = 0; i < CONFIG.fires.count; i++) {
     const x = (rand() * 2 - 1) * (spread - 12);
     const z = (rand() * 2 - 1) * (spread - 12);
@@ -533,7 +536,7 @@ export function generateMap(
   }
 
   // --- smoke columns: hamlets smoulder, plus a few scattered burn sites ---
-  const plumes = new Plumes();
+  const plumes = new SmokeColumns();
   group.add(plumes.group);
   const dayHooks: Array<(day: boolean) => void> = [];
   const dynHooks: Array<(dt: number) => void> = []; // per-frame scenery anims
@@ -623,7 +626,7 @@ export function generateMap(
     colliders.push(...h.colliders);
   }
   for (const [x, z] of vehicleSpots(CONFIG.map.jeeps, 2, 1.4, 2.3)) {
-    const h = placeJeep(group, physics, terrain, rand, x, z);
+    const h = placeScoutWreck(group, physics, terrain, rand, x, z);
     colliders.push(...h.colliders);
   }
   for (const [x, z] of vehicleSpots(CONFIG.map.fences, 1, 1.4, 5.5)) {
@@ -718,7 +721,7 @@ export function generateMap(
 
   // --- camp banners: animated cloth flags (hostile red / friendly green).
   // Materials stay exposed so the game can flip the hostile flag on capture.
-  const banners = new CampBanners(terrain, { x: campCX, z: campCZ }, { x: baseX, z: baseZ });
+  const banners = new ClothFlags(terrain, { x: campCX, z: campCZ }, { x: baseX, z: baseZ });
   group.add(banners.group);
   dynHooks.push((dt) => banners.update(dt));
   const hostileFlagMat = banners.mats.hostile;

@@ -1,21 +1,34 @@
-﻿// Static battlefield vehicles + wire + MG nests (G package ???scenery layer).
+// Static battlefield vehicle hulks + wire + MG nests (scenery layer).
 //
-// Geometry ports of the V5 reference build's procedural vehicles (box/cylinder
-// assembly, same visual DNA as our gunmodels) but frozen as *static props*:
-// hulks make great low-slung hard cover, none of them move, drive or shoot,
-// and they add ZERO lights. Colliders are single low boxes so AI that beelines
-// at the player slides around them the same way it does walls.
+// Procedural box/cylinder assembly frozen as *static props*: hulks make great
+// low-slung hard cover, none of them move, drive or shoot, and they add ZERO
+// lights. Colliders are single low boxes so AI that beelines at the player
+// slides around them the same way it does walls.
 //
 // Transform scheme: each prop's own Group carries the yaw rotation, so child
 // meshes are authored in clean local coordinates and can freely rotate around
-// their own axes (drooped guns, planted wings???. Colliders are static boxes ???
-// Rapier ones can't rotate here ???so every collider centre is hand-rotated by
+// their own axes (drooped guns, planted wings). Colliders are static boxes —
+// Rapier ones can't rotate here — so every collider centre is hand-rotated by
 // yawOf() and the half-extents swapped when the yaw is an odd quarter turn.
+//
+// Block-layer: no game/ imports. Physics and terrain are injected as minimal
+// structural surfaces (satisfied by PhysicsWorld / Terrain).
 import * as THREE from 'three';
 import RAPIER from '@dimforge/rapier3d';
-import { PhysicsWorld } from '../../../physics/world';
-import { Terrain } from '../../../world/terrain';
-import { Plumes } from '../world/plumes';
+import type { SmokeColumns } from '../fx/SmokeColumns';
+
+/** Injected static-physics surface (satisfied by PhysicsWorld). */
+export interface HulkPhysics {
+  addStaticBox(
+    pos: { x: number; y: number; z: number },
+    half: { x: number; y: number; z: number }
+  ): RAPIER.Collider;
+}
+
+/** Injected terrain sampler (satisfied by Terrain). */
+export interface HulkTerrain {
+  heightAt(x: number, z: number): number;
+}
 
 export interface PropHandles {
   colliders: RAPIER.Collider[];
@@ -32,8 +45,8 @@ function yawOf(x: number, z: number, yaw: number): [number, number] {
 }
 
 interface Base {
-  physics: PhysicsWorld;
-  terrain: Terrain;
+  physics: HulkPhysics;
+  terrain: HulkTerrain;
   rand: () => number;
   cx: number;
   cz: number;
@@ -44,7 +57,7 @@ interface Base {
 }
 
 function makeBase(
-  g: THREE.Group, physics: PhysicsWorld, terrain: Terrain, rand: () => number,
+  g: THREE.Group, physics: HulkPhysics, terrain: HulkTerrain, rand: () => number,
   cx: number, cz: number
 ): Base {
   const yaw = snapYaw(rand);
@@ -128,8 +141,8 @@ function hitBox(
 // Port of V5 buildTank, frozen (turret left at a random traverse).
 // ---------------------------------------------------------------------------
 export function placeTankHulk(
-  g: THREE.Group, physics: PhysicsWorld, terrain: Terrain, rand: () => number,
-  plumes: Plumes, cx: number, cz: number, burnt = false
+  g: THREE.Group, physics: HulkPhysics, terrain: HulkTerrain, rand: () => number,
+  plumes: SmokeColumns, cx: number, cz: number, burnt = false
 ): PropHandles {
   const b = makeBase(g, physics, terrain, rand, cx, cz);
   const camo = burnt ? 0x33322c : 0x4e5a42;
@@ -187,10 +200,10 @@ export function placeTankHulk(
 }
 
 // ---------------------------------------------------------------------------
-// Abandoned scout jeep ???small mobile-looking cover, wrecked or clean.
+// Abandoned scout car — small mobile-looking cover, wrecked or clean.
 // ---------------------------------------------------------------------------
-export function placeJeep(
-  g: THREE.Group, physics: PhysicsWorld, terrain: Terrain, rand: () => number,
+export function placeScoutWreck(
+  g: THREE.Group, physics: HulkPhysics, terrain: HulkTerrain, rand: () => number,
   cx: number, cz: number
 ): PropHandles {
   const b = makeBase(g, physics, terrain, rand, cx, cz);
@@ -216,8 +229,8 @@ export function placeJeep(
 // Crashed aircraft: snapped fuselage, planted wing, tail ???with smoke.
 // ---------------------------------------------------------------------------
 export function placePlaneWreck(
-  g: THREE.Group, physics: PhysicsWorld, terrain: Terrain, rand: () => number,
-  plumes: Plumes, cx: number, cz: number
+  g: THREE.Group, physics: HulkPhysics, terrain: HulkTerrain, rand: () => number,
+  plumes: SmokeColumns, cx: number, cz: number
 ): PropHandles {
   const b = makeBase(g, physics, terrain, rand, cx, cz);
   const skin = 0x3d4044;
@@ -249,7 +262,7 @@ export function placePlaneWreck(
 // are thin visuals a bullet can pass ???reads right at night, cheap.
 // ---------------------------------------------------------------------------
 export function placeFenceRow(
-  g: THREE.Group, physics: PhysicsWorld, terrain: Terrain, rand: () => number,
+  g: THREE.Group, physics: HulkPhysics, terrain: HulkTerrain, rand: () => number,
   cx: number, cz: number
 ): PropHandles {
   const b = makeBase(g, physics, terrain, rand, cx, cz);
@@ -270,7 +283,7 @@ export function placeFenceRow(
 // Scenery only (no operable gun), sits flush with the terrain.
 // ---------------------------------------------------------------------------
 export function placeMgNest(
-  g: THREE.Group, physics: PhysicsWorld, terrain: Terrain, rand: () => number,
+  g: THREE.Group, physics: HulkPhysics, terrain: HulkTerrain, rand: () => number,
   cx: number, cz: number
 ): PropHandles {
   const b = makeBase(g, physics, terrain, rand, cx, cz);
@@ -298,7 +311,7 @@ export function placeMgNest(
 // Abandoned cargo truck ???canvas cover or open flatbed, sometimes burnt.
 // ---------------------------------------------------------------------------
 export function placeTruck(
-  g: THREE.Group, physics: PhysicsWorld, terrain: Terrain, rand: () => number,
+  g: THREE.Group, physics: HulkPhysics, terrain: HulkTerrain, rand: () => number,
   cx: number, cz: number
 ): PropHandles {
   const b = makeBase(g, physics, terrain, rand, cx, cz);
@@ -340,7 +353,7 @@ export function placeTruck(
 // Abandoned fuel tanker ???the long cylinder silhouette reads instantly.
 // ---------------------------------------------------------------------------
 export function placeOilTanker(
-  g: THREE.Group, physics: PhysicsWorld, terrain: Terrain, rand: () => number,
+  g: THREE.Group, physics: HulkPhysics, terrain: HulkTerrain, rand: () => number,
   cx: number, cz: number
 ): PropHandles {
   const b = makeBase(g, physics, terrain, rand, cx, cz);
@@ -386,7 +399,7 @@ export function placeOilTanker(
 // player side. Solid hard cover with a distinctive skyline lump.
 // ---------------------------------------------------------------------------
 export function placeBunker(
-  g: THREE.Group, physics: PhysicsWorld, terrain: Terrain, rand: () => number,
+  g: THREE.Group, physics: HulkPhysics, terrain: HulkTerrain, rand: () => number,
   cx: number, cz: number
 ): PropHandles {
   const b = makeBase(g, physics, terrain, rand, cx, cz);
@@ -421,7 +434,7 @@ export function placeBunker(
 // Concertina razor wire: a row of flat coil loops between wooden posts.
 // ---------------------------------------------------------------------------
 export function placeConcertina(
-  g: THREE.Group, physics: PhysicsWorld, terrain: Terrain, rand: () => number,
+  g: THREE.Group, physics: HulkPhysics, terrain: HulkTerrain, rand: () => number,
   cx: number, cz: number
 ): PropHandles {
   const b = makeBase(g, physics, terrain, rand, cx, cz);
@@ -461,7 +474,7 @@ export function placeConcertina(
 // ???blocks vehicles and reads instantly as "front line".
 // ---------------------------------------------------------------------------
 export function placeHedgehog(
-  g: THREE.Group, physics: PhysicsWorld, terrain: Terrain, rand: () => number,
+  g: THREE.Group, physics: HulkPhysics, terrain: HulkTerrain, rand: () => number,
   cx: number, cz: number
 ): PropHandles {
   const b = makeBase(g, physics, terrain, rand, cx, cz);
@@ -480,7 +493,7 @@ export function placeHedgehog(
 // Sits next to hamlets ???pure rubble cover.
 // ---------------------------------------------------------------------------
 export function placeRuinWall(
-  g: THREE.Group, physics: PhysicsWorld, terrain: Terrain, rand: () => number,
+  g: THREE.Group, physics: HulkPhysics, terrain: HulkTerrain, rand: () => number,
   cx: number, cz: number
 ): PropHandles {
   const b = makeBase(g, physics, terrain, rand, cx, cz);
@@ -508,7 +521,7 @@ export function placeRuinWall(
 // silhouette bait ???reads beautifully against the night sky.
 // ---------------------------------------------------------------------------
 export function placeUtilityPole(
-  g: THREE.Group, physics: PhysicsWorld, terrain: Terrain, rand: () => number,
+  g: THREE.Group, physics: HulkPhysics, terrain: HulkTerrain, rand: () => number,
   cx: number, cz: number
 ): PropHandles {
   const b = makeBase(g, physics, terrain, rand, cx, cz);
@@ -537,7 +550,7 @@ export function placeUtilityPole(
 // Ammo dump: stacked crates + belt boxes ???a small landmark that also blocks.
 // ---------------------------------------------------------------------------
 export function placeAmmoDump(
-  g: THREE.Group, physics: PhysicsWorld, terrain: Terrain, rand: () => number,
+  g: THREE.Group, physics: HulkPhysics, terrain: HulkTerrain, rand: () => number,
   cx: number, cz: number
 ): PropHandles {
   const b = makeBase(g, physics, terrain, rand, cx, cz);
@@ -559,7 +572,7 @@ export function placeAmmoDump(
 // Wooden signpost: a post, an arrow plate and a small plate ???waymark filler.
 // ---------------------------------------------------------------------------
 export function placeSignpost(
-  g: THREE.Group, physics: PhysicsWorld, terrain: Terrain, rand: () => number,
+  g: THREE.Group, physics: HulkPhysics, terrain: HulkTerrain, rand: () => number,
   cx: number, cz: number
 ): PropHandles {
   const b = makeBase(g, physics, terrain, rand, cx, cz);

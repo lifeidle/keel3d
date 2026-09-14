@@ -6,7 +6,7 @@
 // pure scenery and must never block a shot or a soldier's path.
 
 import * as THREE from 'three';
-import { Quality } from '../../../world/quality';
+import { Quality } from '../../world/quality';
 
 /**
  * Per-quality budgets: [grass patches, tufts per patch, blades per tuft, bushes].

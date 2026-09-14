@@ -5,7 +5,7 @@
 import { CONFIG } from '../../../config';
 import { t } from '../../../i18n';
 import type { System, EngineWorld } from '../../../engine/types';
-import { Jeep } from '../world/jeep';
+import { WheeledVehicle } from '../../../blocks/vehicles/WheeledVehicle';
 import type { Game } from '../game';
 
 export class VehicleSystem implements System {
@@ -38,7 +38,7 @@ export class VehicleSystem implements System {
     const tp = driving.pos;
     v.player.pos.set(tp.x, tp.y + 0.2, tp.z);
     // engine drone follows the throttle
-    const maxV = driving instanceof Jeep ? CONFIG.jeep.maxSpeed : CONFIG.tank.maxSpeed;
+    const maxV = driving instanceof WheeledVehicle ? CONFIG.jeep.maxSpeed : CONFIG.tank.maxSpeed;
     v.audio.setEnginePitch(Math.abs(driving.speed) / maxV);
     // off-road rattle: random mechanical clunks past walking pace
     if (Math.abs(driving.speed) > 3) {
@@ -53,8 +53,8 @@ export class VehicleSystem implements System {
     // hull HP drives the health bar while driving (armour readout)
     v.hud.setHealth(driving.hp, driving.maxHp);
     v.hud.setHealthLabel(t('hud.armor'));
-    // jeep: the pintle MG belt takes over the ammo readout
-    if (driving instanceof Jeep) {
+    // wheeled: the pintle MG belt takes over the ammo readout
+    if (driving instanceof WheeledVehicle) {
       v.hud.setAmmo(driving.mgAmmo, 0, driving.mgReloadT > 0);
     }
     v.enemies.update(dt, v.player, v.onPlayerDamage);

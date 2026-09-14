@@ -3,7 +3,7 @@
 // The choice is made on the main menu, persisted to localStorage, and applied
 // live so the menu backdrop itself changes while you pick.
 import * as THREE from 'three';
-import type { Engine } from '../../../engine/renderer';
+import type { Engine } from '../../engine/renderer';
 
 export type TimeMode = 'night' | 'day';
 

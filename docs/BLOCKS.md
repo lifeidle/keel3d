@@ -166,3 +166,17 @@ gems.update(player.x, player.z);
 | **rally** | Path · TriggerZone · BestScoreSlot · Scoreboard · **HudPanel** · **Toast** |
 
 **粗体** = 本轮新接线。`SfxPlayer` 需 `AudioEngine`（配方无引擎句柄，暂不接）；`GridAStar` 当前无配方调用（地牢敌人是定点 Boss，无需寻路）；`ChunkWorld`/`MapBuilder`/`TerrainBuilder` 由 demo 骨架（openworld/template）使用。
+
+## 自 nightraid 上移的积木
+
+| 路径 | 模块 | 用途 |
+|---|---|---|
+| `blocks/fx/` | `ShellCasings` · `SmokeColumns` · `FireSites` · `CombatVfx` | 弹壳 · 烟柱 · 篝火 · 战斗特效 |
+| `blocks/props/` | `Searchlight` · `ClothFlags` · `DestructibleCover` · `ExplosiveBarrel` · `VehicleHulk` | 探照灯 · 旗 · 木箱 · 油桶 · 残骸 |
+| `blocks/scene/` | `TimeOfDay` · `Weather` · `Vegetation` | 昼夜 · 天气 · 植被 |
+| `blocks/assets/` | `PhotoTex` | HD 贴图异步升级 |
+| `blocks/audio/` | `SampleBank` · `ScoreDirector` | 样本库播放 · 情绪配乐 |
+| `blocks/vehicles/` | `WheeledVehicle` · `TrackedVehicle` | 轮式/履带载具 |
+| `blocks/ui/` | `TacticalMap` | 罗盘 + 战术小地图 |
+
+nightraid 只保留战役内容：`game.ts` · `enemy` · `player` · `SoldierFactory` · `mission` · `hamlet` · `gunmodels` · `hud` · `systems/*` · 薄 `audio/music` 包装（BANK 表仍在样例）。

@@ -1,9 +1,21 @@
 // Transient visual effects: tracers, muzzle flashes, impact sparks, explosions.
 // Hot path is pooled: shared geometries, per-slot materials (so opacity fades
 // stay independent), recycle instead of new/dispose.
+//
+// Block-layer: no game/ or config imports. Tracer/muzzle colours are injected
+// via opts with defaults matching the sample CONFIG palette.
 import * as THREE from 'three';
-import { CONFIG } from '../../config';
 import { bulletHoleTexture } from '../../world/textures';
+
+export interface CombatVfxOpts {
+  /** Tracer line colour. Default 0xfff2a8 (matches CONFIG.colors.tracer). */
+  tracerColor?: number;
+  /** Muzzle-flash colour. Default 0xffd27f (matches CONFIG.colors.muzzle). */
+  muzzleColor?: number;
+}
+
+const DEFAULT_TRACER = 0xfff2a8;
+const DEFAULT_MUZZLE = 0xffd27f;
 
 interface Effect {
   obj: THREE.Object3D;
@@ -26,12 +38,6 @@ const DUST_GEO = new THREE.SphereGeometry(0.06, 5, 4);
 const BOOM_GEO = new THREE.SphereGeometry(0.6, 12, 10);
 const SMOKE_GEO = new THREE.SphereGeometry(0.55, 8, 6);
 
-function tracerMat() {
-  return new THREE.LineBasicMaterial({ color: CONFIG.colors.tracer, transparent: true, opacity: 1 });
-}
-function flashMat() {
-  return new THREE.MeshBasicMaterial({ color: CONFIG.colors.muzzle, transparent: true, opacity: 0.9 });
-}
 function sparkMat(color: number) {
   return new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 1 });
 }
@@ -55,7 +61,7 @@ function smokeMat() {
   });
 }
 
-export class Effects {
+export class CombatVfx {
   group = new THREE.Group();
   private list: Effect[] = [];
   private decals: THREE.Mesh[] = [];
@@ -70,8 +76,13 @@ export class Effects {
   private dustPool: THREE.Mesh[] = [];
   private boomPool: THREE.Mesh[] = [];
 
-  constructor() {
-    this.flashLight = new THREE.PointLight(CONFIG.colors.muzzle, 0, 12, 2);
+  private tracerColor: number;
+  private muzzleColor: number;
+
+  constructor(opts: CombatVfxOpts = {}) {
+    this.tracerColor = opts.tracerColor ?? DEFAULT_TRACER;
+    this.muzzleColor = opts.muzzleColor ?? DEFAULT_MUZZLE;
+    this.flashLight = new THREE.PointLight(this.muzzleColor, 0, 12, 2);
     this.group.add(this.flashLight);
     for (let i = 0; i < 4; i++) {
       const l = new THREE.PointLight(0xffb060, 0, 24, 2);
@@ -90,10 +101,26 @@ export class Effects {
     return free;
   }
 
+  private tracerMat() {
+    return new THREE.LineBasicMaterial({
+      color: this.tracerColor,
+      transparent: true,
+      opacity: 1,
+    });
+  }
+
+  private flashMat() {
+    return new THREE.MeshBasicMaterial({
+      color: this.muzzleColor,
+      transparent: true,
+      opacity: 0.9,
+    });
+  }
+
   private takeTracer(): THREE.Line {
     const l = this.tracerPool.pop();
     if (l) return l;
-    const line = new THREE.Line(TRACER_GEO, tracerMat());
+    const line = new THREE.Line(TRACER_GEO, this.tracerMat());
     line.frustumCulled = false;
     return line;
   }
@@ -101,7 +128,7 @@ export class Effects {
   private takeFlash(): THREE.Mesh {
     const m = this.flashPool.pop();
     if (m) return m;
-    return new THREE.Mesh(FLASH_GEO, flashMat());
+    return new THREE.Mesh(FLASH_GEO, this.flashMat());
   }
 
   /** Sparks share two colour slots; material is owned by the mesh. */

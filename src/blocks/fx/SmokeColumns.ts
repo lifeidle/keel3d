@@ -49,7 +49,7 @@ function smokeTexture(): THREE.Texture {
   return (_smokeTex = t);
 }
 
-export class Plumes {
+export class SmokeColumns {
   group = new THREE.Group();
   private cols: Column[] = [];
 

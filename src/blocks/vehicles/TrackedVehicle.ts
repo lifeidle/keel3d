@@ -1,43 +1,74 @@
-// Armoured tanks ???the H package's driveable layer.
+// Driveable tracked armour — one class powers both the player's driveable
+// vehicle and the enemy AI vehicle that hunts the player. Movement follows
+// the infantry pattern (dynamic Rapier body + gravity sits it on the terrain,
+// rotations locked, we steer the visual yaw ourselves), so it can never flip
+// over and it slides around walls exactly like infantry do.
 //
-// One class powers BOTH tanks: the player's driveable main battle tank and the
-// enemy AI tank that hunts the player. Movement follows the same pattern the
-// enemies already use (dynamic Rapier body + gravity sits it on the terrain,
-// rotations locked, we steer the visual yaw ourselves), so a tank can never
-// flip over and it slides around walls exactly like infantry do.
-//
-// The collider is a vertical cylinder (radius ???hull) because the body's
-// rotation is locked ???a cylinder is symmetric, so bumping geometry never
+// The collider is a vertical cylinder (radius ≈ hull) because the body's
+// rotation is locked — a cylinder is symmetric, so bumping geometry never
 // depends on which way the hull happens to point.
+//
+// Block-layer: no game/ imports. Enemy/Audio surfaces are injected via hooks;
+// CombatVfx comes from the fx block.
 import * as THREE from 'three';
 import RAPIER from '@dimforge/rapier3d';
-import { CONFIG } from '../../../config';
-import { PhysicsWorld, type Vec3 } from '../../../physics/world';
-import { Terrain } from '../../../world/terrain';
-import { createGltfLoader, modelUrl } from '../../../engine/assets/gltf';
-import { Effects } from '../effects';
-import { Audio } from '../audio/audio';
-import type { Enemy } from '../ai/enemy';
+import { CONFIG } from '../../config';
+import type { PhysicsWorld } from '../../physics/world';
+import type { CombatVfx } from '../fx/CombatVfx';
 
-export interface TankHooks {
-  effects: Effects;
-  audio: Audio;
+/** Injected audio surface (satisfied by the game Audio class). */
+export interface VehicleAudio {
+  playExplosion(): void;
+  playReload(): void;
+  playJeepMG(): void;
+  playCannon(near?: boolean): void;
+  playTankReload(): void;
+  playTurret(): void;
+}
+
+/**
+ * Minimal infantry shape the vehicles need. Structurally satisfied by the
+ * game's Enemy class; keeps this block free of game/ai imports.
+ */
+export interface VehicleTarget {
+  alive: boolean;
+  body: { translation(): { x: number; y: number; z: number } };
+  damage(dmg: number, point: THREE.Vector3, dir: THREE.Vector3): unknown;
+}
+
+/**
+ * Looser shape accepted by getEnemies — net ghosts may lack `damage`;
+ * hits also resolve via collider userData at runtime.
+ */
+export interface VehicleScanTarget {
+  alive: boolean;
+  body: { translation(): { x: number; y: number; z: number } };
+}
+
+/** Injected terrain sampler (satisfied by Terrain). */
+export interface VehicleTerrain {
+  heightAt(x: number, z: number): number;
+}
+
+export interface VehicleHooks {
+  effects: CombatVfx;
+  audio: VehicleAudio;
   physics: PhysicsWorld;
-  terrain: Terrain;
-  /** All living infantry enemies (shells + crush + blast damage them). */
-  getEnemies: () => unknown[] // hits resolve via collider userData;
+  terrain: VehicleTerrain;
+  /** All living infantry targets (shells + crush + blast damage them). */
+  getEnemies: () => VehicleScanTarget[];
   /**
    * Damage aimed at the PLAYER (AI shells). The game routes it: while driving,
-   * it hits the player tank's hull instead of the driver.
+   * it hits the player vehicle's hull instead of the driver.
    */
   damagePlayer: (d: number, source?: { x: number; z: number }) => void;
-  /** Called when ANY tank is destroyed. `player` true if the player was inside. */
-  onTankDestroyed: (t: Tank, playerInside: boolean) => void;
+  /** Called when ANY tracked vehicle is destroyed. `player` true if the player was inside. */
+  onTrackedDestroyed: (t: TrackedVehicle, playerInside: boolean) => void;
   /** Muzzle flash light at the gun's world position (pooled in the game). */
   muzzleFlash?: (pos: THREE.Vector3, radius: number, strength: number) => void;
-  /** Jeep-specific: fired when the driveable scout jeep is destroyed. */
-  onJeepDestroyed?: () => void;
-  /** Camera shake hook (jeep MG recoil routes into the game's trauma pool). */
+  /** Wheeled-vehicle specific: fired when the driveable scout car is destroyed. */
+  onWheeledDestroyed?: () => void;
+  /** Camera shake hook (scout MG recoil routes into the game's trauma pool). */
   addShake?: (amount: number) => void;
 }
 
@@ -60,11 +91,11 @@ function clampApproach(v: number, target: number, delta: number): number {
 }
 
 /**
- * Build the tank hull visuals (port of the V5 reference tank, refactored so
- * the turret + cannon stay addressable for aiming). Group origin = ground
- * under the hull centre, +Y up, gun faces -Z at yaw 0.
+ * Build the tracked hull visuals, refactored so the turret + cannon stay
+ * addressable for aiming. Group origin = ground under the hull centre,
+ * +Y up, gun faces -Z at yaw 0.
  */
-export function buildTankRig(burnt = false): {
+export function buildTrackedRig(burnt = false): {
   group: THREE.Group;
   turret: THREE.Group;
   cannon: THREE.Group;
@@ -138,20 +169,13 @@ export function buildTankRig(burnt = false): {
   return { group, turret, cannon, muzzle };
 }
 
-export class Tank {
+export class TrackedVehicle {
   body: RAPIER.RigidBody;
   readonly hull: RAPIER.Collider;
   group: THREE.Group;
   private turret: THREE.Group;
   private cannon: THREE.Group;
   private muzzle: THREE.Object3D;
-  // GLB cosmetic layer (Quaternius Tank.glb): visual-only, driven by the
-  // procedural rig's transforms. Nodes: Tank_Turret / Tank_Gun / armature.
-  private glbTurret: THREE.Object3D | null = null;
-  private glbGun: THREE.Object3D | null = null;
-  private glbMixer: THREE.AnimationMixer | null = null;
-  private glbActions: Record<string, THREE.AnimationAction> = {};
-  private glbCurrentClip = '';
 
   // world state
   yaw = 0; // hull heading
@@ -161,25 +185,25 @@ export class Tank {
   hp: number;
   readonly maxHp: number;
   alive = true;
-  /** True when the human is driving this tank. */
+  /** True when the human is driving this vehicle. */
   driver = false;
-  /** True when this is the enemy AI tank (hunts the player). */
+  /** True when this is the enemy AI vehicle (hunts the player). */
   ai = false;
-  private aiSight = 65; // m ???engages when the player is inside this
-  private aiPreferred = 30; // m ???stops closing in at this range
+  private aiSight = 65; // m — engages when the player is inside this
+  private aiPreferred = 30; // m — stops closing in at this range
   private aiFireCd = 0;
   private aiIdleT = 0;
   private fireCd = 0; // reload countdown after each shot
   private shellCd = 0; // brief delay before the round leaves (muzzle "lift")
   private pendingShell: { dir: THREE.Vector3 } | null = null;
   private clankT = 0; // turret-traverse sound throttle
-  private crushed = new Set<Enemy>(); // enemies run over recently
+  private crushed = new Set<VehicleTarget>(); // infantry run over recently
 
   private shells: ShellRec[] = [];
   private shellsGroup = new THREE.Group();
 
   constructor(
-    private hooks: TankHooks,
+    private hooks: VehicleHooks,
     x: number,
     z: number,
     yaw: number,
@@ -193,7 +217,7 @@ export class Tank {
     const gy = hooks.terrain.heightAt(x, z);
 
     // collision: a short cylinder (rotation locked, so a symmetric shape).
-    // Spawn with the cylinder's BOTTOM on the ground so the tank reads as
+    // Spawn with the cylinder's BOTTOM on the ground so the vehicle reads as
     // sitting even before the first physics step (menu orbit camera sees it).
     this.body = hooks.physics.world.createRigidBody(
       RAPIER.RigidBodyDesc.dynamic()
@@ -208,9 +232,9 @@ export class Tank {
         .setDensity(3),
       this.body
     );
-    this.body.userData = { type: 'tank', tank: this };
+    this.body.userData = { type: 'tracked', tracked: this };
 
-    const rig = buildTankRig(this.ai);
+    const rig = buildTrackedRig(this.ai);
     this.group = rig.group;
     this.turret = rig.turret;
     this.cannon = rig.cannon;
@@ -219,39 +243,9 @@ export class Tank {
     this.group.rotation.y = yaw;
   }
 
-  /** Scene attachment ???the physics wrapper has no scene, so TankManager adds. */
+  /** Scene attachment — the physics wrapper has no scene, so the host adds. */
   attach(scene: THREE.Scene) {
     scene.add(this.group);
-    // cosmetic GLB tank ???SHELVED (user decision 2026-09-08): the procedural
-    // low-poly rig is the canonical look. Flip to true to restore the skin.
-    const USE_GLB_TANK = false;
-    if (USE_GLB_TANK) {
-      createGltfLoader().load(modelUrl('tank.glb'), (gltf) => {
-        const root = gltf.scene;
-        root.scale.setScalar(0.4);
-        root.traverse((o) => {
-          const m = o as THREE.Mesh;
-          if (m.isMesh) { m.castShadow = true; m.receiveShadow = true; }
-        });
-        // Quaternius tank models face +X; the logic rig faces -Z ???rotate +90°
-        root.rotation.y = -Math.PI / 2;
-        this.glbTurret = root.getObjectByName('Tank_Turret') ?? null;
-        this.glbGun = root.getObjectByName('Tank_Gun') ?? null;
-        this.glbMixer = new THREE.AnimationMixer(root);
-        for (const clip of gltf.animations) {
-          this.glbActions[clip.name.split('|').pop() ?? clip.name] = this.glbMixer.clipAction(clip);
-        }
-        this.group.add(root);
-        // hide ALL procedural meshes (deep traverse, any depth) but keep the
-        // GLB subtree visible ???the old turret/cannon are Groups, not Meshes,
-        // so a shallow children loop missed them
-        const glbSet = new Set<THREE.Object3D>();
-        root.traverse((o) => glbSet.add(o));
-        this.group.traverse((o) => {
-          if ((o as THREE.Mesh).isMesh && !glbSet.has(o)) o.visible = false;
-        });
-      }, undefined, () => { /* load failed: procedural look stays */ });
-    }
     scene.add(this.shellsGroup);
   }
 
@@ -284,7 +278,7 @@ export class Tank {
     }
   }
 
-  /** Blast/HEAT hit: tanks take the full punch (unlike bullets). */
+  /** Blast/HEAT hit: armour takes the full punch (unlike bullets). */
   blastHit(amount: number) {
     this.damage(amount);
   }
@@ -304,7 +298,7 @@ export class Tank {
         if (mat && mat.color) mat.color.setHex(0x141412);
       }
     });
-    this.hooks.onTankDestroyed(this, this.driver);
+    this.hooks.onTrackedDestroyed(this, this.driver);
     // smoke column over the wreck (managed by the caller via plumes)
   }
 
@@ -341,7 +335,7 @@ export class Tank {
     });
   }
 
-  /** Advance shells. Returns kills scored by this tank this frame. */
+  /** Advance shells. Returns kills scored by this vehicle this frame. */
   private updateShells(dt: number): number {
     const T = CONFIG.tank;
     let kills = 0;
@@ -363,20 +357,20 @@ export class Tank {
         impact = new THREE.Vector3(hit.point.x, hit.point.y, hit.point.z);
         const ud = (hit.collider.parent()?.userData ?? {}) as any;
         if (ud.type === 'enemy' && ud.enemy?.alive) {
-          const e = ud.enemy;
+          const e = ud.enemy as VehicleTarget;
           const was = e.alive;
           e.damage(T.shellDamage, impact.clone(), s.dir);
           if (was && !e.alive) kills++;
-        } else if (ud.type === 'tank' && ud.tank && ud.tank !== this) {
+        } else if (ud.type === 'tracked' && ud.tracked && ud.tracked !== this) {
           // HEAT round vs armour: multiply the splash damage against hulls
-          ud.tank.blastHit(T.shellDamage * 2.2);
+          (ud.tracked as TrackedVehicle).blastHit(T.shellDamage * 2.2);
         } else if (ud.type === 'barrel' && ud.barrel) {
           ud.barrel.hit(9999); // detonate on a direct shell hit
         } else if (ud.type === 'crate' && ud.rec) {
           ud.rec.hit(T.shellDamage);
         }
       } else {
-        // nothing in the step ???fly on, or fizzle at max range
+        // nothing in the step — fly on, or fizzle at max range
         if (s.life <= 0) impact = next.clone();
       }
 
@@ -399,7 +393,7 @@ export class Tank {
     const T = CONFIG.tank;
     this.hooks.effects.explosion(p);
     this.hooks.audio.playExplosion();
-    for (const e of this.hooks.getEnemies() as Enemy[]) {
+    for (const e of this.hooks.getEnemies() as VehicleTarget[]) {
       if (!e.alive) continue;
       const t = e.body.translation();
       const d = Math.hypot(t.x - p.x, t.y - p.y, t.z - p.z);
@@ -408,17 +402,17 @@ export class Tank {
       const dir = new THREE.Vector3(t.x - p.x, 0.6, t.z - p.z).normalize();
       e.damage(dmg * f, p.clone(), dir);
     }
-    // splash on the player only when the shell was fired BY the enemy AI tank
-    // (friendly shells fired from the player's own tank never damage them ???
-    //  and a player driving a tank is shielded, damage routes to the hull)
+    // splash on the player only when the shell was fired BY the enemy AI
+    // (friendly shells fired from the player's own vehicle never damage them —
+    //  and a player driving is shielded, damage routes to the hull)
     if (!fromPlayer) {
       this.hooks.damagePlayer(Math.round(dmg * 0.55), { x: p.x, z: p.z });
     }
   }
 
   /**
-   * Update as the player's driveable tank. The mouse steers the hull like an
-   * FPS (gun locked to the hull front ???simplest aiming model for a driver),
+   * Update as the player's driveable vehicle. The mouse steers the hull like an
+   * FPS (gun locked to the hull front — simplest aiming model for a driver),
    * so what the crosshair points at is what the main gun fires at.
    * Camera: first person sits in the gunner seat; third person trails behind.
    */
@@ -452,7 +446,7 @@ export class Tank {
     this.speed = THREE.MathUtils.clamp(this.speed, T.maxRev, T.maxSpeed);
     if (Math.abs(move.x) > 0.05) {
       // yaw grows counter-clockwise in three.js, so pressing D (right) must
-      // SUBTRACT from it ???the old += made A and D steer backwards
+      // SUBTRACT from it — the old += made A and D steer backwards
       this.yaw -= move.x * T.turnRate * dt * 0.9;
       this.clankT -= dt;
       if (this.clankT <= 0) {
@@ -491,7 +485,7 @@ export class Tank {
     camera.lookAt(aim);
   }
 
-  /** Update as the enemy AI tank: hunt the player, stop, aim, fire. */
+  /** Update as the enemy AI vehicle: hunt the player, stop, aim, fire. */
   updateAI(dt: number, playerPos: THREE.Vector3, playerAlive: boolean) {
     const T = CONFIG.tank;
     if (!this.alive) return;
@@ -550,7 +544,7 @@ export class Tank {
   }
 
   /** Clear sight to a point? (AI won't shell through hills/buildings, but a
-   *  tank hull in the way is a valid target ???the shell can hit it.) */
+   *  hull in the way is a valid target — the shell can hit it.) */
   private hasLineTo(p: THREE.Vector3): boolean {
     const from = this.muzzleWorld().pos;
     const dx = p.x - from.x;
@@ -565,10 +559,10 @@ export class Tank {
       this.hull
     );
     if (!hit) return true;
-    // players and other armour don't block the shot ???they ARE the target;
-    // only world cover (walls, terrain, hamlets??? stops the AI from firing
+    // players and other armour don't block the shot — they ARE the target;
+    // only world cover (walls, terrain, structures) stops the AI from firing
     const ud = (hit.collider.parent()?.userData ?? {}) as any;
-    return ud.type === 'tank' || ud.type === 'player' || ud.type === 'crate' || ud.type === 'barrel';
+    return ud.type === 'tracked' || ud.type === 'player' || ud.type === 'crate' || ud.type === 'barrel';
   }
 
   /** Shared per-frame motion + shell + fire processing. */
@@ -600,26 +594,11 @@ export class Tank {
     this.group.rotation.y = this.yaw;
     this.turret.rotation.y = this.turretYaw;
     this.cannon.rotation.x = this.gunPitch;
-    // drive the GLB cosmetic layer from the procedural rig
-    if (this.glbTurret) this.glbTurret.rotation.y = this.turretYaw;
-    if (this.glbGun) this.glbGun.rotation.x = this.gunPitch;
-    if (this.glbMixer) {
-      this.glbMixer.update(dt);
-      const want = this.speed > 0.3 ? 'Tank_Forward' : this.speed < -0.3 ? 'Tank_Backwards' : '';
-      if (want && this.glbCurrentClip !== want) {
-        this.glbActions[want]?.reset().play();
-        if (this.glbCurrentClip && this.glbActions[this.glbCurrentClip]) this.glbActions[this.glbCurrentClip].fadeOut(0.2);
-        this.glbCurrentClip = want;
-      } else if (!want && this.glbCurrentClip) {
-        this.glbActions[this.glbCurrentClip]?.fadeOut(0.2);
-        this.glbCurrentClip = '';
-      }
-    }
 
-    // crush infantry we roll over (player tank only ???fun, and counts as kills)
+    // crush infantry we roll over (player vehicle only — fun, and counts as kills)
     if (canCrush && Math.abs(this.speed) > 2.5) {
       const r2 = (CONFIG.tank.colliderR + 0.5) ** 2;
-      for (const e of this.hooks.getEnemies() as Enemy[]) {
+      for (const e of this.hooks.getEnemies() as VehicleTarget[]) {
         if (!e.alive || this.crushed.has(e)) continue;
         const t = e.body.translation();
         const dx = t.x - tr.x;
@@ -630,7 +609,7 @@ export class Tank {
         }
       }
     }
-    // forget crush tags once enemies leave the hull or die
+    // forget crush tags once infantry leave the hull or die
     for (const e of [...this.crushed]) {
       if (!e.alive) this.crushed.delete(e);
       else {

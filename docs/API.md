@@ -30,6 +30,11 @@
 | `applyDaylight` / `addSunDisc` | 演示白天光照（非FPS 骨架样例用） |
 | `Magazine` | `canFire/consume/startReload/tick` 弹匣状态机 |
 | `Arsenal` | `update(dt,held,clicked)→FireOutcome` · `reload/switchTo/reset/refillAll` |
+| `ShellCasings` / `SmokeColumns` / `FireSites` / `CombatVfx` | 弹壳 · 烟柱 · 火点 · 战斗特效（自 nightraid） |
+| `Searchlight` / `ClothFlags` / `DestructibleCover` / `ExplosiveBarrel` / `VehicleHulk` | 场景道具 |
+| `TimeOfDay` / `Weather` / `Vegetation` / `PhotoTex` | 昼夜/天气/植被/HD 贴图 |
+| `SampleBank` / `ScoreDirector` | 样本音效库 · 情绪配乐 |
+| `WheeledVehicle` / `TrackedVehicle` / `TacticalMap` | 载具与战术地图 |
 
 ## L3 契约 `src/content/`
 

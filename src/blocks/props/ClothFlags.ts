@@ -1,12 +1,12 @@
 // Camp banners with a soft cloth-wave animation (atmosphere batch).
 //
-// Two flags — hostile red at their camp, friendly green at the player's —
+// Two flags ?hostile red at their camp, friendly green at the player's ?
 // hang from simple poles. The cloth is a subdivided plane whose vertices
 // ripple in place every frame; recoloring keeps the "capture" flip working
 // through the same materials mapgen used to expose (flagMats).
 import * as THREE from 'three';
-import { CONFIG } from '../../../config';
-import { Terrain } from '../../../world/terrain';
+import { CONFIG } from '../../config';
+import { Terrain } from '../../world/terrain';
 
 interface Cloth {
   geo: THREE.BufferGeometry;
@@ -16,7 +16,7 @@ interface Cloth {
   phase: number;
 }
 
-export class CampBanners {
+export class ClothFlags {
   readonly group = new THREE.Group();
   mats: { hostile: THREE.MeshStandardMaterial; friendly: THREE.MeshStandardMaterial };
   private cloths: Cloth[] = [];
@@ -41,7 +41,7 @@ export class CampBanners {
     this.group.add(pole);
 
     const mat = new THREE.MeshStandardMaterial({ color, roughness: 0.9, side: THREE.DoubleSide });
-    // subdivided plane: 6 segments across the width, 2 down — enough to wave
+    // subdivided plane: 6 segments across the width, 2 down ?enough to wave
     const geo = new THREE.PlaneGeometry(1.5, 0.9, 6, 2);
     const pos = geo.attributes.position as THREE.BufferAttribute;
     const cloth = new THREE.Mesh(geo, mat);
@@ -52,7 +52,7 @@ export class CampBanners {
     return mat;
   }
 
-  /** Ripple the cloths in place — call once per frame from the game loop. */
+  /** Ripple the cloths in place ?call once per frame from the game loop. */
   update(dt: number) {
     this.t += dt;
     for (const c of this.cloths) {
