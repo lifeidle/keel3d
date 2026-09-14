@@ -27,7 +27,7 @@ async function boot() {
     fill.style.width = '40%';
   }
 
-  initI18n();
+  initI18n({ setDocumentTitle: gameId === 'nightraid' });
   const fullscreen = new FullscreenUI();
 
   const app = document.getElementById('app');

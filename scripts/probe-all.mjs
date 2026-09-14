@@ -9,7 +9,7 @@ const base = process.argv[2] || 'http://localhost:4173';
 const pages = [
   ['hub', '/hub.html', 'hub'],
   ['fps', '/fps.html', '#boot'],
-  ['tower', '/tower.html', '#tower-hud'],
+  ['tower', '/tower.html', '#td-hud'],
   ['openworld', '/openworld.html', '#cultivation-hud'],
   ['flight', '/flight.html', '#flight-hud'],
   ['race', '/race.html', '#race-hud'],
