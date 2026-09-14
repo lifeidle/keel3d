@@ -9,6 +9,8 @@ import { FactionMap } from '../blocks/gameplay/Faction';
 import { HudPanel } from '../blocks/ui/HudPanel';
 import { EndOverlay } from '../blocks/ui/EndOverlay';
 import { Toast } from '../blocks/ui/Toast';
+import { PauseMenu } from '../blocks/ui/PauseMenu';
+import { ControlsOverlay } from '../blocks/ui/ControlsOverlay';
 import type { System, EngineWorld } from '../engine/types';
 
 export interface SportsRecipeOpts extends BaseRecipeOpts {
@@ -66,6 +68,18 @@ export function createSportsGame(
   const toast = new Toast();
   const GOAL_TARGET = 3;
   let status: 'playing' | 'over' | 'win' | 'lose' = 'playing';
+  const pause = new PauseMenu({
+    active: () => status === 'playing',
+  });
+  const controls = new ControlsOverlay({
+    hints: [
+      { keys: ['W', 'A', 'S', 'D'], label: '移动' },
+      { keys: ['空格'], label: '推射' },
+      { keys: ['Esc'], label: '暂停' },
+    ],
+    footer: '桌面设备体验更佳',
+    duration: 6,
+  });
   const rig = new CameraRig(camera, { defaultMode: 'orbit', blend: 0.2, orbit: { distance: 22, height: 16, pitch: 0.75 } });
 
   function resetBall() {
@@ -91,7 +105,7 @@ export function createSportsGame(
     {
       name: `${opts.id}.sim`,
       update(ft: number, world: EngineWorld) {
-        if (world.playing && status === 'playing') {
+        if (world.playing && status === 'playing' && !pause.paused) {
           score.tick(ft);
           let mx = 0;
           let mz = 0;
@@ -142,6 +156,8 @@ export function createSportsGame(
         );
       },
     },
+    pause.system,
+    controls.system,
   ];
 
   return {
@@ -155,6 +171,8 @@ export function createSportsGame(
       hud.dispose();
       endOverlay.dispose();
       toast.dispose();
+      pause.dispose();
+      controls.dispose();
     },
     stats: () => ({ blue, red, status }),
   };

@@ -6,6 +6,9 @@ import { defineGame, type BaseRecipeOpts } from '../content/defineGame';
 import { PhysicsWorld } from '../physics/world';
 import { CharacterController } from '../blocks/player/CharacterController';
 import { Gamepad } from '../blocks/input/Gamepad';
+import { TouchControls, isTouchDevice } from '../blocks/input/TouchControls';
+import { PauseMenu } from '../blocks/ui/PauseMenu';
+import { ControlsOverlay } from '../blocks/ui/ControlsOverlay';
 import { CameraRig } from '../blocks/CameraRig';
 import { Arsenal } from '../blocks/combat/Arsenal';
 import { pickTarget } from '../blocks/combat/Targeting';
@@ -153,6 +156,13 @@ export function createTpsGame(
   let fireClicked = false;
   const keys = new Set<string>();
 
+  // Touch channel — phones/tablets only; the click-to-lock handler below is
+  // skipped on these devices (look comes from the touch surface).
+  const touchDevice = isTouchDevice();
+  const touchMove = { x: 0, z: 0 };
+  let touchJump = false;
+  let touchFire = false;
+
   function onDn(e: KeyboardEvent) {
     keys.add(e.code);
     if (e.code === 'Space' || e.code === 'KeyJ') fireClicked = true;
@@ -170,6 +180,7 @@ export function createTpsGame(
     }
   }
   function onClick() {
+    if (touchDevice) return; // touch devices never hold the pointer lock
     const el = document.getElementById('app') ?? document.body;
     (el as HTMLElement & { requestPointerLock?: () => void }).requestPointerLock?.();
   }
@@ -179,6 +190,80 @@ export function createTpsGame(
     window.addEventListener('mousemove', onMove);
     window.addEventListener('click', onClick);
   }
+
+  let touch: TouchControls | null = null;
+  if (touchDevice) {
+    touch = new TouchControls(
+      {
+        setMove: (x, z) => {
+          touchMove.x = x;
+          touchMove.z = z;
+        },
+        addLook: (dx, dy) => {
+          yaw -= dx * 0.0024;
+          pitch = Math.max(-0.9, Math.min(0.6, pitch - dy * 0.0024));
+        },
+        setFire: (down) => {
+          touchFire = down;
+        },
+      },
+      [
+        {
+          id: 'jump',
+          label: 'JUMP',
+          kind: 'tap',
+          size: 56,
+          onDown: () => {
+            touchJump = true;
+          },
+          onUp: () => {},
+        },
+        {
+          id: 'fire',
+          label: 'FIRE',
+          kind: 'hold',
+          size: 84,
+          onDown: () => {
+            touchFire = true;
+          },
+          onUp: () => {
+            touchFire = false;
+          },
+        },
+        {
+          id: 'reload',
+          label: 'RELOAD',
+          kind: 'tap',
+          size: 56,
+          onDown: () => {
+            if (arsenal.reload()) sfx.play('reload');
+          },
+          onUp: () => {},
+        },
+      ],
+    );
+    touch.show();
+  }
+  const pause = new PauseMenu({
+    title: 'TPS 骨架',
+    active: () => status === 'playing',
+    onToggle: (p) => {
+      if (!touch) return;
+      if (p) touch.hide();
+      else touch.show();
+    },
+  });
+  const controls = new ControlsOverlay({
+    title: 'TPS 骨架',
+    hints: [
+      { keys: ['W', 'A', 'S', 'D'], label: '移动' },
+      { keys: ['Shift'], label: '跳跃' },
+      { keys: ['空格', 'J'], label: '射击' },
+      { keys: ['R'], label: '换弹' },
+      { keys: ['Esc'], label: '暂停' },
+    ],
+    duration: 6,
+  });
 
   function hitscan() {
     const list = targets.units
@@ -225,10 +310,11 @@ export function createTpsGame(
       name: `${opts.id}.sim`,
       update(ft: number, world: EngineWorld) {
         pad.poll();
-        const fireHeld = keys.has('Space') || keys.has('KeyJ') || pad.fire;
-        if (world.playing && status === 'playing') {
-          // look
-          yaw += pad.lookX * lookSpeed * ft;
+        const fireHeld = keys.has('Space') || keys.has('KeyJ') || pad.fire || touchFire;
+        if (world.playing && status === 'playing' && !pause.paused) {
+          // look — yaw decreases when turning right (mouse movementX and
+          // ArrowRight both subtract), so the right stick must subtract too.
+          yaw -= pad.lookX * lookSpeed * ft;
           pitch = Math.max(-0.9, Math.min(0.6, pitch - pad.lookY * lookSpeed * 0.7 * ft));
           if (keys.has('ArrowLeft')) yaw += lookSpeed * ft;
           if (keys.has('ArrowRight')) yaw -= lookSpeed * ft;
@@ -239,13 +325,17 @@ export function createTpsGame(
           if (keys.has('KeyS') || keys.has('ArrowDown')) mz += 1;
           if (keys.has('KeyA') || keys.has('ArrowLeft')) mx -= 1;
           if (keys.has('KeyD') || keys.has('ArrowRight')) mx += 1;
-          mx += pad.moveX;
-          mz += pad.moveY;
+          // Touch stick is forward-positive; mz here is forward-negative.
+          // Gamepad axes[1] is already -1 when pushed up.
+          mx += touchMove.x + pad.moveX;
+          mz += -touchMove.z + pad.moveY;
           mx = Math.max(-1, Math.min(1, mx));
           mz = Math.max(-1, Math.min(1, mz));
 
-          // Space / J / RT fires; jump is Shift/Ctrl or gamepad A
-          const jump = keys.has('ShiftLeft') || keys.has('ControlLeft') || pad.btn('a');
+          // Space / J / RT / touch fires; jump is Shift/Ctrl, gamepad A or touch
+          const jump =
+            keys.has('ShiftLeft') || keys.has('ControlLeft') || pad.btn('a') || touchJump;
+          touchJump = false;
           player.update(
             ft,
             {
@@ -289,7 +379,7 @@ export function createTpsGame(
         }
 
         // step physics after intent
-        if (world.playing && status === 'playing') {
+        if (world.playing && status === 'playing' && !pause.paused) {
           physics.step();
           player.syncFromPhysics();
         }
@@ -310,6 +400,8 @@ export function createTpsGame(
         );
       },
     },
+    pause.system,
+    controls.system,
   ];
 
   return {
@@ -329,6 +421,9 @@ export function createTpsGame(
       endOverlay.dispose();
       feel.dispose();
       sfx.dispose();
+      pause.dispose();
+      controls.dispose();
+      touch?.dispose();
     },
     stats: () => ({
       kills: score.kills,

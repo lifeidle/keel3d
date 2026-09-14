@@ -70,6 +70,13 @@ export { Interactable } from './blocks/interact/Interactable';
 // Player / input / AI
 export { CharacterController, computeMoveIntent, type CharInput } from './blocks/player/CharacterController';
 export { Gamepad } from './blocks/input/Gamepad';
+export {
+  TouchControls,
+  isTouchDevice,
+  type TouchLookSink,
+  type ActionButtonDef,
+  type TouchControlsOptions,
+} from './blocks/input/TouchControls';
 export { canSee } from './blocks/ai/VisionCone';
 export { NoiseEmitter } from './blocks/ai/NoiseEmitter';
 
@@ -86,6 +93,8 @@ export { DialogBox } from './blocks/ui/DialogBox';
 export { ButtonBar } from './blocks/ui/ButtonBar';
 export { QuestTracker } from './blocks/ui/QuestTracker';
 export { TacticalMap } from './blocks/ui/TacticalMap';
+export { PauseMenu, type PauseMenuOptions } from './blocks/ui/PauseMenu';
+export { ControlsOverlay, type ControlHint } from './blocks/ui/ControlsOverlay';
 
 // Audio
 export { KitSfx } from './blocks/audio/KitSfx';

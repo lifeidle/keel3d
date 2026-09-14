@@ -17,6 +17,8 @@ import { DamageNumbers } from '../blocks/ui/DamageNumber';
 import { EndOverlay } from '../blocks/ui/EndOverlay';
 import { GameFeel } from '../blocks/fx/GameFeel';
 import { KitSfx } from '../blocks/audio/KitSfx';
+import { PauseMenu } from '../blocks/ui/PauseMenu';
+import { ControlsOverlay } from '../blocks/ui/ControlsOverlay';
 import type { System, EngineWorld } from '../engine/types';
 
 export interface CombatArenaRecipeOpts extends BaseRecipeOpts {
@@ -100,6 +102,20 @@ export function createCombatArenaGame(
   );
 
   let status: 'playing' | 'win' | 'lose' = 'playing';
+  const pause = new PauseMenu({
+    active: () => status === 'playing',
+  });
+  const controls = new ControlsOverlay({
+    hints: [
+      { keys: ['W', 'A', 'S', 'D'], label: '驾驶' },
+      { keys: ['鼠标'], label: '转向' },
+      { keys: ['空格', 'J'], label: '主炮' },
+      { keys: ['K'], label: '冲击' },
+      { keys: ['Esc'], label: '暂停' },
+    ],
+    footer: '桌面设备体验更佳',
+    duration: 6,
+  });
   let yaw = 0;
   let spawnT = 1;
   let fireClicked = false;
@@ -110,6 +126,7 @@ export function createCombatArenaGame(
 
   function onDn(e: KeyboardEvent) {
     keys.add(e.code);
+    if (pause.paused) return;
     if (e.code === 'Space' || e.code === 'KeyJ') fireClicked = true;
     if (e.code === 'KeyK') aoeClicked = true;
     if (e.code === 'KeyR' && status !== 'playing' && typeof location !== 'undefined') location.reload();
@@ -194,8 +211,10 @@ export function createCombatArenaGame(
       update(ft: number, world: EngineWorld) {
         pad.poll();
         const fireHeld = keys.has('Space') || keys.has('KeyJ') || pad.fire;
-        if (world.playing && status === 'playing') {
-          yaw += pad.lookX * 2 * ft;
+        if (world.playing && status === 'playing' && !pause.paused) {
+          // yaw decreases when turning right (mouse + ArrowRight), so the
+          // right stick subtracts as well.
+          yaw -= pad.lookX * 2 * ft;
           if (keys.has('ArrowLeft')) yaw += 1.8 * ft;
           if (keys.has('ArrowRight')) yaw -= 1.8 * ft;
           let throttle = 0;
@@ -255,6 +274,8 @@ export function createCombatArenaGame(
         );
       },
     },
+    pause.system,
+    controls.system,
   ];
 
   return {
@@ -273,6 +294,8 @@ export function createCombatArenaGame(
       endOverlay.dispose();
       feel.dispose();
       sfx.dispose();
+      pause.dispose();
+      controls.dispose();
     },
     stats: () => ({ kills: score.kills, hp: playerHp.hp, status }),
   };

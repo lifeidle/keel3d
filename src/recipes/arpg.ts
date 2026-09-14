@@ -12,6 +12,9 @@ import { Economy } from '../blocks/gameplay/Economy';
 import { RunState } from '../blocks/progress/RunState';
 import { XpProgress } from '../blocks/progress/XpProgress';
 import { Cooldown } from '../blocks/combat/Cooldown';
+import { Gamepad } from '../blocks/input/Gamepad';
+import { PauseMenu } from '../blocks/ui/PauseMenu';
+import { ControlsOverlay } from '../blocks/ui/ControlsOverlay';
 import { pickTarget } from '../blocks/combat/Targeting';
 import { Projectile, stepProjectiles } from '../blocks/combat/Projectile';
 import { areaHits } from '../blocks/combat/AreaDamage';
@@ -190,6 +193,9 @@ export function createArpgGame(
   let status: 'playing' | 'win' | 'lose' = 'playing';
   let facingX = 0;
   let facingZ = 1;
+  const pad = new Gamepad();
+  let prevPadA = false;
+  let prevPadB = false;
 
   const rig = new CameraRig(camera, {
     defaultMode: 'orbit',
@@ -322,6 +328,9 @@ export function createArpgGame(
 
   function onKeyDn(e: KeyboardEvent) {
     keys.add(e.code);
+    // Movement is polled by the (paused) sim, but attacks fire straight from
+    // this handler — gate them so a paused run cannot be played.
+    if (pause.paused) return;
     if (e.code === 'Space' || e.code === 'KeyJ') attack();
     if (e.code === 'KeyK') aoeSkill();
     if (e.code === 'KeyI') invGrid.toggle();
@@ -352,17 +361,43 @@ export function createArpgGame(
     window.addEventListener('pointerdown', ensureBgm, { once: true });
     window.addEventListener('keyup', onKeyUp);
   }
+  const pause = new PauseMenu({
+    title: 'ARPG',
+    active: () => status === 'playing',
+  });
+  const controls = new ControlsOverlay({
+    title: 'ARPG',
+    hints: [
+      { keys: ['W', 'A', 'S', 'D'], label: '移动' },
+      { keys: ['空格', 'J'], label: '攻击' },
+      { keys: ['K'], label: '旋风斩' },
+      { keys: ['I'], label: '背包' },
+      { keys: ['Esc'], label: '暂停' },
+    ],
+    footer: '桌面设备体验更佳',
+    duration: 6,
+  });
 
   const systems: System[] = [
     {
       name: `${opts.id}.sim`,
       update(ft: number, world: EngineWorld) {
         t += ft;
-        if (!world.playing || status !== 'playing') {
+        pad.poll();
+        const padA = pad.btn('a');
+        const padB = pad.btn('b');
+        if (!world.playing || status !== 'playing' || pause.paused) {
           hud.setText(`HP ${playerHealth.hp} · 击杀 ${score.kills} · 金 ${gold.balance} [${status}]`);
           playerBar.setHp(playerHealth.hp, playerHpMax);
+          prevPadA = padA;
+          prevPadB = padB;
           return;
         }
+        // gamepad A attacks, B whirlwind — rising edges, like Space / K
+        if (padA && !prevPadA) attack();
+        if (padB && !prevPadB) aoeSkill();
+        prevPadA = padA;
+        prevPadB = padB;
 
         score.tick(ft);
         run.tick(ft);
@@ -380,10 +415,14 @@ export function createArpgGame(
         if (keys.has('KeyS') || keys.has('ArrowDown')) mz += 1;
         if (keys.has('KeyA') || keys.has('ArrowLeft')) mx -= 1;
         if (keys.has('KeyD') || keys.has('ArrowRight')) mx += 1;
+        mx += pad.moveX;
+        mz += pad.moveY;
         const len = Math.hypot(mx, mz);
         if (len > 0) {
-          mx /= len;
-          mz /= len;
+          if (len > 1) {
+            mx /= len;
+            mz /= len;
+          }
           facingX = mx;
           facingZ = mz;
           player.position.x = THREE.MathUtils.clamp(
@@ -472,6 +511,8 @@ export function createArpgGame(
         );
       },
     },
+    pause.system,
+    controls.system,
   ];
 
   return {
@@ -493,6 +534,8 @@ export function createArpgGame(
       bgm.detach();
       sfx.dispose();
       feel.dispose();
+      pause.dispose();
+      controls.dispose();
     },
     stats: () => ({
       hp: playerHealth.hp,

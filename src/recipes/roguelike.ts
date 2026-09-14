@@ -21,6 +21,8 @@ import { InventoryGrid } from '../blocks/ui/InventoryGrid';
 import { BossBar } from '../blocks/ui/BossBar';
 import { KitSfx } from '../blocks/audio/KitSfx';
 import { GameFeel } from '../blocks/fx/GameFeel';
+import { PauseMenu } from '../blocks/ui/PauseMenu';
+import { ControlsOverlay } from '../blocks/ui/ControlsOverlay';
 import type { System, EngineWorld } from '../engine/types';
 
 export interface RoguelikeRecipeOpts extends BaseRecipeOpts {
@@ -291,6 +293,22 @@ export function createRoguelikeGame(
     window.addEventListener('keydown', onDn);
     window.addEventListener('keyup', onUp);
   }
+  const pause = new PauseMenu({
+    title: 'Roguelike',
+    active: () => status === 'playing',
+  });
+  const controls = new ControlsOverlay({
+    title: 'Roguelike',
+    hints: [
+      { keys: ['W', 'A', 'S', 'D'], label: '移动' },
+      { keys: ['空格'], label: '攻击' },
+      { keys: ['E'], label: '喝药' },
+      { keys: ['I'], label: '背包' },
+      { keys: ['Esc'], label: '暂停' },
+    ],
+    footer: '桌面设备体验更佳',
+    duration: 6,
+  });
 
   spawnRoom(layout.rooms[0]);
   toast.show('清空房间前进 · 空格攻击 · E 喝药 · I 背包');
@@ -300,7 +318,7 @@ export function createRoguelikeGame(
       name: `${opts.id}.sim`,
       update(ft: number, world: EngineWorld) {
         const feelOff = feel.update(ft);
-        if (!world.playing || status !== 'playing') {
+        if (!world.playing || status !== 'playing' || pause.paused) {
           hpBar.setHp(ph.hp, playerHpMax);
           return;
         }
@@ -385,6 +403,8 @@ export function createRoguelikeGame(
         );
       },
     },
+    pause.system,
+    controls.system,
   ];
 
   return {
@@ -403,6 +423,8 @@ export function createRoguelikeGame(
       bossBar.dispose();
       sfx.dispose();
       feel.dispose();
+      pause.dispose();
+      controls.dispose();
     },
     stats: () => ({
       seed,

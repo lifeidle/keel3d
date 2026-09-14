@@ -9,6 +9,8 @@ import { Scoreboard } from '../blocks/gameplay/Scoreboard';
 import { HudPanel } from '../blocks/ui/HudPanel';
 import { EndOverlay } from '../blocks/ui/EndOverlay';
 import { Toast } from '../blocks/ui/Toast';
+import { PauseMenu } from '../blocks/ui/PauseMenu';
+import { ControlsOverlay } from '../blocks/ui/ControlsOverlay';
 import type { System, EngineWorld } from '../engine/types';
 
 export interface RhythmRecipeOpts extends BaseRecipeOpts {
@@ -59,6 +61,19 @@ export function createRhythmGame(
   let status: 'playing' | 'over' | 'win' = 'playing';
   let lastBeat = -1;
   let hitThisBeat = false;
+  const pause = new PauseMenu({
+    title: '节奏',
+    active: () => status === 'playing',
+  });
+  const controls = new ControlsOverlay({
+    title: '节奏',
+    hints: [
+      { keys: ['空格', 'J'], label: '卡拍' },
+      { keys: ['Esc'], label: '暂停' },
+    ],
+    footer: '桌面设备体验更佳',
+    duration: 6,
+  });
 
   function onHit() {
     if (status !== 'playing') return;
@@ -92,6 +107,9 @@ export function createRhythmGame(
   }
 
   function onKey(e: KeyboardEvent) {
+    // Hits are scored straight from this handler, so a paused run must not
+    // register them (the sim gate alone would still let you farm score).
+    if (pause.paused) return;
     if (e.code === 'Space' || e.code === 'KeyJ') onHit();
   }
   if (typeof window !== 'undefined') window.addEventListener('keydown', onKey);
@@ -100,7 +118,7 @@ export function createRhythmGame(
     {
       name: `${opts.id}.sim`,
       update(ft: number, world: EngineWorld) {
-        if (world.playing && status === 'playing') {
+        if (world.playing && status === 'playing' && !pause.paused) {
           clock.update(ft);
           score.tick(ft);
           if (clock.beatIndex !== lastBeat) {
@@ -126,6 +144,8 @@ export function createRhythmGame(
         );
       },
     },
+    pause.system,
+    controls.system,
   ];
 
   return {
@@ -136,6 +156,8 @@ export function createRhythmGame(
       hud.dispose();
       endOverlay.dispose();
       toast.dispose();
+      pause.dispose();
+      controls.dispose();
     },
     stats: () => ({ perfect, good, miss, status }),
   };

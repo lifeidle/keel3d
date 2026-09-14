@@ -16,6 +16,8 @@ import { Toast } from '../blocks/ui/Toast';
 import { GameFeel } from '../blocks/fx/GameFeel';
 import { KitSfx } from '../blocks/audio/KitSfx';
 import { WorldBar } from '../blocks/ui/WorldBar';
+import { PauseMenu } from '../blocks/ui/PauseMenu';
+import { ControlsOverlay } from '../blocks/ui/ControlsOverlay';
 import type { System, EngineWorld } from '../engine/types';
 
 export interface StealthRecipeOpts extends BaseRecipeOpts {
@@ -101,11 +103,25 @@ export function createStealthGame(
   const rig = new CameraRig(camera, { defaultMode: 'shoulder', blend: 0.12, shoulder: { distance: 5, height: 2.2, side: 0.5, lookAhead: 8 } });
 
   let status: 'playing' | 'win' | 'lose' = 'playing';
+  const pause = new PauseMenu({
+    active: () => status === 'playing',
+  });
+  const controls = new ControlsOverlay({
+    hints: [
+      { keys: ['W', 'A', 'S', 'D'], label: '移动' },
+      { keys: ['鼠标'], label: '转向' },
+      { keys: ['空格'], label: '发出噪声' },
+      { keys: ['Esc'], label: '暂停' },
+    ],
+    footer: '桌面设备体验更佳',
+    duration: 6,
+  });
   let seenT = 0;
   const keys = new Set<string>();
   let yaw = 0;
   function onDn(e: KeyboardEvent) {
     keys.add(e.code);
+    if (pause.paused) return;
     if (e.code === 'Space') noise.emit(player.position.x, player.position.z, 8, 'step');
     if (e.code === 'KeyR' && status !== 'playing' && typeof location !== 'undefined') location.reload();
   }
@@ -132,7 +148,7 @@ export function createStealthGame(
     {
       name: `${opts.id}.sim`,
       update(ft: number, world: EngineWorld) {
-        if (world.playing && status === 'playing') {
+        if (world.playing && status === 'playing' && !pause.paused) {
           score.tick(ft);
           let mx = 0;
           let mz = 0;
@@ -194,6 +210,8 @@ export function createStealthGame(
         );
       },
     },
+    pause.system,
+    controls.system,
   ];
 
   return {
@@ -213,6 +231,8 @@ export function createStealthGame(
       feel.dispose();
       sfx.dispose();
       alertBar.dispose();
+      pause.dispose();
+      controls.dispose();
     },
     stats: () => ({ status, time: score.time, seenT }),
   };

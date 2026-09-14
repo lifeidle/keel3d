@@ -18,6 +18,8 @@ import { EndOverlay } from '../blocks/ui/EndOverlay';
 import { Toast } from '../blocks/ui/Toast';
 import { GameFeel } from '../blocks/fx/GameFeel';
 import { KitSfx } from '../blocks/audio/KitSfx';
+import { PauseMenu } from '../blocks/ui/PauseMenu';
+import { ControlsOverlay } from '../blocks/ui/ControlsOverlay';
 import type { System, EngineWorld } from '../engine/types';
 
 export interface BrLiteRecipeOpts extends BaseRecipeOpts {
@@ -118,11 +120,26 @@ export function createBrLiteGame(
   const rig = new CameraRig(camera, { defaultMode: 'shoulder', blend: 0.12 });
 
   let status: 'playing' | 'win' | 'lose' = 'playing';
+  const pause = new PauseMenu({
+    active: () => status === 'playing',
+  });
+  const controls = new ControlsOverlay({
+    hints: [
+      { keys: ['W', 'A', 'S', 'D'], label: '移动' },
+      { keys: ['鼠标'], label: '转向' },
+      { keys: ['空格', 'J'], label: '射击' },
+      { keys: ['R'], label: '换弹' },
+      { keys: ['Esc'], label: '暂停' },
+    ],
+    footer: '桌面设备体验更佳',
+    duration: 6,
+  });
   let yaw = 0;
   let fireClicked = false;
   const keys = new Set<string>();
   function onDn(e: KeyboardEvent) {
     keys.add(e.code);
+    if (pause.paused) return;
     if (e.code === 'Space' || e.code === 'KeyJ') fireClicked = true;
     if (e.code === 'KeyR' && status !== 'playing') {
       if (typeof location !== 'undefined') location.reload();
@@ -171,7 +188,7 @@ export function createBrLiteGame(
       name: `${opts.id}.sim`,
       update(ft: number, world: EngineWorld) {
         const fireHeld = keys.has('Space') || keys.has('KeyJ');
-        if (world.playing && status === 'playing') {
+        if (world.playing && status === 'playing' && !pause.paused) {
           zone.update(ft);
           // ring visual scale
           const k = zone.radius / (arena * 0.9);
@@ -244,6 +261,8 @@ export function createBrLiteGame(
         );
       },
     },
+    pause.system,
+    controls.system,
   ];
 
   return {
@@ -263,6 +282,8 @@ export function createBrLiteGame(
       toast.dispose();
       feel.dispose();
       sfx.dispose();
+      pause.dispose();
+      controls.dispose();
     },
     stats: () => ({ status, kills: score.kills, radius: zone.radius }),
   };

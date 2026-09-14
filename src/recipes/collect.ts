@@ -13,6 +13,8 @@ import { Toast } from '../blocks/ui/Toast';
 import { EndOverlay } from '../blocks/ui/EndOverlay';
 import { KitSfx } from '../blocks/audio/KitSfx';
 import { Countdown } from '../blocks/ui/Countdown';
+import { PauseMenu } from '../blocks/ui/PauseMenu';
+import { ControlsOverlay } from '../blocks/ui/ControlsOverlay';
 import { GameFeel } from '../blocks/fx/GameFeel';
 import type { System, EngineWorld } from '../engine/types';
 
@@ -111,6 +113,7 @@ export function createCollectGame(
 
     function onDn(e: KeyboardEvent) {
       keys.add(e.code);
+      if (pause.paused) return;
       if (e.code === 'KeyR') restart();
     }
   function onUp(e: KeyboardEvent) {
@@ -123,12 +126,27 @@ export function createCollectGame(
 
   clock.start(timeLimit);
   toast.show(`限时 ${timeLimit}s 收集 ${n} 个灵珠`);
+  const pause = new PauseMenu({
+    title: '收集',
+    active: () => status === 'playing',
+  });
+  const controls = new ControlsOverlay({
+    title: '收集',
+    hints: [
+      { keys: ['W', 'A', 'S', 'D'], label: '移动' },
+      { keys: ['走近'], label: '拾取' },
+      { keys: ['R'], label: '重开' },
+      { keys: ['Esc'], label: '暂停' },
+    ],
+    footer: '桌面设备体验更佳',
+    duration: 6,
+  });
 
   const systems: System[] = [
     {
       name: `${opts.id}.sim`,
       update(ft: number, world: EngineWorld) {
-        if (!world.playing || status !== 'playing') {
+        if (!world.playing || status !== 'playing' || pause.paused) {
           hud.setText(`收集 ${got}/${n} [${status}]`);
           return;
         }
@@ -173,6 +191,8 @@ export function createCollectGame(
         );
       },
     },
+    pause.system,
+    controls.system,
   ];
 
   return {
@@ -189,6 +209,8 @@ export function createCollectGame(
       clock.dispose();
       feel.dispose();
       sfx.dispose();
+      pause.dispose();
+      controls.dispose();
     },
     stats: () => ({ got, n, status, time: score.time }),
   };

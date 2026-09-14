@@ -8,8 +8,11 @@ import { CharacterController } from '../blocks/player/CharacterController';
 import { CameraRig } from '../blocks/CameraRig';
 import { TriggerZone } from '../blocks/interact/TriggerZone';
 import { Scoreboard } from '../blocks/gameplay/Scoreboard';
+import { Gamepad } from '../blocks/input/Gamepad';
 import { HudPanel } from '../blocks/ui/HudPanel';
 import { EndOverlay } from '../blocks/ui/EndOverlay';
+import { PauseMenu } from '../blocks/ui/PauseMenu';
+import { ControlsOverlay } from '../blocks/ui/ControlsOverlay';
 import { Toast } from '../blocks/ui/Toast';
 import { GameFeel } from '../blocks/fx/GameFeel';
 import { KitSfx } from '../blocks/audio/KitSfx';
@@ -88,6 +91,7 @@ export function createPlatformerGame(
   let status: 'playing' | 'win' | 'lose' = 'playing';
   let bestY = 0;
   const keys = new Set<string>();
+  const pad = new Gamepad();
   function onDn(e: KeyboardEvent) {
     keys.add(e.code);
   }
@@ -98,19 +102,35 @@ export function createPlatformerGame(
     window.addEventListener('keydown', onDn);
     window.addEventListener('keyup', onUp);
   }
+  const pause = new PauseMenu({
+    title: '平台',
+    active: () => status === 'playing',
+  });
+  const controls = new ControlsOverlay({
+    title: '平台',
+    hints: [
+      { keys: ['W', 'A', 'S', 'D'], label: '移动' },
+      { keys: ['空格', 'Shift'], label: '跳跃' },
+      { keys: ['Esc'], label: '暂停' },
+    ],
+    footer: '桌面设备体验更佳',
+    duration: 6,
+  });
 
   const systems: System[] = [
     {
       name: `${opts.id}.sim`,
       update(ft: number, world: EngineWorld) {
-        if (world.playing && status === 'playing') {
+        pad.poll();
+        if (world.playing && status === 'playing' && !pause.paused) {
           let mx = 0;
           let mz = 0;
           if (keys.has('KeyW') || keys.has('ArrowUp') || keys.has('ArrowRight')) mz -= 1;
           if (keys.has('KeyS') || keys.has('ArrowDown')) mz += 1;
           if (keys.has('KeyA')) mx -= 1;
           if (keys.has('KeyD')) mx += 1;
-          const jump = keys.has('Space') || keys.has('ShiftLeft');
+          mx += pad.moveX;
+          const jump = keys.has('Space') || keys.has('ShiftLeft') || pad.btn('a');
           // side-ish view: move along +X primarily
           player.update(
             ft,
@@ -152,6 +172,8 @@ export function createPlatformerGame(
         );
       },
     },
+      pause.system,
+      controls.system,
   ];
 
   return {
@@ -168,6 +190,8 @@ export function createPlatformerGame(
       toast.dispose();
       feel.dispose();
       sfx.dispose();
+      pause.dispose();
+      controls.dispose();
     },
     stats: () => ({ status, bestY, time: score.time }),
   };

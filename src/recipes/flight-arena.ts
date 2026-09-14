@@ -9,6 +9,8 @@ import { Cooldown } from '../blocks/combat/Cooldown';
 import { Projectile, stepProjectiles } from '../blocks/combat/Projectile';
 import { pickTarget } from '../blocks/combat/Targeting';
 import { Scoreboard } from '../blocks/gameplay/Scoreboard';
+import { PauseMenu } from '../blocks/ui/PauseMenu';
+import { ControlsOverlay } from '../blocks/ui/ControlsOverlay';
 import type { System, EngineWorld } from '../engine/types';
 
 export interface FlightArenaOpts extends BaseRecipeOpts {
@@ -81,6 +83,17 @@ export function createFlightArena(
   let t = 0;
   let hud: HTMLElement | null = null;
   const rig = new CameraRig(camera, { defaultMode: 'chase', chase: { distance: 10, height: 3, lookAhead: 4 } });
+  const pause = new PauseMenu({ title: '飞行竞技场' });
+  const controls = new ControlsOverlay({
+    title: '飞行竞技场',
+    hints: [
+      { keys: ['W', 'A', 'S', 'D'], label: '飞行' },
+      { keys: ['空格', 'J'], label: '射击' },
+      { keys: ['Esc'], label: '暂停' },
+    ],
+    footer: '桌面设备体验更佳',
+    duration: 6,
+  });
 
   function onDn(e: KeyboardEvent) {
     keys.add(e.code);
@@ -122,7 +135,7 @@ export function createFlightArena(
       name: `${opts.id}.sim`,
       update(ft: number, world: EngineWorld) {
         t += ft;
-        if (world.playing) {
+        if (world.playing && !pause.paused) {
           cd.update(ft);
           score.tick(ft);
           spawnT -= ft;
@@ -193,6 +206,8 @@ export function createFlightArena(
         if (hud) hud.textContent = `击落 ${score.kills} · WASD 飞行 · 空格/J 射击`;
       },
     },
+    pause.system,
+    controls.system,
   ];
 
   return {
@@ -204,6 +219,8 @@ export function createFlightArena(
       }
       scene.remove(root);
       hud?.remove();
+      pause.dispose();
+      controls.dispose();
     },
     stats: () => ({ kills: score.kills }),
   };

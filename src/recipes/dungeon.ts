@@ -14,6 +14,8 @@ import { EndOverlay } from '../blocks/ui/EndOverlay';
 import { MinimapDots } from '../blocks/ui/MinimapDots';
 import { KitSfx } from '../blocks/audio/KitSfx';
 import { BossBar } from '../blocks/ui/BossBar';
+import { PauseMenu } from '../blocks/ui/PauseMenu';
+import { ControlsOverlay } from '../blocks/ui/ControlsOverlay';
 import type { System, EngineWorld } from '../engine/types';
 
 export interface DungeonRecipeOpts extends BaseRecipeOpts {
@@ -80,6 +82,21 @@ export function createDungeonGame(
   const minimap = new MinimapDots({ size: 120, worldHalf });
 
   const rig = new CameraRig(camera, { defaultMode: 'chase', blend: 0.2, chase: { distance: 10, height: 5, lookAhead: 2 } });
+  const pause = new PauseMenu({
+    title: '地牢',
+    active: () => status === 'playing',
+  });
+  const controls = new ControlsOverlay({
+    title: '地牢',
+    hints: [
+      { keys: ['W', 'A', 'S', 'D'], label: '移动' },
+      { keys: ['E', 'F'], label: '开门' },
+      { keys: ['空格', 'J'], label: '打 Boss' },
+      { keys: ['Esc'], label: '暂停' },
+    ],
+    footer: '桌面设备体验更佳',
+    duration: 6,
+  });
 
   // door interactables between rooms
   for (let i = 0; i < roomCount - 1; i++) {
@@ -178,7 +195,7 @@ export function createDungeonGame(
     {
       name: `${opts.id}.sim`,
       update(ft: number, world: EngineWorld) {
-        if (!world.playing || status !== 'playing') {
+        if (!world.playing || status !== 'playing' || pause.paused) {
           hud.setText(`房 ${roomIdx + 1}/${roomCount} · Boss ${bossHp} [${status}]`);
           return;
         }
@@ -223,6 +240,8 @@ export function createDungeonGame(
         );
       },
     },
+    pause.system,
+    controls.system,
   ];
 
   return {
@@ -239,6 +258,8 @@ export function createDungeonGame(
       sfx.dispose();
       bossBar.dispose();
       minimap.dispose();
+      pause.dispose();
+      controls.dispose();
     },
     stats: () => ({ room: roomIdx, bossHp, status, cleared: levels.serialize() }),
   };

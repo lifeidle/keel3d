@@ -9,6 +9,8 @@ import { EndOverlay } from '../blocks/ui/EndOverlay';
 import { Toast } from '../blocks/ui/Toast';
 import { KitSfx } from '../blocks/audio/KitSfx';
 import { Scoreboard } from '../blocks/gameplay/Scoreboard';
+import { PauseMenu } from '../blocks/ui/PauseMenu';
+import { ControlsOverlay } from '../blocks/ui/ControlsOverlay';
 import type { System, EngineWorld } from '../engine/types';
 
 export interface PuzzleRecipeOpts extends BaseRecipeOpts {
@@ -100,6 +102,18 @@ export function createPuzzleGame(
   const sfx = new KitSfx();
   const toast = new Toast();
   const rig = new CameraRig(camera, { defaultMode: 'orbit', blend: 0.2, orbit: { distance: 14, height: 12, pitch: 0.85 } });
+  let status: 'playing' | 'win' | 'lose' = 'playing';
+  const pause = new PauseMenu({
+    active: () => status === 'playing',
+  });
+  const controls = new ControlsOverlay({
+    hints: [
+      { keys: ['W', 'A', 'S', 'D'], label: '移动' },
+      { keys: ['Esc'], label: '暂停' },
+    ],
+    footer: '桌面设备体验更佳',
+    duration: 6,
+  });
 
   function solid(x: number, z: number): boolean {
     return x < 0 || z < 0 || x >= cols || z >= rows || grid[z][x] === 1;
@@ -137,6 +151,9 @@ export function createPuzzleGame(
   }
 
   function onKey(e: KeyboardEvent) {
+    // Movement is keydown-driven (not sim-driven), so the pause gate has to
+    // live here as well — otherwise Esc would pause the HUD but not the box.
+    if (pause.paused) return;
     if (e.code === 'KeyW' || e.code === 'ArrowUp') tryMove(0, -1);
     if (e.code === 'KeyS' || e.code === 'ArrowDown') tryMove(0, 1);
     if (e.code === 'KeyA' || e.code === 'ArrowLeft') tryMove(-1, 0);
@@ -159,6 +176,8 @@ export function createPuzzleGame(
         hud.setText(`目标：把箱子推到金点 · 推箱子 · 归位 ${done}/${crates.length} · 步数 ${score.get('moves')}\nWASD 推动木箱到绿台`);
       },
     },
+    pause.system,
+    controls.system,
   ];
 
   return {
@@ -169,6 +188,8 @@ export function createPuzzleGame(
       hud.dispose();
       endOverlay.dispose();
       toast.dispose();
+      pause.dispose();
+      controls.dispose();
     },
     stats: () => ({ moves: score.get('moves'), crates: crates.length }),
   };

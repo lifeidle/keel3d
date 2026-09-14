@@ -15,6 +15,8 @@ import { EndOverlay } from '../blocks/ui/EndOverlay';
 import { Toast } from '../blocks/ui/Toast';
 import { GameFeel } from '../blocks/fx/GameFeel';
 import { KitSfx } from '../blocks/audio/KitSfx';
+import { PauseMenu } from '../blocks/ui/PauseMenu';
+import { ControlsOverlay } from '../blocks/ui/ControlsOverlay';
 import type { System, EngineWorld } from '../engine/types';
 
 export interface RtsLiteRecipeOpts extends BaseRecipeOpts {
@@ -104,6 +106,18 @@ export function createRtsLiteGame(
   const raycaster = new THREE.Raycaster();
   const pointer = new THREE.Vector2();
   let status: 'playing' | 'win' | 'lose' = 'playing';
+  const pause = new PauseMenu({
+    active: () => status === 'playing',
+  });
+  const controls = new ControlsOverlay({
+    hints: [
+      { keys: ['左键'], label: '选中单位' },
+      { keys: ['右键'], label: '下令移动' },
+      { keys: ['Esc'], label: '暂停' },
+    ],
+    footer: '桌面设备体验更佳',
+    duration: 6,
+  });
 
   function pickAt(ev: MouseEvent, select: boolean, move: boolean) {
     const el = document.getElementById('app') ?? document.body;
@@ -161,7 +175,7 @@ export function createRtsLiteGame(
     {
       name: `${opts.id}.sim`,
       update(ft: number, world: EngineWorld) {
-        if (world.playing && status === 'playing') {
+        if (world.playing && status === 'playing' && !pause.paused) {
           score.tick(ft);
           let blue = 0;
           let red = 0;
@@ -211,6 +225,8 @@ export function createRtsLiteGame(
         hud.setText(`目标消灭红方 · 蓝 ${blue} · 红 ${red}\n左键选中 · 右键下令 · R 重开`);
       },
     },
+    pause.system,
+    controls.system,
   ];
 
   return {
@@ -226,6 +242,8 @@ export function createRtsLiteGame(
       toast.dispose();
       feel.dispose();
       sfx.dispose();
+      pause.dispose();
+      controls.dispose();
     },
     stats: () => ({ status, kills: score.kills }),
   };

@@ -19,6 +19,8 @@ import { Toast } from '../blocks/ui/Toast';
 import { KitSfx } from '../blocks/audio/KitSfx';
 import { GameFeel } from '../blocks/fx/GameFeel';
 import { Countdown } from '../blocks/ui/Countdown';
+import { PauseMenu } from '../blocks/ui/PauseMenu';
+import { ControlsOverlay } from '../blocks/ui/ControlsOverlay';
 import type { System, EngineWorld } from '../engine/types';
 
 export interface TdTowerDef {
@@ -183,6 +185,21 @@ export function createTowerDefenseGame(
   const feel = new GameFeel();
   const waveClock = new Countdown({ id: 'td-clock' });
   waveClock.start(180);
+  const pause = new PauseMenu({
+    title: '塔防',
+    active: () => status === 'playing',
+  });
+  const controls = new ControlsOverlay({
+    title: '塔防',
+    hints: [
+      { keys: ['1', '2', '3', '4'], label: '选塔' },
+      { keys: ['左键'], label: '放置 / 升级' },
+      { keys: ['右键'], label: '售卖' },
+      { keys: ['Esc'], label: '暂停' },
+    ],
+    footer: '桌面设备体验更佳',
+    duration: 6,
+  });
 
   const towerMeshes = new Map<string, THREE.Mesh>();
   const build = new BuildSystem({
@@ -337,7 +354,7 @@ export function createTowerDefenseGame(
       update(ft: number, world: EngineWorld) {
         t += ft;
         rig.update(ft, new THREE.Vector3(0, 0, 0), t * 0.12);
-        if (!world.playing || status !== 'playing') {
+        if (!world.playing || status !== 'playing' || pause.paused) {
           syncHud();
           return;
         }
@@ -390,6 +407,8 @@ export function createTowerDefenseGame(
         syncHud();
       },
     },
+    pause.system,
+    controls.system,
   ];
 
   return {
@@ -407,6 +426,8 @@ export function createTowerDefenseGame(
       sfx.dispose();
       feel.dispose();
       waveClock.dispose();
+      pause.dispose();
+      controls.dispose();
     },
     stats: () => ({
       money: eco.balance,

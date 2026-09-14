@@ -14,6 +14,8 @@ import { Toast } from '../blocks/ui/Toast';
 import { ButtonBar } from '../blocks/ui/ButtonBar';
 import { EndOverlay } from '../blocks/ui/EndOverlay';
 import { KitSfx } from '../blocks/audio/KitSfx';
+import { PauseMenu } from '../blocks/ui/PauseMenu';
+import { ControlsOverlay } from '../blocks/ui/ControlsOverlay';
 import type { System, EngineWorld } from '../engine/types';
 
 export interface TycoonRecipeOpts extends BaseRecipeOpts {
@@ -57,6 +59,18 @@ export function createTycoonGame(
   const sfx = new KitSfx();
   const POP_GOAL = 50;
   let status: 'playing' | 'win' = 'playing';
+  const pause = new PauseMenu({
+    active: () => status === 'playing',
+  });
+  const controls = new ControlsOverlay({
+    hints: [
+      { keys: ['1', '2', '3'], label: '选建筑' },
+      { keys: ['左键'], label: '建造' },
+      { keys: ['Esc'], label: '暂停' },
+    ],
+    footer: '桌面设备体验更佳',
+    duration: 6,
+  });
   const timers = new Timers();
   const rig = new CameraRig(camera, { defaultMode: 'orbit', blend: 0.2, orbit: { distance: 36, height: 30, pitch: 0.75 } });
 
@@ -151,6 +165,7 @@ export function createTycoonGame(
     {
       name: `${opts.id}.sim`,
       update(ft: number, world: EngineWorld) {
+        if (pause.paused) return;
         timers.update(ft);
         if (world.playing) {
           scoreTick(ft);
@@ -164,6 +179,8 @@ export function createTycoonGame(
         );
       },
     },
+    pause.system,
+    controls.system,
   ];
 
   function scoreTick(ft: number) {
@@ -184,6 +201,8 @@ export function createTycoonGame(
       sfx.dispose();
       bar.dispose();
       timers.clear();
+      pause.dispose();
+      controls.dispose();
     },
     stats: () => ({ money: eco.balance, population, buildings: build.buildings.length }),
   };

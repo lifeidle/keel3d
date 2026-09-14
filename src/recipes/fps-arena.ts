@@ -16,6 +16,10 @@ import { DamageNumbers } from '../blocks/ui/DamageNumber';
 import { EndOverlay } from '../blocks/ui/EndOverlay';
 import { KitSfx } from '../blocks/audio/KitSfx';
 import { GameFeel } from '../blocks/fx/GameFeel';
+import { Gamepad } from '../blocks/input/Gamepad';
+import { TouchControls, isTouchDevice } from '../blocks/input/TouchControls';
+import { PauseMenu } from '../blocks/ui/PauseMenu';
+import { ControlsOverlay } from '../blocks/ui/ControlsOverlay';
 import type { System, EngineWorld } from '../engine/types';
 
 export interface FpsArenaOpts extends BaseRecipeOpts {
@@ -112,6 +116,13 @@ export function createFpsArena(
   const feel = new GameFeel();
   const KILL_GOAL = 15;
   let status: 'playing' | 'win' | 'lose' = 'playing';
+  const pad = new Gamepad();
+
+  // Touch channel — phones/tablets only. On these devices the click-to-lock
+  // handler below is skipped; look comes from the touch surface instead.
+  const touchDevice = isTouchDevice();
+  const touchMove = { x: 0, z: 0 };
+  let touchFire = false;
 
   const keys = new Set<string>();
   let yaw = 0;
@@ -139,6 +150,7 @@ export function createFpsArena(
     }
   }
   function onClick() {
+    if (touchDevice) return; // touch devices never hold the pointer lock
     const el = document.getElementById('app') ?? document.body;
     (el as HTMLElement & { requestPointerLock?: () => void }).requestPointerLock?.();
   }
@@ -148,6 +160,70 @@ export function createFpsArena(
     window.addEventListener('mousemove', onMove);
     window.addEventListener('click', onClick);
   }
+
+  let touch: TouchControls | null = null;
+  if (touchDevice) {
+    touch = new TouchControls(
+      {
+        setMove: (x, z) => {
+          touchMove.x = x;
+          touchMove.z = z;
+        },
+        addLook: (dx, dy) => {
+          yaw -= dx * 0.0022;
+          pitch = Math.max(-1.2, Math.min(1.2, pitch - dy * 0.0022));
+        },
+        setFire: (down) => {
+          touchFire = down;
+        },
+      },
+      [
+        {
+          id: 'fire',
+          label: 'FIRE',
+          kind: 'hold',
+          size: 84,
+          onDown: () => {
+            touchFire = true;
+          },
+          onUp: () => {
+            touchFire = false;
+          },
+        },
+        {
+          id: 'reload',
+          label: 'RELOAD',
+          kind: 'tap',
+          size: 56,
+          onDown: () => {
+            if (arsenal.reload()) sfx.play('reload');
+          },
+          onUp: () => {},
+        },
+      ],
+    );
+    touch.show();
+  }
+  const pause = new PauseMenu({
+    title: 'FPS 骨架',
+    active: () => status === 'playing',
+    onToggle: (p) => {
+      if (!touch) return;
+      if (p) touch.hide();
+      else touch.show();
+    },
+  });
+  const controls = new ControlsOverlay({
+    title: 'FPS 骨架',
+    hints: [
+      { keys: ['W', 'A', 'S', 'D'], label: '移动' },
+      { keys: ['鼠标'], label: '视角' },
+      { keys: ['空格', 'J'], label: '射击' },
+      { keys: ['R'], label: '换弹' },
+      { keys: ['Esc'], label: '暂停' },
+    ],
+    duration: 6,
+  });
 
   const playerPos = new THREE.Vector3(0, eye, 0);
 
@@ -200,8 +276,9 @@ export function createFpsArena(
     {
       name: `${opts.id}.sim`,
       update(ft: number, world: EngineWorld) {
-        const fireHeld = keys.has('Space') || keys.has('KeyJ');
-        if (world.playing && status === 'playing') {
+        pad.poll();
+        const fireHeld = keys.has('Space') || keys.has('KeyJ') || touchFire || pad.fire;
+        if (world.playing && status === 'playing' && !pause.paused) {
           const outcome = arsenal.update(ft, fireHeld, fireClicked);
           if (outcome === 'fired') { sfx.play('shoot'); hitscan(); }
           fireClicked = false;
@@ -218,10 +295,18 @@ export function createFpsArena(
           if (keys.has('KeyS')) mz += 1;
           if (keys.has('KeyA')) mx -= 1;
           if (keys.has('KeyD')) mx += 1;
+          // Sign conventions differ between the two analog sources:
+          // - touch stick is forward-POSITIVE (z: +1 = pushed up), while this
+          //   recipe's mz is forward-NEGATIVE (KeyW -> mz -= 1), so subtract.
+          // - gamepad axes[1] is already -1 when pushed up, so add directly.
+          mx += touchMove.x + pad.moveX;
+          mz += -touchMove.z + pad.moveY;
           const len = Math.hypot(mx, mz);
           if (len > 0) {
-            mx /= len;
-            mz /= len;
+            if (len > 1) {
+              mx /= len;
+              mz /= len;
+            }
             const s = Math.sin(yaw);
             const c = Math.cos(yaw);
             playerPos.x += (mx * c + mz * s) * moveSpeed * ft;
@@ -233,6 +318,10 @@ export function createFpsArena(
           if (keys.has('ArrowRight')) yaw -= lookSpeed * ft;
           if (keys.has('ArrowUp')) pitch = Math.min(1.2, pitch + lookSpeed * 0.7 * ft);
           if (keys.has('ArrowDown')) pitch = Math.max(-1.2, pitch - lookSpeed * 0.7 * ft);
+          // yaw decreases when turning right (mouse movementX and ArrowRight
+          // both subtract), so the right stick must subtract too.
+          yaw -= pad.lookX * lookSpeed * ft;
+          pitch = Math.max(-1.2, Math.min(1.2, pitch - pad.lookY * lookSpeed * 0.7 * ft));
 
           camera.position.copy(playerPos);
           camera.rotation.order = 'YXZ';
@@ -268,6 +357,8 @@ export function createFpsArena(
         );
       },
     },
+    pause.system,
+    controls.system,
   ];
 
   return {
@@ -286,6 +377,9 @@ export function createFpsArena(
       endOverlay.dispose();
       feel.dispose();
       sfx.dispose();
+      pause.dispose();
+      controls.dispose();
+      touch?.dispose();
       cross?.remove();
       cross = null;
     },

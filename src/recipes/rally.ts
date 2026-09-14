@@ -9,6 +9,8 @@ import { TriggerZone } from '../blocks/interact/TriggerZone';
 import { BestScoreSlot } from '../blocks/progress/SaveSlot';
 import { Scoreboard } from '../blocks/gameplay/Scoreboard';
 import { HudPanel } from '../blocks/ui/HudPanel';
+import { PauseMenu } from '../blocks/ui/PauseMenu';
+import { ControlsOverlay } from '../blocks/ui/ControlsOverlay';
 import { Toast } from '../blocks/ui/Toast';
 import type { System, EngineWorld } from '../engine/types';
 
@@ -95,12 +97,23 @@ export function createRallyGame(
   let nextCp = 0;
   let lap = 0;
   const rig = new CameraRig(camera, { defaultMode: 'chase', chase: { distance: 9, height: 3.5, lookAhead: 3 } });
+  const pause = new PauseMenu({ title: '拉力' });
+  const controls = new ControlsOverlay({
+    title: '拉力',
+    hints: [
+      { keys: ['自动'], label: '驾驶演示' },
+      { keys: ['顺序'], label: '穿过光圈计圈' },
+      { keys: ['Esc'], label: '暂停' },
+    ],
+    footer: '桌面设备体验更佳',
+    duration: 6,
+  });
 
   const systems: System[] = [
     {
       name: `${opts.id}.sim`,
       update(ft: number, world: EngineWorld) {
-        if (world.playing) {
+        if (world.playing && !pause.paused) {
           const prev = dist;
           dist = (dist + speed * ft) % TRACK.totalLen;
           lapT += ft;
@@ -142,6 +155,8 @@ export function createRallyGame(
         }
       },
     },
+    pause.system,
+    controls.system,
   ];
 
   return {
@@ -150,6 +165,8 @@ export function createRallyGame(
       scene.remove(root);
       hud.dispose();
       toast.dispose();
+      pause.dispose();
+      controls.dispose();
     },
     stats: () => ({ lap, cp: nextCp, best: best.read('bestLap') }),
   };

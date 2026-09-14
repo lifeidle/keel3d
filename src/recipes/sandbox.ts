@@ -8,6 +8,8 @@ import { VoxelChunk } from '../blocks/world/VoxelChunk';
 import { HudPanel } from '../blocks/ui/HudPanel';
 import { Toast } from '../blocks/ui/Toast';
 import { EndOverlay } from '../blocks/ui/EndOverlay';
+import { PauseMenu } from '../blocks/ui/PauseMenu';
+import { ControlsOverlay } from '../blocks/ui/ControlsOverlay';
 import { KitSfx } from '../blocks/audio/KitSfx';
 import type { System, EngineWorld } from '../engine/types';
 
@@ -117,6 +119,21 @@ export function createSandboxGame(
     window.addEventListener('click', onClick);
     window.addEventListener('keydown', onKey);
   }
+  const pause = new PauseMenu({
+    title: '沙盒',
+    active: () => status === 'playing',
+  });
+  const controls = new ControlsOverlay({
+    title: '沙盒',
+    hints: [
+      { keys: ['点击'], label: '放置 / 挖除' },
+      { keys: ['X'], label: '切换模式' },
+      { keys: ['1', '5'], label: '选色' },
+      { keys: ['Esc'], label: '暂停' },
+    ],
+    footer: '桌面设备体验更佳',
+    duration: 6,
+  });
 
   const systems: System[] = [
     {
@@ -124,7 +141,7 @@ export function createSandboxGame(
       update(ft: number, _world: EngineWorld) {
         void ft;
         rig.update(0.016, new THREE.Vector3(0, 2, 0), performance.now() / 10000);
-        if (status === 'playing' && voxels.count >= PLACE_GOAL) {
+        if (!pause.paused && status === 'playing' && voxels.count >= PLACE_GOAL) {
           status = 'win';
           sfx.play('win');
           endOverlay.show(`放置 ${PLACE_GOAL} 块达成 — 按 R 继续`, true);
@@ -134,6 +151,8 @@ export function createSandboxGame(
         );
       },
     },
+    pause.system,
+    controls.system,
   ];
 
   return {
@@ -150,6 +169,8 @@ export function createSandboxGame(
       sfx.dispose();
       geo.dispose();
       for (const m of mats) m.dispose();
+      pause.dispose();
+      controls.dispose();
     },
     stats: () => ({ count: voxels.count, mode, colorIdx }),
   };

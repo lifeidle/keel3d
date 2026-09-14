@@ -1,6 +1,6 @@
 /**
  * L3 contract — GameSpec / MapSpec / UnitDef + create context types.
- * See FRAMEWORK_V2_PLAN.md and FRAMEWORK_PLAN.md.
+ * See docs/STRUCTURE.md and docs/API.md.
  */
 import type * as THREE from 'three';
 import type { System } from '../engine/types';
