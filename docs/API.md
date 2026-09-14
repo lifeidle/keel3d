@@ -35,6 +35,8 @@
 | `TimeOfDay` / `Weather` / `Vegetation` / `PhotoTex` | 昼夜/天气/植被/HD 贴图 |
 | `SampleBank` / `ScoreDirector` | 样本音效库 · 情绪配乐 |
 | `WheeledVehicle` / `TrackedVehicle` / `TacticalMap` | 载具与战术地图 |
+| `CharacterController` | 共享胶囊移动：update/jump/sprint |
+| `Gamepad` | 标准手柄 poll；无硬件时全 0 |
 
 ## L3 契约 `src/content/`
 

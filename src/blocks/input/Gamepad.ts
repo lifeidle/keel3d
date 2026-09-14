@@ -93,7 +93,7 @@ export class Gamepad {
       const b = g.buttons[BTN_INDEX[key]];
       this._btn[key] = !!(b && b.pressed);
     }
-    this._fire = this._btn.rt || this._btn.rb || this._btn.a;
+    this._fire = this._btn.rt || this._btn.rb;
     this._alt = this._btn.lt || this._btn.lb;
   }
 

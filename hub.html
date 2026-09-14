@@ -475,6 +475,16 @@
         blocks: [['Path', '中心线'], ['BestScoreSlot', '圈速']],
       },
       {
+        id: 'tps', icon: '🧍', title: '第三人称 TPS',
+        blurb: '肩扛视角 · CharacterController · 手柄 · 射击。',
+        tags: ['tps', 'shoulder', 'gamepad'],
+        demo: './tps.html',
+        spec: { camera: 'shoulder', create: 'tpsRecipe' },
+        cmd: 'npm run new-game mytps -- --recipe tps --html',
+        note: 'Shift/Ctrl 跳，空格/J 或 RT 射击，R 换弹。',
+        blocks: [['CharacterController', '移动'], ['Gamepad', '手柄'], ['Arsenal', '弹匣'], ['shoulder', '肩扛相']],
+      },
+      {
         id: 'blank', icon: '📦', title: '空白模板',
         blurb: '最少代码起点。',
         tags: ['template'],

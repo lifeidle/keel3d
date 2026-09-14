@@ -178,5 +178,7 @@ gems.update(player.x, player.z);
 | `blocks/audio/` | `SampleBank` · `ScoreDirector` | 样本库播放 · 情绪配乐 |
 | `blocks/vehicles/` | `WheeledVehicle` · `TrackedVehicle` | 轮式/履带载具 |
 | `blocks/ui/` | `TacticalMap` | 罗盘 + 战术小地图 |
+| `blocks/player/` | `CharacterController` | 胶囊移动（跳/冲刺） |
+| `blocks/input/` | `Gamepad` | 手柄输入 |
 
 nightraid 只保留战役内容：`game.ts` · `enemy` · `player` · `SoldierFactory` · `mission` · `hamlet` · `gunmodels` · `hud` · `systems/*` · 薄 `audio/music` 包装（BANK 表仍在样例）。

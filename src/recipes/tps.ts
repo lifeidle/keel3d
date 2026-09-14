@@ -237,12 +237,16 @@ export function createTpsGame(
           mx = Math.max(-1, Math.min(1, mx));
           mz = Math.max(-1, Math.min(1, mz));
 
-          const jump = keys.has('Space') || pad.btn('a');
-          // Space is also fire — use Shift/LeftCtrl for jump on keyboard
-          const jumpKey = keys.has('ShiftLeft') || keys.has('ControlLeft');
+          // Space / J / RT fires; jump is Shift/Ctrl or gamepad A
+          const jump = keys.has('ShiftLeft') || keys.has('ControlLeft') || pad.btn('a');
           player.update(
             ft,
-            { moveX: mx, moveZ: mz, jump: jumpKey || (pad.btn('a') && !pad.fire), sprint: keys.has('ShiftRight') || pad.btn('lb') },
+            {
+              moveX: mx,
+              moveZ: mz,
+              jump,
+              sprint: keys.has('ShiftRight') || pad.btn('lb'),
+            },
             yaw,
           );
 
@@ -293,7 +297,7 @@ export function createTpsGame(
         const ammo = arsenal.reloading ? '换弹中…' : `${arsenal.mag}/${arsenal.reserve}`;
         hud.setText(
           `TPS · 击杀 ${score.kills} · 目标 ${targets.activeCount} · HP ${playerHealth.hp}\n` +
-            `弹药 ${ammo} · WASD 移动 · Shift/Ctrl 跳 · 空格/J 射击 · R 换弹 · 手柄可用`,
+            `弹药 ${ammo} · WASD 移动 · Shift/Ctrl 跳 · 空格/J 或 RT 射击 · R 换弹 · 手柄 A 跳`,
         );
       },
     },
