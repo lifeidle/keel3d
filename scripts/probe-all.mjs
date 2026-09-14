@@ -20,6 +20,7 @@ const pages = [
   ['template', '/template.html', '#boot'],
   ['flight-arena', '/flight-arena.html', '#boot'],
   ['fps-arena', '/fps-arena.html', '#fps-arena-hud'],
+  ['tps', '/tps.html', '#tps-hud'],
 ];
 
 const browser = await chromium.launch({ channel: 'chrome' });

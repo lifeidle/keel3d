@@ -5,7 +5,7 @@
  */
 import * as THREE from 'three';
 
-export type CameraMode = 'fps' | 'chase' | 'orbit' | 'free';
+export type CameraMode = 'fps' | 'chase' | 'orbit' | 'free' | 'shoulder';
 
 export interface CameraRigOpts {
   defaultMode?: CameraMode;
@@ -13,6 +13,7 @@ export interface CameraRigOpts {
   blend?: number;
   chase?: { distance: number; height: number; lookAhead: number };
   orbit?: { distance: number; height: number; pitch: number };
+  shoulder?: { distance: number; height: number; side: number; lookAhead: number };
 }
 
 export class CameraRig {
@@ -23,6 +24,7 @@ export class CameraRig {
   private fromQuat = new THREE.Quaternion();
   private chase: { distance: number; height: number; lookAhead: number };
   private orbit: { distance: number; height: number; pitch: number };
+  private shoulder: { distance: number; height: number; side: number; lookAhead: number };
   // scratch — no per-frame allocs
   private _pos = new THREE.Vector3();
   private _look = new THREE.Vector3();
@@ -33,6 +35,7 @@ export class CameraRig {
     this.blend = opts.blend ?? 0.18;
     this.chase = opts.chase ?? { distance: 6, height: 2.2, lookAhead: 2 };
     this.orbit = opts.orbit ?? { distance: 18, height: 14, pitch: 0.7 };
+    this.shoulder = opts.shoulder ?? { distance: 4.2, height: 1.55, side: 0.65, lookAhead: 8 };
   }
 
   setMode(mode: CameraMode): void {
@@ -75,6 +78,23 @@ export class CameraRig {
           target.z + Math.sin(yaw * 0.15) * o.distance,
         );
         look.copy(target);
+        break;
+      }
+      case 'shoulder': {
+        const sh = this.shoulder;
+        const sin = Math.sin(yaw);
+        const cos = Math.cos(yaw);
+        // behind + slight right shoulder offset
+        pos.set(
+          target.x + sin * sh.distance + cos * sh.side,
+          target.y + sh.height,
+          target.z + cos * sh.distance - sin * sh.side,
+        );
+        look.set(
+          target.x - sin * sh.lookAhead,
+          target.y + 1.25,
+          target.z - cos * sh.lookAhead,
+        );
         break;
       }
       case 'free':
