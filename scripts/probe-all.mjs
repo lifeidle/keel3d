@@ -24,6 +24,8 @@ const pages = [
   ['roguelike', '/roguelike.html', '#rogue-hud'],
   ['platformer', '/platformer.html', '#plat-hud'],
   ['tycoon', '/tycoon.html', '#tycoon-hud'],
+  ['rts', '/rts.html', '#rts-hud'],
+  ['stealth', '/stealth.html', '#stealth-hud'],
 ];
 
 const browser = await chromium.launch({ channel: 'chrome' });
