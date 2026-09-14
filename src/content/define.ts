@@ -65,6 +65,13 @@ export interface UnitDef {
   cost?: number;
 }
 
+/** Optional host-provided services (may be partial when engine is headless). */
+export interface GameServices {
+  physics?: import('../physics/world').PhysicsWorld;
+  audio?: import('../engine/audio/AudioEngine').AudioEngine;
+  input?: import('../engine/input').Input;
+}
+
 /** Context passed to GameSpec.create at boot. */
 export interface GameCreateContext {
   scene: THREE.Scene;
@@ -73,6 +80,8 @@ export interface GameCreateContext {
   quality?: unknown;
   /** DOM parent for the canvas (rarely needed). */
   parent?: HTMLElement;
+  /** Engine services when available — prefer these over private instances. */
+  services?: GameServices;
 }
 
 /** What a content package returns from create(). */

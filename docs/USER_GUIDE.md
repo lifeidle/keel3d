@@ -83,7 +83,7 @@ npm run new-game mytd -- --recipe td --html
 npm run new-game mysurv -- --recipe survival --html
 ```
 
-打开 `/?game=mygame` 或对应 html。  
+打开 `/mygame.html` 或对应 html。  
 编辑 `src/game/<id>/index.ts`，保存后刷新即可。
 
 ### 3.4 最小内容包长什么样

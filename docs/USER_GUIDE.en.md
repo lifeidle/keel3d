@@ -76,7 +76,7 @@ npm run new-game mytd -- --recipe td --html
 npm run new-game mysurv -- --recipe survival --html
 ```
 
-Open `/?game=mygame` (or your HTML entry). Edit `src/game/<id>/index.ts` and refresh.
+Open `/mygame.html` (or your HTML entry). Edit `src/game/<id>/index.ts` and refresh.
 
 ### 3.4 Minimal content package
 
