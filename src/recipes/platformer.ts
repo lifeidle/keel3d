@@ -11,6 +11,8 @@ import { Scoreboard } from '../blocks/gameplay/Scoreboard';
 import { HudPanel } from '../blocks/ui/HudPanel';
 import { EndOverlay } from '../blocks/ui/EndOverlay';
 import { Toast } from '../blocks/ui/Toast';
+import { GameFeel } from '../blocks/fx/GameFeel';
+import { KitSfx } from '../blocks/audio/KitSfx';
 import type { System, EngineWorld } from '../engine/types';
 
 export interface PlatformerRecipeOpts extends BaseRecipeOpts {
@@ -73,6 +75,10 @@ export function createPlatformerGame(
   const hud = new HudPanel({ id: 'plat-hud', position: 'tl' });
   const endOverlay = new EndOverlay();
   const toast = new Toast();
+  const feel = new GameFeel();
+  const sfx = new KitSfx();
+  let lives = 3;
+  const spawnPt = new THREE.Vector3(0, 1.5, 0);
   const rig = new CameraRig(camera, { defaultMode: 'chase', blend: 0.15, chase: { distance: 10, height: 4, lookAhead: 2 } });
 
   const exit = new TriggerZone({
@@ -119,13 +125,22 @@ export function createPlatformerGame(
             score.add('height', 1);
           }
           if (player.position.y < -8) {
-            status = 'lose';
-            endOverlay.show('坠落 — 再试一次', false);
+            lives--;
+            sfx.play('hit');
+            feel.flashOnce('rgba(255,60,60,0.35)', 200);
+            if (lives <= 0) {
+              status = 'lose';
+              endOverlay.show('坠落 · 命用尽 — 按 R 再来', false);
+            } else {
+              player.teleport(spawnPt.x, spawnPt.y, spawnPt.z);
+              toast.show('剩余 ' + lives + ' 命');
+            }
           }
           exit.update([{ tag: 'p', x: player.position.x, z: player.position.z }]);
           if (exit.has('p') && status === 'playing') {
             status = 'win';
-            endOverlay.show(`登顶！用时 ${score.time.toFixed(1)}s`, true);
+            sfx.play('win');
+            endOverlay.show(`登顶！用时 ${score.time.toFixed(0)}s · 命 ${lives} — 按 R 再来`, true);
             toast.show('到达终点');
           }
           score.tick(ft);
@@ -133,7 +148,7 @@ export function createPlatformerGame(
         rig.update(ft, player.position, 0);
         hud.setText(
           `平台 · 高度 ${bestY.toFixed(1)} · 用时 ${score.time.toFixed(1)}s\n` +
-            `WASD 移动 · 空格/Shift 跳跃`,
+            `目标登顶 · 命 ${lives} · WASD 移动 · 空格/Shift 跳跃`,
         );
       },
     },
@@ -151,6 +166,8 @@ export function createPlatformerGame(
       hud.dispose();
       endOverlay.dispose();
       toast.dispose();
+      feel.dispose();
+      sfx.dispose();
     },
     stats: () => ({ status, bestY, time: score.time }),
   };

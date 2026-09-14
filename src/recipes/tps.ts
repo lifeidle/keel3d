@@ -17,6 +17,8 @@ import { HudPanel } from '../blocks/ui/HudPanel';
 import { HealthBar } from '../blocks/ui/HealthBar';
 import { DamageNumbers } from '../blocks/ui/DamageNumber';
 import { EndOverlay } from '../blocks/ui/EndOverlay';
+import { GameFeel } from '../blocks/fx/GameFeel';
+import { KitSfx } from '../blocks/audio/KitSfx';
 import type { System, EngineWorld } from '../engine/types';
 
 export interface TpsRecipeOpts extends BaseRecipeOpts {
@@ -113,6 +115,9 @@ export function createTpsGame(
   }
   const dmgNums = new DamageNumbers();
   const endOverlay = new EndOverlay();
+  const feel = new GameFeel();
+  const sfx = new KitSfx();
+  const KILL_GOAL = 12;
   const pad = new Gamepad();
 
   const rig = new CameraRig(camera, {
@@ -141,7 +146,7 @@ export function createTpsGame(
     8,
   );
 
-  let status: 'playing' | 'lose' = 'playing';
+  let status: 'playing' | 'win' | 'lose' = 'playing';
   let yaw = Math.PI;
   let pitch = 0;
   let spawnT = 1.2;
@@ -151,7 +156,9 @@ export function createTpsGame(
   function onDn(e: KeyboardEvent) {
     keys.add(e.code);
     if (e.code === 'Space' || e.code === 'KeyJ') fireClicked = true;
-    if (e.code === 'KeyR') arsenal.reload();
+    if (e.code === 'KeyR' && status !== 'playing') {
+      if (typeof location !== 'undefined') location.reload();
+    } else if (e.code === 'KeyR') arsenal.reload();
   }
   function onUp(e: KeyboardEvent) {
     keys.delete(e.code);
@@ -269,9 +276,11 @@ export function createTpsGame(
             if (tg.fireT <= 0) {
               tg.fireT = 2.2 + Math.random();
               playerHealth.damage(7);
+              feel.flashOnce('rgba(255,60,60,0.28)', 150);
+              feel.shake(0.08, 0.18);
               if (!playerHealth.alive) {
                 status = 'lose';
-                endOverlay.show(`倒下 — 击杀 ${score.kills}`, false);
+                endOverlay.show(`倒下 — 击杀 ${score.kills}/${KILL_GOAL} — 按 R 再来`, false);
               }
             }
           });
@@ -297,7 +306,7 @@ export function createTpsGame(
         const ammo = arsenal.reloading ? '换弹中…' : `${arsenal.mag}/${arsenal.reserve}`;
         hud.setText(
           `TPS · 击杀 ${score.kills} · 目标 ${targets.activeCount} · HP ${playerHealth.hp}\n` +
-            `弹药 ${ammo} · WASD 移动 · Shift/Ctrl 跳 · 空格/J 或 RT 射击 · R 换弹 · 手柄 A 跳`,
+            `目标 ${KILL_GOAL} · 弹药 ${ammo} · WASD · Shift 跳 · 空格/J 射击 · R 换弹`,
         );
       },
     },
@@ -318,6 +327,8 @@ export function createTpsGame(
       hpBar.dispose();
       dmgNums.dispose();
       endOverlay.dispose();
+      feel.dispose();
+      sfx.dispose();
     },
     stats: () => ({
       kills: score.kills,

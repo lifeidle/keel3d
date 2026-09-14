@@ -12,6 +12,8 @@ import { HudPanel } from '../blocks/ui/HudPanel';
 import { Toast } from '../blocks/ui/Toast';
 import { EndOverlay } from '../blocks/ui/EndOverlay';
 import { KitSfx } from '../blocks/audio/KitSfx';
+import { Countdown } from '../blocks/ui/Countdown';
+import { GameFeel } from '../blocks/fx/GameFeel';
 import type { System, EngineWorld } from '../engine/types';
 
 export interface CollectRecipeOpts extends BaseRecipeOpts {
@@ -20,6 +22,8 @@ export interface CollectRecipeOpts extends BaseRecipeOpts {
   arena?: number;
   /** Seconds target; optional. */
   parTime?: number;
+  /** Hard time limit seconds. */
+  timeLimit?: number;
   moveSpeed?: number;
 }
 
@@ -31,6 +35,7 @@ export function createCollectGame(
   const n = opts.count ?? 8;
   const arena = opts.arena ?? 28;
   const moveSpeed = opts.moveSpeed ?? 10;
+  const timeLimit = opts.timeLimit ?? 60;
 
   const root = new THREE.Group();
   scene.add(root);
@@ -91,22 +96,17 @@ export function createCollectGame(
   const score = new Scoreboard();
   const run = new RunState();
   const keys = new Set<string>();
-  let status: 'playing' | 'win' = 'playing';
+  let status: 'playing' | 'win' | 'lose' = 'playing';
   const hud = new HudPanel({ id: 'collect-hud', position: 'tl' });
   const toast = new Toast();
   const endOverlay = new EndOverlay();
   const sfx = new KitSfx();
+  const clock = new Countdown({ id: 'collect-clock' });
+  const feel = new GameFeel();
   const rig = new CameraRig(camera, { defaultMode: 'chase', chase: { distance: 12, height: 6, lookAhead: 2 } });
 
   function restart() {
-    status = 'playing';
-    got = 0;
-    score.reset();
-    run.reset();
-    field.resetAll();
-    for (const m of orbMeshes) m.visible = true;
-    player.position.set(0, 1, 0);
-    endOverlay.hide();
+    if (typeof location !== 'undefined') location.reload();
   }
 
     function onDn(e: KeyboardEvent) {
@@ -121,6 +121,9 @@ export function createCollectGame(
     window.addEventListener('keyup', onUp);
   }
 
+  clock.start(timeLimit);
+  toast.show(`限时 ${timeLimit}s 收集 ${n} 个灵珠`);
+
   const systems: System[] = [
     {
       name: `${opts.id}.sim`,
@@ -131,6 +134,12 @@ export function createCollectGame(
         }
         score.tick(ft);
         run.tick(ft);
+        clock.update(ft);
+        if (clock.done && status === 'playing') {
+          status = 'lose';
+          sfx.play('lose');
+          endOverlay.show(`时间到 — 收集 ${got}/${n} — 按 R 再来`, false);
+        }
         let mx = 0;
         let mz = 0;
         if (keys.has('KeyW')) mz -= 1;
@@ -150,6 +159,8 @@ export function createCollectGame(
 
         if (got >= n && zone.has('p')) {
           status = 'win';
+          clock.stop();
+          sfx.play('win');
           run.set('time', score.time);
           const parNote = opts.parTime ? (score.time <= opts.parTime ? ' · 达成参考' : ' · 超出参考') : '';
           endOverlay.show(`收集完成 · ${score.time.toFixed(1)}s${parNote} — 按 R 再来一局`, true);
@@ -157,7 +168,7 @@ export function createCollectGame(
         }
 
         hud.setText(
-          `收集 ${got}/${n} · 时间 ${score.time.toFixed(1)}s${opts.parTime ? ` · 参考 ${opts.parTime}s` : ''}\n` +
+          `限时 ${clock.secondsLeft}s · 收集 ${got}/${n}\n` +
             `WASD 移动 · 捡满回金圈 · R 重开`,
         );
       },
@@ -175,6 +186,8 @@ export function createCollectGame(
       hud.dispose();
       toast.dispose();
       endOverlay.dispose();
+      clock.dispose();
+      feel.dispose();
       sfx.dispose();
     },
     stats: () => ({ got, n, status, time: score.time }),

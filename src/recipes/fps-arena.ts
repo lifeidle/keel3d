@@ -15,6 +15,7 @@ import { HealthBar } from '../blocks/ui/HealthBar';
 import { DamageNumbers } from '../blocks/ui/DamageNumber';
 import { EndOverlay } from '../blocks/ui/EndOverlay';
 import { KitSfx } from '../blocks/audio/KitSfx';
+import { GameFeel } from '../blocks/fx/GameFeel';
 import type { System, EngineWorld } from '../engine/types';
 
 export interface FpsArenaOpts extends BaseRecipeOpts {
@@ -108,7 +109,9 @@ export function createFpsArena(
   const dmgNums = new DamageNumbers();
   const endOverlay = new EndOverlay();
   const sfx = new KitSfx();
-  let status: 'playing' | 'lose' = 'playing';
+  const feel = new GameFeel();
+  const KILL_GOAL = 15;
+  let status: 'playing' | 'win' | 'lose' = 'playing';
 
   const keys = new Set<string>();
   let yaw = 0;
@@ -119,7 +122,11 @@ export function createFpsArena(
   function onDn(e: KeyboardEvent) {
     keys.add(e.code);
     if (e.code === 'Space' || e.code === 'KeyJ') fireClicked = true;
-    if (e.code === 'KeyR') { if (arsenal.reload()) sfx.play('reload'); }
+    if (e.code === 'KeyR' && status !== 'playing') {
+      if (typeof location !== 'undefined') location.reload();
+    } else if (e.code === 'KeyR') {
+      if (arsenal.reload()) sfx.play('reload');
+    }
   }
   function onUp(e: KeyboardEvent) {
     keys.delete(e.code);
@@ -239,6 +246,8 @@ export function createFpsArena(
             if (tg.fireT <= 0) {
               tg.fireT = 2 + Math.random();
               playerHealth.damage(8);
+              feel.flashOnce('rgba(255,60,60,0.28)', 150);
+              feel.shake(0.1, 0.2);
               if (!playerHealth.alive) {
                 status = 'lose';
                 endOverlay.show(`倒下 — 击杀 ${score.kills}`, false);
@@ -255,7 +264,7 @@ export function createFpsArena(
           : `${arsenal.mag}/${arsenal.reserve}`;
         hud.setText(
           `FPS 骨架 · 击杀 ${score.kills} · 目标 ${targets.activeCount} · HP ${playerHealth.hp}\n` +
-            `弹药 ${ammo} · WASD 移动 · 空格/J 射击 · R 换弹（点击画面锁定指针）`,
+            `目标 ${KILL_GOAL} · 弹药 ${ammo} · WASD 移动 · 空格/J 射击 · R 换弹`,
         );
       },
     },
@@ -275,6 +284,7 @@ export function createFpsArena(
       hpBar.dispose();
       dmgNums.dispose();
       endOverlay.dispose();
+      feel.dispose();
       sfx.dispose();
       cross?.remove();
       cross = null;
