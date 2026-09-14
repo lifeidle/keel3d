@@ -30,7 +30,8 @@
     "bundle:report": "node scripts/bundle-report.mjs",
     "unused:check": "node scripts/unused-check.mjs",
     "sfx:gen": "node scripts/gen-sfx.mjs",
-    "pack:lib": "node scripts/build-lib.mjs"
+    "pack:lib": "node scripts/build-lib.mjs",
+    "deploy:pages": "node scripts/deploy-pages.mjs"
   },
   "dependencies": {
     "@dimforge/rapier3d": "^0.20.0",
