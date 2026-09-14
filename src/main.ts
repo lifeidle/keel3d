@@ -37,6 +37,17 @@ async function boot() {
   const threeEngine = await createEngineAsync(app, qualityCtrl.current);
   const engine = new Engine({ parent: app, qualityCtrl, headless: true });
 
+  // Opt-in debug handle: append ?debug to any demo URL to inspect the live
+  // scene graph from the console. Off by default so it never leaks in prod.
+  if (typeof window !== 'undefined' && new URLSearchParams(location.search).has('debug')) {
+    (window as unknown as { __keel?: unknown }).__keel = {
+      scene: threeEngine.scene,
+      camera: threeEngine.camera,
+      renderer: threeEngine.renderer,
+      engine,
+    };
+  }
+
   if (gameId === 'nightraid') {
     const nr = bootNightRaid(app, { qualityCtrl, engine: threeEngine });
     for (const s of nr.systems) engine.addSystem(s);

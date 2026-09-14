@@ -6,7 +6,7 @@
 </head>
 <body><div id="info">加载中…</div>
 <script type="importmap">
-{ "imports": { "three": "/vendor/three.module.js", "three/addons/": "/vendor/addons/" } }
+{ "imports": { "three": "./vendor/three.module.js", "three/addons/": "./vendor/addons/" } }
 </script>
 <script type="module">
 import * as THREE from 'three';
@@ -32,7 +32,7 @@ const loader = new GLTFLoader();
 const info = document.getElementById('info');
 let checks = [];
 
-const soldier = await loader.loadAsync('/models/soldier.glb');
+const soldier = await loader.loadAsync('./models/soldier.glb');
 const root = soldier.scene;
 const bb = new THREE.Box3().setFromObject(root);
 const h = bb.max.y - bb.min.y;
@@ -40,7 +40,7 @@ const sc = h > 0 ? 1.7 / h : 1;
 root.scale.setScalar(sc);
 scene.add(root);
 
-const rifleRes = await loader.loadAsync('/models/rifle.glb');
+const rifleRes = await loader.loadAsync('./models/rifle.glb');
 const src = rifleRes.scene.children[0] || rifleRes.scene;
 const rifle = src.clone(true);
 const rbb = new THREE.Box3().setFromObject(rifle);

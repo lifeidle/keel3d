@@ -31,6 +31,12 @@ const pages = [
   ['br', '/br.html', '#br-hud'],
   ['puzzle', '/puzzle.html', '#puzzle-hud'],
   ['sports', '/sports.html', '#sports-hud'],
+  // live on the site but outside the skeleton set: menu stub + model previews.
+  // These carry the vendored three.js + GLB loads, so a bad asset path surfaces
+  // here as a console error (404) rather than silently on the live site.
+  ['index', '/index.html', null],
+  ['soldier-preview', '/soldier-preview.html', null],
+  ['tank-preview', '/tank-preview.html', null],
 ];
 
 async function launch() {

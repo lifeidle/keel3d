@@ -5,7 +5,7 @@
 </head>
 <body><div id="info">坦克 GLB 预览 — 自动转台</div>
 <script type="importmap">
-{ "imports": { "three": "/vendor/three.module.js", "three/addons/": "/vendor/addons/" } }
+{ "imports": { "three": "./vendor/three.module.js", "three/addons/": "./vendor/addons/" } }
 </script>
 <script type="module">
 import * as THREE from 'three';
@@ -29,7 +29,7 @@ const ground = new THREE.Mesh(new THREE.PlaneGeometry(120,120), new THREE.MeshSt
 ground.rotation.x = -Math.PI/2; ground.receiveShadow = true;
 scene.add(ground);
 const loader = new GLTFLoader();
-loader.load('/models/tank.glb', (gltf) => {
+loader.load('./models/tank.glb', (gltf) => {
   const root = gltf.scene;
   root.scale.setScalar(0.4);
   root.traverse((o)=>{ const m = o; if (m.isMesh){ m.castShadow = true; m.receiveShadow = true; } });

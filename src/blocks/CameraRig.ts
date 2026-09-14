@@ -28,7 +28,13 @@ export class CameraRig {
   // scratch — no per-frame allocs
   private _pos = new THREE.Vector3();
   private _look = new THREE.Vector3();
-  private _tmp = new THREE.Object3D();
+  // Orientation is built with a Matrix4 + shared up vector. This is the *camera*
+  // convention (-Z toward the look point). Do NOT use a plain THREE.Object3D
+  // scratch here: Object3D.lookAt() points +Z at the target, which flips the
+  // camera 180° (orbit/top-down end up staring at the sky).
+  private _m = new THREE.Matrix4();
+  private _up = new THREE.Vector3(0, 1, 0);
+  private _quat = new THREE.Quaternion();
 
   constructor(private camera: THREE.PerspectiveCamera, opts: CameraRigOpts = {}) {
     this.mode = opts.defaultMode ?? 'fps';
@@ -103,18 +109,17 @@ export class CameraRig {
         return;
     }
 
-    const tmp = this._tmp;
-    tmp.position.copy(pos);
-    tmp.lookAt(look);
+    this._m.lookAt(pos, look, this._up);
+    this._quat.setFromRotationMatrix(this._m);
 
     if (this.t < 1 && this.blend > 0) {
       this.t = Math.min(1, this.t + dt / this.blend);
       const k = this.t * this.t * (3 - 2 * this.t); // smoothstep
       this.camera.position.lerpVectors(this.fromPos, pos, k);
-      this.camera.quaternion.slerpQuaternions(this.fromQuat, tmp.quaternion, k);
+      this.camera.quaternion.slerpQuaternions(this.fromQuat, this._quat, k);
     } else {
       this.camera.position.copy(pos);
-      this.camera.quaternion.copy(tmp.quaternion);
+      this.camera.quaternion.copy(this._quat);
     }
   }
 
