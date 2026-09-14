@@ -120,6 +120,11 @@ export default defineConfig({
         rts: 'rts.html',
         stealth: 'stealth.html',
         arena: 'arena.html',
+        rhythm: 'rhythm.html',
+        sandbox: 'sandbox.html',
+        br: 'br.html',
+        puzzle: 'puzzle.html',
+        sports: 'sports.html',
       },
       output: {
         manualChunks(id) {

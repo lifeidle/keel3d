@@ -21,6 +21,11 @@
 | `rts-lite` | rts.html | 选中下令 | FactionMap · Steering |
 | `stealth` | stealth.html | 躲视锥守卫 | VisionCone · NoiseEmitter |
 | `combat-arena` | arena.html | 载具对战 | Arsenal · areaHits · Gamepad |
+| `rhythm` | rhythm.html | 空格打拍 | BeatClock |
+| `sandbox` | sandbox.html | 点击放/拆方块 | VoxelChunk |
+| `br-lite` | br.html | 毒圈生存 | ShrinkZone · Arsenal |
+| `puzzle` | puzzle.html | 推箱解谜 | TriggerZone |
+| `sports` | sports.html | 带球得分 | FactionMap · Scoreboard |
 
 ---
 

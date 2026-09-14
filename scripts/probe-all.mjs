@@ -27,6 +27,11 @@ const pages = [
   ['rts', '/rts.html', '#rts-hud'],
   ['stealth', '/stealth.html', '#stealth-hud'],
   ['arena', '/arena.html', '#arena-hud'],
+  ['rhythm', '/rhythm.html', '#rhythm-hud'],
+  ['sandbox', '/sandbox.html', '#sandbox-hud'],
+  ['br', '/br.html', '#br-hud'],
+  ['puzzle', '/puzzle.html', '#puzzle-hud'],
+  ['sports', '/sports.html', '#sports-hud'],
 ];
 
 const browser = await chromium.launch({ channel: 'chrome' });
