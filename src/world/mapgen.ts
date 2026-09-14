@@ -8,7 +8,6 @@ import * as THREE from 'three';
 import RAPIER from '@dimforge/rapier3d';
 import { CONFIG } from '../config';
 import { PhysicsWorld } from '../physics/world';
-import { Audio } from '../game/nightraid/audio/audio';
 import { Terrain } from './terrain';
 import { DestructibleCover } from '../blocks/props/DestructibleCover';
 import { FireSites } from '../blocks/fx/FireSites';
@@ -98,10 +97,15 @@ const M = {
   rock: 0x454b52,
 } as const;
 
+/** Minimal SFX surface mapgen needs (avoids importing the sample Audio class). */
+export interface MapgenSfx {
+  playWoodCrack: () => void;
+}
+
 export function generateMap(
   scene: THREE.Scene,
   physics: PhysicsWorld,
-  audio: Audio,
+  audio: MapgenSfx,
   seed: number,
   quality: Quality = 'high'
 ): GeneratedMap {

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { SmokeColumns } from '../src/blocks/fx/SmokeColumns';
 import { Searchlight } from '../src/blocks/props/Searchlight';
 import { ClothFlags } from '../src/blocks/props/ClothFlags';
+import { SampleBank } from '../src/blocks/audio/SampleBank';
 
 test('SmokeColumns addColumn and update without DOM crash', () => {
   const p = new SmokeColumns();
@@ -23,4 +24,12 @@ test('Searchlight rejects points outside beam and under mast', () => {
 test('ClothFlags can be constructed and updated headlessly', () => {
   // constructor signature varies — just ensure module loads and class exists
   assert.equal(typeof ClothFlags, 'function');
+});
+
+test('SampleBank play is silent without AudioContext', () => {
+  const bank = new SampleBank({ shot: ['sfx/x.wav'] });
+  assert.equal(bank.play('shot'), false);
+  assert.equal(bank.play('missing'), false);
+  bank.setMasterVolume(0.5);
+  bank.setSfxMuted(true);
 });

@@ -1,14 +1,25 @@
 ---
 feature: extract-rest
-status: designed
+status: delivered
 updated: 2026-09-13
 branch: feature/extract-rest
-commits: # filled at delivery
+commits: 151300ef291c495a1c2ceef31eefec3d660a8150..12970f4
 ---
 
 # Extract Rest — remaining reusable nightraid modules to L2
 
 ## Report
+
+**What was built** — Moved the remaining reusable Night Raid modules into de-branded L2 blocks: `blocks/fx` (ShellCasings, SmokeColumns, FireSites, CombatVfx), `blocks/props` (Searchlight, ClothFlags, DestructibleCover, ExplosiveBarrel, VehicleHulk), `blocks/scene` (TimeOfDay, Weather, Vegetation), `blocks/assets/PhotoTex`, `blocks/audio/SampleBank` + `ScoreDirector`, `blocks/vehicles/WheeledVehicle` + `TrackedVehicle`, `blocks/ui/TacticalMap`. Audio/vehicle/enemy coupling uses injected callbacks and structural interfaces (`Blastable`, `MapgenSfx`, `VehicleAudio`). nightraid keeps campaign content plus thin `Audio`/`MusicDirector` wrappers that own BANK tables. `mapgen` no longer imports the sample Audio class.
+
+**Verification** — typecheck PASS · test PASS (62) · build PASS · probe-all PASS (13 entries) · blocks/ has zero `game/` imports.
+
+**Journey log** —
+1. Parallel subagents on disjoint file sets work; shared `game.ts`/`mapgen.ts` need careful string-replace ownership.
+2. Copying files on Windows can corrupt UTF-8 multi-byte sequences — rebuild as UTF-8 if vite reports UNLOADABLE_DEPENDENCY.
+3. Spec over-claimed “blocks never import CONFIG”; delivered reality follows the pre-existing `src/config.ts` pattern (amended in S2).
+4. Sample wrappers preserving class names/paths avoid rewriting ~15 import sites.
+5. userData type strings (`'tracked'`/`'wheeled'`) must stay consistent across vehicle, weapon, and enemy.
 
 ## [S1] Problem
 
@@ -42,7 +53,7 @@ Extract **EXTRACT** and **WRAP** modules into de-branded `src/blocks/*`. STAY mo
 
 ### Dependency injection (WRAP rule)
 
-Blocks take callbacks/options — they never import Player/Enemy/Audio/CONFIG:
+Blocks take callbacks/options — they never import Player/Enemy/Audio from `game/`:
 
 ```ts
 // ExplosiveBarrel
@@ -54,6 +65,8 @@ new ExplosiveBarrel(opts: {
 ```
 
 Sample adapters in nightraid wire `onExplode` to Effects/Audio/Enemy damage.
+
+**Amendment (delivered)** — several blocks still import root `src/config.ts` for default tunables (FireSites, ClothFlags, DestructibleCover, ExplosiveBarrel, Weather, TacticalMap, WheeledVehicle, TrackedVehicle). That matches the pre-existing framework pattern (`config.ts` is not under `game/`). Full opts-injection of every CONFIG field is deferred; vehicles still read `CONFIG.tank`/`CONFIG.jeep` tables. `mapgen` still imports `placeHamlet` (STAY content module).
 
 ### Slices (implementation order)
 
@@ -109,13 +122,13 @@ BLOCKS.md + API.md rows for every new block; STRUCTURE tree update if new folder
 
 ## Tasks
 
-- [ ] T1: Slice A ShellCasings + SmokeColumns + Searchlight + nightraid adapters — acceptance: typecheck (covers: S2)
-- [ ] T2: Slice B PhotoTex + FireSites + TimeOfDay + Vegetation — acceptance: typecheck (covers: S2; depends: T1)
-- [ ] T3: Slice C Weather + ClothFlags — acceptance: typecheck (covers: S2; depends: T2)
-- [ ] T4: Slice D DestructibleCover + ExplosiveBarrel + tests — acceptance: test green (covers: S2; depends: T1)
-- [ ] T5: Slice E CombatVfx — acceptance: typecheck; fps probe (covers: S2; depends: T4)
-- [ ] T6: Slice F SfxBank + ScoreDirector — acceptance: typecheck; no-context safe test (covers: S2; depends: T1)
-- [ ] T7: Slice G vehicles (hulk/wheeled/tracked) — acceptance: typecheck (covers: S2; depends: T5)
-- [ ] T8: Slice H TacticalMap — acceptance: typecheck; fps probe map HUD (covers: S2; depends: T1)
-- [ ] T9: Docs BLOCKS/API/STRUCTURE + unused-check delta — acceptance: docs list new blocks (covers: S2; depends: T1-T8)
-- [ ] T10: Full verify typecheck/test/build/probe-all — acceptance: all green (covers: S2; depends: T1-T9)
+- [x] T1: Slice A ShellCasings + SmokeColumns + Searchlight + nightraid adapters — acceptance: typecheck (covers: S2)
+- [x] T2: Slice B PhotoTex + FireSites + TimeOfDay + Vegetation — acceptance: typecheck (covers: S2; depends: T1)
+- [x] T3: Slice C Weather + ClothFlags — acceptance: typecheck (covers: S2; depends: T2)
+- [x] T4: Slice D DestructibleCover + ExplosiveBarrel + tests — acceptance: test green (covers: S2; depends: T1)
+- [x] T5: Slice E CombatVfx — acceptance: typecheck; fps probe (covers: S2; depends: T4)
+- [x] T6: Slice F SampleBank + ScoreDirector — acceptance: typecheck; no-context safe test (covers: S2; depends: T1)
+- [x] T7: Slice G vehicles (hulk/wheeled/tracked) — acceptance: typecheck (covers: S2; depends: T5)
+- [x] T8: Slice H TacticalMap — acceptance: typecheck; fps probe map HUD (covers: S2; depends: T1)
+- [x] T9: Docs BLOCKS/API/STRUCTURE — acceptance: docs list new blocks (covers: S2; depends: T1-T8)
+- [x] T10: Full verify typecheck/test/build/probe-all — acceptance: all green (covers: S2; depends: T1-T9)
