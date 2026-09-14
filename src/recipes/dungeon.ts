@@ -12,6 +12,8 @@ import { HudPanel } from '../blocks/ui/HudPanel';
 import { Toast } from '../blocks/ui/Toast';
 import { EndOverlay } from '../blocks/ui/EndOverlay';
 import { MinimapDots } from '../blocks/ui/MinimapDots';
+import { KitSfx } from '../blocks/audio/KitSfx';
+import { BossBar } from '../blocks/ui/BossBar';
 import type { System, EngineWorld } from '../engine/types';
 
 export interface DungeonRecipeOpts extends BaseRecipeOpts {
@@ -72,6 +74,8 @@ export function createDungeonGame(
   const hud = new HudPanel({ id: 'dungeon-hud', position: 'tl' });
   const toast = new Toast();
   const endOverlay = new EndOverlay();
+  const sfx = new KitSfx();
+  const bossBar = new BossBar({ id: 'dungeon-boss' });
   const worldHalf = (roomCount - 1) * (roomW + gap) + roomW / 2 + 6;
   const minimap = new MinimapDots({ size: 120, worldHalf });
 
@@ -149,10 +153,14 @@ export function createDungeonGame(
         const bx = (roomCount - 1) * (roomW + gap);
         if (Math.hypot(player.position.x - bx, player.position.z) < 6) {
           bossHp = Math.max(0, bossHp - 15);
+          sfx.play('hit');
+          bossBar.setHp(bossHp, 80);
           score.add('dmg', 15);
           if (bossHp <= 0) {
             score.addKill();
             toast.show('Boss 已倒下 — 前往出口');
+            sfx.play('boom');
+            bossBar.hide();
           }
         }
       }
@@ -228,6 +236,8 @@ export function createDungeonGame(
       hud.dispose();
       toast.dispose();
       endOverlay.dispose();
+      sfx.dispose();
+      bossBar.dispose();
       minimap.dispose();
     },
     stats: () => ({ room: roomIdx, bossHp, status, cleared: levels.serialize() }),

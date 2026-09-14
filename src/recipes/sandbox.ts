@@ -7,6 +7,8 @@ import { CameraRig } from '../blocks/CameraRig';
 import { VoxelChunk } from '../blocks/world/VoxelChunk';
 import { HudPanel } from '../blocks/ui/HudPanel';
 import { Toast } from '../blocks/ui/Toast';
+import { EndOverlay } from '../blocks/ui/EndOverlay';
+import { KitSfx } from '../blocks/audio/KitSfx';
 import type { System, EngineWorld } from '../engine/types';
 
 export interface SandboxRecipeOpts extends BaseRecipeOpts {
@@ -61,6 +63,10 @@ export function createSandboxGame(
 
   const hud = new HudPanel({ id: 'sandbox-hud', position: 'tl' });
   const toast = new Toast();
+  const endOverlay = new EndOverlay();
+  const sfx = new KitSfx();
+  const PLACE_GOAL = 10;
+  let status: 'playing' | 'win' = 'playing';
   const rig = new CameraRig(camera, { defaultMode: 'orbit', blend: 0.2, orbit: { distance: 22, height: 18, pitch: 0.7 } });
   let colorIdx = 0;
   let mode: 'add' | 'remove' = 'add';
@@ -118,8 +124,13 @@ export function createSandboxGame(
       update(ft: number, _world: EngineWorld) {
         void ft;
         rig.update(0.016, new THREE.Vector3(0, 2, 0), performance.now() / 10000);
+        if (status === 'playing' && voxels.count >= PLACE_GOAL) {
+          status = 'win';
+          sfx.play('win');
+          endOverlay.show(`放置 ${PLACE_GOAL} 块达成 — 按 R 继续`, true);
+        }
         hud.setText(
-          `方块 ${voxels.count} · 模式 ${mode === 'add' ? '放置' : '挖除'} · 色 ${colorIdx + 1}\n点击操作 · X 切换 · 1-5 选色`,
+          `目标放置 ${PLACE_GOAL} 块 · 已有 ${voxels.count} · 模式 ${mode === 'add' ? '放置' : '挖除'} · 色 ${colorIdx + 1}\n点击操作 · X 切换 · 1-5 选色`,
         );
       },
     },
@@ -135,6 +146,8 @@ export function createSandboxGame(
       scene.remove(root);
       hud.dispose();
       toast.dispose();
+      endOverlay.dispose();
+      sfx.dispose();
       geo.dispose();
       for (const m of mats) m.dispose();
     },

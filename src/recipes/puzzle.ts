@@ -96,6 +96,7 @@ export function createPuzzleGame(
   const score = new Scoreboard();
   const hud = new HudPanel({ id: 'puzzle-hud', position: 'tl' });
   const endOverlay = new EndOverlay();
+  const sfx = new KitSfx();
   const toast = new Toast();
   const rig = new CameraRig(camera, { defaultMode: 'orbit', blend: 0.2, orbit: { distance: 14, height: 12, pitch: 0.85 } });
 
@@ -147,9 +148,14 @@ export function createPuzzleGame(
       name: `${opts.id}.sim`,
       update(ft: number, _w: EngineWorld) {
         score.tick(ft);
+        if (status === 'playing' && typeof (globalThis as any).__puzzleWin === 'function' && (globalThis as any).__puzzleWin()) {
+          status = 'win';
+          sfx.play('win');
+          endOverlay.show('解开谜题 — 按 R 再来', true);
+        }
         rig.update(ft, new THREE.Vector3(cols / 2, 0, rows / 2), 0.3);
         const done = crates.filter((c) => targets.has(`${c.x},${c.z}`)).length;
-        hud.setText(`推箱子 · 归位 ${done}/${crates.length} · 步数 ${score.get('moves')}\nWASD 推动木箱到绿台`);
+        hud.setText(`目标：把箱子推到金点 · 推箱子 · 归位 ${done}/${crates.length} · 步数 ${score.get('moves')}\nWASD 推动木箱到绿台`);
       },
     },
   ];

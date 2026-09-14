@@ -64,6 +64,8 @@ export function createSportsGame(
   const hud = new HudPanel({ id: 'sports-hud', position: 'tl' });
   const endOverlay = new EndOverlay();
   const toast = new Toast();
+  const GOAL_TARGET = 3;
+  let status: 'playing' | 'over' | 'win' | 'lose' = 'playing';
   const rig = new CameraRig(camera, { defaultMode: 'orbit', blend: 0.2, orbit: { distance: 22, height: 16, pitch: 0.75 } });
 
   function resetBall() {
@@ -72,9 +74,9 @@ export function createSportsGame(
     player.position.set(-4, 0.7, 0);
   }
 
-  let status: 'playing' | 'over' = 'playing';
   const keys = new Set<string>();
   function onDn(e: KeyboardEvent) {
+    if (e.code === 'KeyR' && status !== 'playing' && typeof location !== 'undefined') location.reload();
     keys.add(e.code);
   }
   function onUp(e: KeyboardEvent) {
@@ -129,14 +131,14 @@ export function createSportsGame(
           ball.position.x = THREE.MathUtils.clamp(ball.position.x, -W / 2 + 0.2, W / 2 - 0.2);
 
           if (blue >= winScore || red >= winScore) {
-            status = 'over';
+            status = 'lose';
             endOverlay.show(`${blue > red ? '蓝' : '红'}方胜利 ${blue}:${red}`, blue > red);
           }
           void factions;
         }
         rig.update(ft, ball.position, 0.5);
         hud.setText(
-          `体育 · 蓝 ${blue} : ${red} 红 · 用时 ${score.time.toFixed(0)}s\nWASD 移动 · 靠近球推射 · 先到 ${winScore} 球`,
+          `目标 ${GOAL_TARGET} 球 · 蓝 ${blue} : ${red} 红 · 用时 ${score.time.toFixed(0)}s\nWASD 移动 · 靠近球推射 · 先到 ${GOAL_TARGET} 球 · R 重开`,
         );
       },
     },

@@ -48,13 +48,15 @@ export function createRhythmGame(
   const score = new Scoreboard();
   const hud = new HudPanel({ id: 'rhythm-hud', position: 'tl' });
   const endOverlay = new EndOverlay();
+  const COMBO_GOAL = 20;
+  let combo = 0;
   const toast = new Toast();
   const rig = new CameraRig(camera, { defaultMode: 'orbit', blend: 0.2, orbit: { distance: 10, height: 6, pitch: 0.6 } });
 
   let perfect = 0;
   let good = 0;
   let miss = 0;
-  let status: 'playing' | 'over' = 'playing';
+  let status: 'playing' | 'over' | 'win' = 'playing';
   let lastBeat = -1;
   let hitThisBeat = false;
 
@@ -69,12 +71,18 @@ export function createRhythmGame(
     hitThisBeat = true;
     if (j === 'perfect') {
       perfect++;
-      score.add('perfect', 1);
+      score.addKill();
+        combo++;
+        if (combo >= COMBO_GOAL && status === 'playing') {
+          status = 'win';
+          endOverlay.show(`连击 ${COMBO_GOAL}！— 按 R 再来`, true);
+        }
       toast.show('PERFECT');
       padMat.emissive.setHex(0x2266aa);
     } else if (j === 'good') {
       good++;
-      score.add('good', 1);
+      combo = 0;
+        score.add("miss", 1);
       toast.show('GOOD');
       padMat.emissive.setHex(0x224466);
     } else {
@@ -106,6 +114,7 @@ export function createRhythmGame(
           ringMat.opacity = 0.9 - clock.phase * 0.5;
           if (score.time >= duration) {
             status = 'over';
+          combo = 0;
             const total = perfect + good + miss;
             const acc = total ? Math.round(((perfect + good * 0.5) / total) * 100) : 0;
             endOverlay.show(`结束 · 完美 ${perfect} · 良 ${good} · 失误 ${miss} · 准 ${acc}%`, acc >= 60);
@@ -113,7 +122,7 @@ export function createRhythmGame(
         }
         rig.update(ft, new THREE.Vector3(0, 0.5, 0), performance.now() / 4000);
         hud.setText(
-          `BPM ${bpm} · 完美 ${perfect} · 良 ${good} · 失误 ${miss}\n空格/J 卡拍 · 剩余 ${Math.max(0, duration - score.time).toFixed(0)}s`,
+          `目标连击 ${COMBO_GOAL} · 连击 ${combo} · BPM ${bpm} · 完美 ${perfect} · 良 ${good} · 失误 ${miss}\n空格/J 卡拍 · 剩余 ${Math.max(0, duration - score.time).toFixed(0)}s`,
         );
       },
     },

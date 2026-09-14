@@ -12,6 +12,8 @@ import { RunState } from '../blocks/progress/RunState';
 import { HudPanel } from '../blocks/ui/HudPanel';
 import { Toast } from '../blocks/ui/Toast';
 import { ButtonBar } from '../blocks/ui/ButtonBar';
+import { EndOverlay } from '../blocks/ui/EndOverlay';
+import { KitSfx } from '../blocks/audio/KitSfx';
 import type { System, EngineWorld } from '../engine/types';
 
 export interface TycoonRecipeOpts extends BaseRecipeOpts {
@@ -51,6 +53,10 @@ export function createTycoonGame(
   const run = new RunState();
   const hud = new HudPanel({ id: 'tycoon-hud', position: 'tl' });
   const toast = new Toast();
+  const endOverlay = new EndOverlay();
+  const sfx = new KitSfx();
+  const POP_GOAL = 50;
+  let status: 'playing' | 'win' = 'playing';
   const timers = new Timers();
   const rig = new CameraRig(camera, { defaultMode: 'orbit', blend: 0.2, orbit: { distance: 36, height: 30, pitch: 0.75 } });
 
@@ -76,6 +82,11 @@ export function createTycoonGame(
       root.add(mesh);
       meshes.set(`${b.ix},${b.iz}`, mesh);
       population += b.key === 'house' ? 4 : b.key === 'shop' ? 2 : 1;
+      if (population >= POP_GOAL && status === 'playing') {
+        status = 'win';
+        sfx.play('win');
+        endOverlay.show(`达标！人口 ${population} · 建筑 ${build.buildings.length} — 按 R 再来`, true);
+      }
       toast.show(`建造 ${def.name ?? b.key}`);
     },
   });
@@ -131,6 +142,9 @@ export function createTycoonGame(
   if (typeof window !== 'undefined') {
     window.addEventListener('click', onClick);
     window.addEventListener('keydown', onKey);
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'KeyR' && status !== 'playing' && typeof location !== 'undefined') location.reload();
+    });
   }
 
   const systems: System[] = [
@@ -146,7 +160,7 @@ export function createTycoonGame(
         rig.update(ft, new THREE.Vector3(0, 0, 0), performance.now() / 8000);
         hud.setText(
           `金钱 ${eco.balance} · 人口 ${population} · 建筑 ${build.buildings.length} · 用时 ${run.time.toFixed(0)}s\n` +
-            `选中 ${CATALOG[selected].name}(${selectedCost}) · 点击空地建造`,
+            `目标人口 ${POP_GOAL} · 选中 ${CATALOG[selected].name}(${selectedCost}) · 点空地建造 · R 重开`,
         );
       },
     },
@@ -166,6 +180,8 @@ export function createTycoonGame(
       scene.remove(root);
       hud.dispose();
       toast.dispose();
+      endOverlay.dispose();
+      sfx.dispose();
       bar.dispose();
       timers.clear();
     },
