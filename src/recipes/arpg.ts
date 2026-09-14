@@ -10,6 +10,7 @@ import { Health } from '../blocks/gameplay/Health';
 import { Scoreboard } from '../blocks/gameplay/Scoreboard';
 import { Economy } from '../blocks/gameplay/Economy';
 import { RunState } from '../blocks/progress/RunState';
+import { XpProgress } from '../blocks/progress/XpProgress';
 import { Cooldown } from '../blocks/combat/Cooldown';
 import { pickTarget } from '../blocks/combat/Targeting';
 import { Projectile, stepProjectiles } from '../blocks/combat/Projectile';
@@ -88,6 +89,18 @@ export function createArpgGame(
   const score = new Scoreboard();
   const gold = new Economy({ start: 0 });
   const run = new RunState();
+  const xp = new XpProgress();
+  xp.onLevelUp = (lv) => {
+    toastLike('升级！Lv' + lv);
+  };
+  function toastLike(msg: string) {
+    if (typeof document === 'undefined') return;
+    const el = document.createElement('div');
+    el.textContent = msg;
+    el.style.cssText = 'position:fixed;top:20%;left:50%;transform:translateX(-50%);z-index:45;color:#ffd27a;font:700 18px system-ui;pointer-events:none;';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 1200);
+  }
   const quest = new QuestTracker({ title: '任务' });
   const inv = new Inventory({ slots: 18, stackLimit: 9 });
   const invGrid = new InventoryGrid(inv, { id: 'inv-grid' });
@@ -222,6 +235,7 @@ export function createArpgGame(
         enemies.release(e);
         score.addKill();
         run.addKill();
+        xp.addXp(12);
         gold.add(5);
         for (const s of loot.roll()) inv.add(s);
         beep(1320);
