@@ -8,8 +8,6 @@ import { mulberry32 } from '../../util/rng';
 
 export type WeatherKind = 'clear' | 'mist' | 'rain' | 'storm';
 
-const KINDS: WeatherKind[] = ['clear', 'mist', 'rain', 'storm'];
-
 // Deterministic PRNG (mulberry32) imported from ../util/rng.
 
 /** Weighted draw: clear 40% / mist 30% / rain 22% / storm 8%. */

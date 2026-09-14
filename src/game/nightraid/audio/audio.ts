@@ -9,8 +9,6 @@
 
 import { SampleBank, type SampleBankTable, type VoiceBankTable } from '../../../blocks/audio/SampleBank';
 
-type Variant = string[];
-
 const BANK: SampleBankTable = {
   // player arsenal (one bank per weapon slot)
   shot_rifle: ['sfx/weapons/sks.wav'],

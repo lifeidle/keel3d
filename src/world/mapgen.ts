@@ -35,7 +35,7 @@ import { QUALITY, type Quality } from './quality';
 import { ClothFlags } from '../blocks/props/ClothFlags';
 import { Searchlight } from '../blocks/props/Searchlight';
 import { concreteTexture, sandbagTexture, scorchTexture, rutTexture } from './textures';
-import { upgrade, prefetchHD, type HDName } from '../blocks/assets/PhotoTex';
+import { upgrade, type HDName } from '../blocks/assets/PhotoTex';
 import { mulberry32 } from '../util/rng';
 
 /** Obstacle footprint shared with the minimap. */

@@ -25,11 +25,11 @@ import { Weather, moonForSeed } from '../../blocks/scene/Weather';
 import { TouchControls, isTouchDevice } from '../../ui/touch';
 import { Netplay } from '../../net/netplay';
 import { RemotePlayer, GhostSwarm } from '../../net/ghosts';
-import { SnapshotEnemy, SnapshotAlly, encodeSnapshot, decodeInput, NET_EVENTS, BTN, encodeEvent } from '../../net/protocol';
+import { NET_EVENTS } from '../../net/protocol';
 import { WheeledVehicle } from '../../blocks/vehicles/WheeledVehicle';
 import { applyDayNight, loadTimeMode, saveTimeMode, type TimeMode } from '../../blocks/scene/TimeOfDay';
 import { TrackedVehicle } from '../../blocks/vehicles/TrackedVehicle';
-import { opScale, loadScale, setScale, SCALES, type OpScale, type ScaleKey } from '../../world/scale';
+import { opScale, setScale, SCALES, type ScaleKey } from '../../world/scale';
 import { QUALITY, detectQuality, type Quality } from '../../world/quality';
 import { QualityController } from '../../engine/quality/QualityController';
 import { t, onLocaleChange, getLocale, setLocale, type Locale } from '../../i18n';
@@ -79,7 +79,6 @@ export class Game {
   private qualityCtrl: QualityController;
   private lastRenderScale = 1;
   private externalLoop = false;
-  private hostPlaying = false;
 
   // first-person viewmodels (one cached model per slot, toggled on switch)
   private gunModels = new Map<string, THREE.Group>();
@@ -92,8 +91,6 @@ export class Game {
   private victory = false;
   private timedOut = false;
   private shake = 0; // camera shake trauma (decays each frame)
-  private lastAlive: number = opScale().enemies;
-  private lastSquadAlive: number = opScale().allies;
   // C-batch battlefield dynamics: bounded reinforcement pool + despair charge
   private reinLeft = 0;
   private reinTimer = CONFIG.reinforce.every;
@@ -133,14 +130,11 @@ export class Game {
   // voice one-shots: enter line per match, tango cooldown, losing-squad flag
   private enterVoiced = false;
   private tangoCd = 0;
-  private losingVoiced = false;
   private holdVoiced = false;
   private allyVoiceCd = 0;
   // night searchlight exposure: periodic cone test with a long cooldown
   private slCheckCd = 0;
   private slWarnCd = 0;
-  private streakPlayed = 0; // highest streak milestone voiced this match
-  private rattleCd = 0; // off-road rattle throttle while driving
   private resupplied = new Set<number>(); // used ammo dump indices
   private dumpHintOn = false;
   private fullmapOpen = false;
@@ -148,15 +142,11 @@ export class Game {
   netMode: 'off' | 'host' | 'client' = 'off';
   private remotePlayer: RemotePlayer | null = null;
   private ghostSwarm: GhostSwarm | null = null;
-  private netSnapT = 0;
-  private netInputT = 0;
-  private snapTick = 0;
   private netPvp = false;
   /** ?debug=1 self-test instrumentation flag (cached — no per-frame URL parsing) */
   private dbg = new URLSearchParams(location.search).has('debug');
   private pvpScoreSelf = 0;
   private pvpScoreFoe = 0;
-  private pvpTimeLeft = 600; // 10-minute hunt
   private pvpRespawnT = 0;
   /** Created in bindEvents with the live hooks (room UI + ghosts + claims). */
   net!: Netplay;
@@ -181,7 +171,7 @@ export class Game {
   private tankCamThird = true;
   private tankHintCd = 0; // throttle "press F to board" hint
 
-  constructor(parent: HTMLElement, opts: GameHostOptions = {}) {
+  constructor(_parent: HTMLElement, opts: GameHostOptions = {}) {
     this.externalLoop = !!opts.externalLoop;
     this.qualityCtrl = opts.qualityCtrl ?? new QualityController(this.quality);
     // WebGPU-only: the engine must be prebuilt async (createEngineAsync).
@@ -470,7 +460,6 @@ export class Game {
         this.netPvp = pvp;
         this.pvpScoreSelf = 0;
         this.pvpScoreFoe = 0;
-        this.pvpTimeLeft = 600;
         // client adopts the host's operation scale (keys mirror SCALES order)
         if (this.netMode === 'client') {
           const keys = Object.keys(SCALES) as ScaleKey[];
@@ -802,8 +791,8 @@ export class Game {
   }
 
   /** Engine host: mark match simulating (drives fixedUpdate gating). */
-  setHostPlaying(on: boolean) {
-    this.hostPlaying = on;
+  setHostPlaying(_on: boolean) {
+    // field removed — was write-only; host gating now lives in Engine systems
   }
 
   /** Current screen state for the host state machine. */
@@ -1437,15 +1426,11 @@ export class Game {
       this.matchTime = 0;
       this.heat = 0;
       this.timedOut = false;
-      this.lastAlive = opScale().enemies;
-      this.lastSquadAlive = opScale().allies;
       // per-match voice one-shots re-arm with the fresh operation
       this.enterVoiced = false;
-      this.losingVoiced = false;
       this.holdVoiced = false;
       this.tangoCd = 0;
       this.slWarnCd = 0;
-      this.streakPlayed = 0;
       this.resupplied.clear();
       this.dumpHintOn = false;
       this.startMatch(cinematic);
@@ -1531,8 +1516,6 @@ export class Game {
     this.matchTime = 0;
     this.heat = 0;
     this.timedOut = false;
-    this.lastAlive = opScale().enemies;
-    this.lastSquadAlive = opScale().allies;
   }
 
   /** Scale picker on the main menu: keep showing the menu, just re-roll the
@@ -1961,7 +1944,6 @@ export class Game {
         // march in and defend, or hit the player's flank from behind
         const bx = camp.x - this.map.base.x;
         const bz = camp.z - this.map.base.z;
-        const bl = Math.hypot(bx, bz) || 1;
         const ang0 = Math.atan2(bz, bx);
         for (let i = 0; i < n; i++) {
           const a = ang0 + (Math.random() - 0.5) * 1.2;
@@ -1972,8 +1954,6 @@ export class Game {
             new THREE.Vector3(x, this.map.terrain.heightAt(x, z) + 0.1, z)
           );
         }
-        // keep the killfeed delta consistent after the squad grew
-        this.lastAlive = this.enemies.aliveCount();
       }
     }
   }
@@ -2002,7 +1982,6 @@ export class Game {
           new THREE.Vector3(x, this.map.terrain.heightAt(x, z) + 0.1, z)
         );
       }
-      this.lastAlive = this.enemies.aliveCount();
     } else {
       // no reserve left — the surviving garrison sweeps the flag instead
       this.enemies.alertAt(camp.x, camp.z, 1e9);

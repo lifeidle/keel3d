@@ -34,28 +34,6 @@ const GLASS_DAY = 0.12; // window opacity when the sun is up
 // referenced by the next map. Per-cluster box counts are small (~25), so we
 // just allocate fresh geometries like the rest of mapgen does.
 
-interface Ctx {
-  g: THREE.Group; // map group (child group is added here)
-  physics: PhysicsWorld;
-  terrain: Terrain;
-  rand: () => number;
-  plumes: SmokeColumns;
-  cx: number;
-  cz: number;
-  yaw: number; // snapped to 0/90/180/270
-}
-
-interface Ctx {
-  g: THREE.Group; // map group (child group is added here)
-  physics: PhysicsWorld;
-  terrain: Terrain;
-  rand: () => number;
-  plumes: SmokeColumns;
-  cx: number;
-  cz: number;
-  yaw: number; // snapped to 0/90/180/270
-}
-
 /** Rotate a local offset by a quarter-turn yaw (yaw is a multiple of π/2). */
 function yawOf(x: number, z: number, yaw: number): [number, number] {
   const c = Math.round(Math.cos(yaw));

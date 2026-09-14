@@ -404,7 +404,6 @@ export function placeBunker(
 ): PropHandles {
   const b = makeBase(g, physics, terrain, rand, cx, cz);
   const conc = 0x585d63;
-  const dark = 0x1b1e21;
   const earth = 0x33322a;
   // earth berm skirt (visual)
   box(b, earth, 1, 0, 4.4, 0.5, 4.6, 0, 0.22, 0, { collider: false });

@@ -1,4 +1,4 @@
-﻿// Network ghosts: lightweight soldier representations driven purely by the
+// Network ghosts: lightweight soldier representations driven purely by the
 // network. Two flavours:
 //  - HOST: a remote PLAYER ghost with a kinematic body + CombatTarget so the
 //    local AI can see, chase and shoot the joined player (hurt ???HIT event
@@ -31,15 +31,12 @@ export class RemotePlayer implements CombatTarget {
   mesh: THREE.Group;
   alive = true;
   downed = false;
-  private targetX = 0;
-  private targetZ = 0;
   hp = 100;
-  private maxHp = 100;
 
   constructor(
-    private physics: PhysicsLike,
-    private scene: THREE.Scene,
-    private terrain: { heightAt(x: number, z: number): number },
+    physics: PhysicsLike,
+    scene: THREE.Scene,
+    terrain: { heightAt(x: number, z: number): number },
     x: number,
     z: number,
     /** Called when local AI/blast hurts this ghost ???forwards to the owner. */
@@ -58,8 +55,6 @@ export class RemotePlayer implements CombatTarget {
     this.mesh = soldierMesh(0x6fd06f);
     this.mesh.position.set(x, gy, z);
     scene.add(this.mesh);
-    this.targetX = x;
-    this.targetZ = z;
   }
 
   pos(): THREE.Vector3 {
@@ -285,7 +280,7 @@ export class AllyGhost {
   constructor(
     private physics: PhysicsLike,
     scene: THREE.Scene,
-    private terrain: { heightAt(x: number, z: number): number },
+    terrain: { heightAt(x: number, z: number): number },
     x: number,
     z: number
   ) {
