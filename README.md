@@ -45,16 +45,15 @@
 
 ## 作为库使用（npm）
 
-`ash
-npm run pack:lib   # 生成 packages/keel3d（src + d.ts + package.json）
-`
+```bash
+npm run pack:lib   # 生成 packages/keel3d（源码 + d.ts + 清单）
+```
 
-\\\	s
+```ts
 import { defineGame, CharacterController, Arsenal, KitSfx } from 'keel3d';
-\\\
+```
 
-peerDependencies：\	hree\ · \@dimforge/rapier3d\。根仓库保持 \private\；发布在 \packages/keel3d\ 执行 \
-pm publish\（需用户侧 2FA）。
+peerDependencies：`three` · `@dimforge/rapier3d`。根仓库保持 `private`；在 `packages/keel3d` 执行 `npm publish`（需用户侧 2FA）。
 
 ## 本地开发
 

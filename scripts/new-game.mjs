@@ -194,10 +194,10 @@ if (wantHtml) {
   let vite = fs.readFileSync(vitePath, 'utf8');
   if (vite.includes(`'${id}': '${id}.html'`)) {
     // already present
-  } else if (vite.includes("cultivation: 'cultivation.html',")) {
+  } else if (vite.includes("arena: 'arena.html',")) {
     vite = vite.replace(
-      "cultivation: 'cultivation.html',",
-      `cultivation: 'cultivation.html',\n        ${id}: '${id}.html',`,
+      "arena: 'arena.html',",
+      `arena: 'arena.html',\n        ${id}: '${id}.html',`,
     );
     fs.writeFileSync(vitePath, vite);
   } else {
@@ -206,5 +206,5 @@ if (wantHtml) {
 }
 
 console.log(`created src/game/${id} (recipe=${recipe})`);
-console.log(`  open  /?game=${id}${wantHtml ? `  or  /${id}.html` : ''}`);
+console.log(`  open  ${wantHtml ? `/${id}.html` : '(add HTML entry or copy a skeleton page)'}`);
 console.log(`  edit  src/game/${id}/index.ts`);

@@ -28,14 +28,14 @@
   "exports": {
     ".": {
       "types": "./dist/lib.d.ts",
-      "import": "./src/lib.ts",
-      "default": "./src/lib.ts"
+      "import": "./dist/lib.js",
+      "default": "./dist/lib.js"
     },
-    "./blocks/*": "./src/blocks/*",
-    "./content/*": "./src/content/*",
-    "./recipes/*": "./src/recipes/*"
+    "./src/*": "./src/*"
   },
   "types": "./dist/lib.d.ts",
+  "main": "./dist/lib.js",
+  "module": "./dist/lib.js",
   "files": [
     "dist",
     "src",

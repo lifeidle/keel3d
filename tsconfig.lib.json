@@ -4,9 +4,12 @@
     "noEmit": false,
     "declaration": true,
     "declarationMap": true,
-    "emitDeclarationOnly": true,
+    "emitDeclarationOnly": false,
     "outDir": "packages/keel3d/dist",
     "rootDir": "src",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": false,
     "noUnusedLocals": true,
     "noUnusedParameters": true
   },

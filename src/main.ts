@@ -65,6 +65,12 @@ async function boot() {
     parent: app,
     quality: qualityCtrl,
     render,
+    // headless engine skips GPU canvas; still offer a shared physics world
+    services: {
+      physics: engine.services.physics ?? undefined,
+      audio: engine.services.audio ?? undefined,
+      input: engine.services.input ?? undefined,
+    },
   });
 
   fill.style.width = '100%';

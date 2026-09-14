@@ -66,7 +66,7 @@ npm run new-game mydgn -- --recipe dungeon --html
 2. 在 `src/registry.ts` 注册  
 3. 可选 `<id>.html` + Vite 多页入口  
 
-打开 `/?game=<id>`。手写方式见 `docs/BLOCKS.md` 与 `src/recipes/tower-defense.ts`。
+打开 `/<id>.html`。手写方式见 `docs/BLOCKS.md` 与 `src/recipes/tower-defense.ts`。
 
 手写方式（无脚手架）：
 

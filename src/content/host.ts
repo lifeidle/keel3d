@@ -19,6 +19,8 @@ export interface MountSampleOptions {
   hemi?: THREE.HemisphereLight;
   parent?: HTMLElement;
   quality?: unknown;
+  /** Optional physics/audio/input for GameCreateContext.services. */
+  services?: import('./define').GameServices;
 }
 
 export interface MountedSample {
@@ -67,6 +69,11 @@ export function mountSampleGame(
     camera,
     quality: opts.quality,
     parent: opts.parent,
+    services: opts.services ?? {
+      physics: engine.services.physics ?? undefined,
+      audio: engine.services.audio ?? undefined,
+      input: engine.services.input ?? undefined,
+    },
   };
 
   const instance = mod.instantiate!(ctx);
