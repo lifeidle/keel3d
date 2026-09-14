@@ -113,6 +113,7 @@ export default defineConfig({
         dungeon: 'dungeon.html',
         'flight-arena': 'flight-arena.html',
         'fps-arena': 'fps-arena.html',
+        tps: 'tps.html',
       },
       output: {
         manualChunks(id) {

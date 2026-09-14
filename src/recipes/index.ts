@@ -44,3 +44,8 @@ export {
   createFpsArena,
   type FpsArenaOpts,
 } from './fps-arena';
+export {
+  tpsRecipe,
+  createTpsGame,
+  type TpsRecipeOpts,
+} from './tps';

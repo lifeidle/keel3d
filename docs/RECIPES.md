@@ -12,6 +12,7 @@
 | `rally` | rally.html | 自动行驶，按序穿检查点 | Path · BestScoreSlot · TriggerZone |
 | `dungeon` | dungeon.html | E/F 开门，Boss 房 J/空格 | Interactable · TriggerZone |
 | `fps-arena` | fps-arena.html | WASD + 鼠标/方向键，空格/J 射击 | pickTarget · Pool · kit |
+| `tps` | tps.html | WASD + 肩扛视角，Shift 跳，空格射击，手柄可用 | CharacterController · Gamepad · shoulder · Arsenal |
 | `flight-arena` | （new-game） | WASD 飞行，空格/J 射击 | Projectile · pickTarget |
 
 ---

@@ -5,7 +5,7 @@
 import type * as THREE from 'three';
 import type { System } from '../engine/types';
 
-export type CameraMode = 'fps' | 'chase' | 'orbit' | 'free';
+export type CameraMode = 'fps' | 'chase' | 'orbit' | 'free' | 'shoulder';
 
 /** Seeded: procedural, same seed → same world. */
 export interface SeededMapSpec {
