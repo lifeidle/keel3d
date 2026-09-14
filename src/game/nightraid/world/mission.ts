@@ -165,7 +165,7 @@ export class Mission {
    * Advance the mission. Returns 'win' the moment the objective completes and
    * 'lose' when a time limit expires.
    */
-  update(dt: number, playerPos: THREE.Vector3, aliveEnemies: number, total: number): MissionResult {
+  update(dt: number, playerPos: THREE.Vector3, aliveEnemies: number, _total: number): MissionResult {
     if (aliveEnemies <= 0) this.cleared = true;
 
     // capture: standing on the enemy flag flips it — the garrison reacts

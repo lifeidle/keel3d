@@ -33,7 +33,7 @@ export class Weapon {
     private player: Player,
     private effects: CombatVfx,
     private audio: Audio,
-    private getEnemies: () => unknown[] // unused: hits resolve via collider userData
+    _getEnemies: () => unknown[] // unused: hits resolve via collider userData
   ) {}
 
   get cur(): number {

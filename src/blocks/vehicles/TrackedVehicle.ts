@@ -567,7 +567,6 @@ export class TrackedVehicle {
 
   /** Shared per-frame motion + shell + fire processing. */
   private advance(dt: number, canCrush: boolean) {
-    const T = CONFIG.tank;
     // muzzle lift: the round leaves shortly after the trigger
     if (this.shellCd > 0) {
       this.shellCd -= dt;

@@ -22,7 +22,7 @@ export class Player {
   private stepTimer = 0;
   onFootstep: (() => void) | null = null;
 
-  constructor(private physics: PhysicsWorld, spawn: THREE.Vector3) {
+  constructor(physics: PhysicsWorld, spawn: THREE.Vector3) {
     const unit = createUnitBody(physics, {
       radius: CONFIG.player.radius,
       height: CONFIG.player.height,

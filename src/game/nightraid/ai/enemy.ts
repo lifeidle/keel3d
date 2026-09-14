@@ -199,7 +199,6 @@ export class Enemy implements CombatTarget {
   private muzzleObj: THREE.Object3D | null = null;
   private muzzleSprite: THREE.Sprite | null = null;
   private matBody: THREE.MeshStandardMaterial;
-  private matHead: THREE.MeshStandardMaterial;
   private static readonly EMISSIVE_BASE = 0.12;
 
   /** Distance LOD: hide swinging limbs beyond ~28m (torso silhouette remains). */
@@ -257,7 +256,6 @@ export class Enemy implements CombatTarget {
     // Body material is per-soldier (hit-flash + death tint); helmet/vest/boot/head
     // are shared across the army via MaterialCache.
     this.matBody = rig.mats.body.clone();
-    this.matHead = rig.mats.head;
     // re-bind body-tinted limb meshes to the per-soldier flash material
     this.armB.traverse((o) => {
       const m = o as THREE.Mesh;
@@ -959,7 +957,7 @@ export class Enemy implements CombatTarget {
 
   /** Fire a rocket toward the target's current position (leads nothing —
    *  the 22 m/s flight and slight droop make it dodgeable). */
-  private launchRocket(target: CombatTarget, physics: PhysicsWorld) {
+  private launchRocket(target: CombatTarget, _physics: PhysicsWorld) {
     if (this.rocket) return; // one in flight
     const eye = this.eye().clone();
     const tp = target.eye();
@@ -1460,7 +1458,6 @@ export class EnemyManager {
     // would normally keep capsules apart —so squads end up walking through
     // each other. After the AI intent is applied we nudge overlapping
     // same-side pairs sideways (O(n^2) on —2 soldiers is negligible).
-    const PUSH_D = 1.1; // personal space while moving
     const pushPair = (a: Enemy, b: Enemy) => {
       const ta = a.body.translation();
       const tb = b.body.translation();

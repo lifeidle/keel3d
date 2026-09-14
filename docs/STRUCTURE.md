@@ -48,7 +48,7 @@ main.ts               ?game= / window.__GAME_ID__ 路由
 
 ## 质量门禁说明
 
-- `noUnusedLocals` 暂对**全仓库关闭**（夜袭遗留样例仍有死变量）。
+- `noUnusedLocals` / `noUnusedParameters` **已开启**（全仓库严格）；未用参数以 _ 前缀。
 - **新代码**（blocks / recipes / content）应保持无死代码；审查以 call site 为准。
 - CI：typecheck + test + build + bundle:report。
 

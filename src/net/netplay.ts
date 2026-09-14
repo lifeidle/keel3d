@@ -113,7 +113,7 @@ export class Netplay {
     }
   }
 
-  private onMessage(ch: 'rel' | 'unrel', data: ArrayBuffer) {
+  private onMessage(_ch: 'rel' | 'unrel', data: ArrayBuffer) {
     const { type, payload } = unwrap(data);
     if (type === MSG.HELLO && !this.helloDone) {
       this.helloDone = true;

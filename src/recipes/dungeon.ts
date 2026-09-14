@@ -6,7 +6,6 @@ import { defineGame, type BaseRecipeOpts } from '../content/defineGame';
 import { CameraRig } from '../blocks/CameraRig';
 import { Interactable } from '../blocks/interact/Interactable';
 import { TriggerZone } from '../blocks/interact/TriggerZone';
-import { Health } from '../blocks/gameplay/Health';
 import { Scoreboard } from '../blocks/gameplay/Scoreboard';
 import { LevelTable } from '../blocks/progress/LevelTable';
 import { HudPanel } from '../blocks/ui/HudPanel';
@@ -55,7 +54,6 @@ export function createDungeonGame(
   player.position.set(0, 1, 0);
   root.add(player);
 
-  const ph = new Health({ max: opts.playerHp ?? 100 });
   const score = new Scoreboard();
   const keys = new Set<string>();
   let roomIdx = 0;

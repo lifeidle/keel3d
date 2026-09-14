@@ -5,7 +5,7 @@
  * WebGpuRequiredError and callers must surface the error page.
  */
 import * as THREE from 'three';
-import type { QualityController, QualitySnapshot } from '../quality/QualityController';
+import type { QualityController } from '../quality/QualityController';
 import { WebGpuRequiredError } from '../renderer';
 
 export type RenderBackend = 'webgpu';
