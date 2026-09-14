@@ -22,6 +22,8 @@ const pages = [
   ['fps-arena', '/fps-arena.html', '#fps-arena-hud'],
   ['tps', '/tps.html', '#tps-hud'],
   ['roguelike', '/roguelike.html', '#rogue-hud'],
+  ['platformer', '/platformer.html', '#plat-hud'],
+  ['tycoon', '/tycoon.html', '#tycoon-hud'],
 ];
 
 const browser = await chromium.launch({ channel: 'chrome' });
