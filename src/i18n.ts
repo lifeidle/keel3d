@@ -276,10 +276,16 @@ export function applyMeta() {
   if (desc) desc.content = t('meta.desc');
 }
 
-export function initI18n() {
+export function initI18n(opts: { setDocumentTitle?: boolean } = {}) {
   document.documentElement.lang = current === 'zh' ? 'zh-CN' : 'en';
   applyStatic();
-  applyMeta();
+  if (opts.setDocumentTitle) {
+    applyMeta();
+  } else {
+    // only refresh description meta; keep the HTML page's own <title>
+    const desc = document.head.querySelector('meta[name="description"]') as HTMLMetaElement | null;
+    if (desc) desc.content = t('meta.desc');
+  }
   const btn = document.getElementById('lang-toggle');
   btn?.addEventListener('click', (e) => {
     e.stopPropagation();
