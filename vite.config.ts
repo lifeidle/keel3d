@@ -117,6 +117,8 @@ export default defineConfig({
         roguelike: 'roguelike.html',
         platformer: 'platformer.html',
         tycoon: 'tycoon.html',
+        rts: 'rts.html',
+        stealth: 'stealth.html',
       },
       output: {
         manualChunks(id) {
