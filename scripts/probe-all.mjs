@@ -26,6 +26,7 @@ const pages = [
   ['tycoon', '/tycoon.html', '#tycoon-hud'],
   ['rts', '/rts.html', '#rts-hud'],
   ['stealth', '/stealth.html', '#stealth-hud'],
+  ['arena', '/arena.html', '#arena-hud'],
 ];
 
 const browser = await chromium.launch({ channel: 'chrome' });

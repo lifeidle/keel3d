@@ -119,6 +119,7 @@ export default defineConfig({
         tycoon: 'tycoon.html',
         rts: 'rts.html',
         stealth: 'stealth.html',
+        arena: 'arena.html',
       },
       output: {
         manualChunks(id) {
