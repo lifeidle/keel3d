@@ -115,6 +115,8 @@ export default defineConfig({
         'fps-arena': 'fps-arena.html',
         tps: 'tps.html',
         roguelike: 'roguelike.html',
+        platformer: 'platformer.html',
+        tycoon: 'tycoon.html',
       },
       output: {
         manualChunks(id) {

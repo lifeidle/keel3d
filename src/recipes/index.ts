@@ -54,3 +54,6 @@ export {
   createRoguelikeGame,
   type RoguelikeRecipeOpts,
 } from './roguelike';
+
+export { platformerRecipe, createPlatformerGame, type PlatformerRecipeOpts } from './platformer';
+export { tycoonRecipe, createTycoonGame, type TycoonRecipeOpts } from './tycoon';
