@@ -34,7 +34,19 @@ const pages = [
   ['sports', '/sports.html', '#sports-hud'],
 ];
 
-const browser = await chromium.launch({ channel: 'chrome' });
+async function launchBrowser() {
+  // Prefer system Chrome locally; CI uses Playwright Chromium only.
+  if (process.env.KEEL_PROBE_BROWSER === 'chromium') {
+    return chromium.launch();
+  }
+  try {
+    return await chromium.launch({ channel: 'chrome' });
+  } catch {
+    return chromium.launch();
+  }
+}
+
+const browser = await launchBrowser();
 let fail = 0;
 
 for (const [name, path, sel] of pages) {

@@ -20,8 +20,10 @@ jobs:
       - run: npm run build
       - run: npm run bundle:report
       - name: Browser probe (all skeleton entries)
+        env:
+          KEEL_PROBE_BROWSER: chromium
         run: |
           npx playwright install --with-deps chromium
-          npm run preview -- --port 4173 --host &
-          sleep 6
-          node scripts/probe-all.mjs http://localhost:4173
+          npx vite preview --port 4173 --host &
+          sleep 8
+          node scripts/probe-all.mjs http://127.0.0.1:4173
