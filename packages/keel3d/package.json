@@ -1,0 +1,52 @@
+{
+  "name": "keel3d",
+  "version": "0.3.0",
+  "description": "KeeL 3D — WebGPU browser game framework (blocks, recipes, content host).",
+  "license": "MIT",
+  "author": "Specul / KeeL 3D authors",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lifeidle/keel3d.git"
+  },
+  "homepage": "https://github.com/lifeidle/keel3d",
+  "bugs": {
+    "url": "https://github.com/lifeidle/keel3d/issues"
+  },
+  "keywords": [
+    "keel3d",
+    "webgpu",
+    "threejs",
+    "game",
+    "framework",
+    "rapier"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/lib.d.ts",
+      "import": "./src/lib.ts",
+      "default": "./src/lib.ts"
+    },
+    "./blocks/*": "./src/blocks/*",
+    "./content/*": "./src/content/*",
+    "./recipes/*": "./src/recipes/*"
+  },
+  "types": "./dist/lib.d.ts",
+  "files": [
+    "dist",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "peerDependencies": {
+    "@dimforge/rapier3d": ">=0.20.0",
+    "three": ">=0.186.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

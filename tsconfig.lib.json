@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "declaration": true,
+    "declarationMap": true,
+    "emitDeclarationOnly": true,
+    "outDir": "packages/keel3d/dist",
+    "rootDir": "src",
+    "noUnusedLocals": true,
+    "noUnusedParameters": true
+  },
+  "include": ["src/lib.ts"],
+  "exclude": ["src/game/**", "node_modules"]
+}
