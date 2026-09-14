@@ -13,6 +13,8 @@ import { Scoreboard } from '../blocks/gameplay/Scoreboard';
 import { HudPanel } from '../blocks/ui/HudPanel';
 import { EndOverlay } from '../blocks/ui/EndOverlay';
 import { Toast } from '../blocks/ui/Toast';
+import { GameFeel } from '../blocks/fx/GameFeel';
+import { KitSfx } from '../blocks/audio/KitSfx';
 import type { System, EngineWorld } from '../engine/types';
 
 export interface RtsLiteRecipeOpts extends BaseRecipeOpts {
@@ -94,6 +96,8 @@ export function createRtsLiteGame(
   const hud = new HudPanel({ id: 'rts-hud', position: 'tl' });
   const endOverlay = new EndOverlay();
   const toast = new Toast();
+  const feel = new GameFeel();
+  const sfx = new KitSfx();
   const rig = new CameraRig(camera, { defaultMode: 'orbit', blend: 0.2, orbit: { distance: 40, height: 32, pitch: 0.85 } });
   void GridAStar;
 
@@ -136,6 +140,9 @@ export function createRtsLiteGame(
     }
   }
 
+  function onKeyR(e: KeyboardEvent) {
+    if (e.code === 'KeyR' && status !== 'playing' && typeof location !== 'undefined') location.reload();
+  }
   function onClick(ev: MouseEvent) {
     if (ev.button === 0) pickAt(ev, true, false);
     else if (ev.button === 2) pickAt(ev, false, true);
@@ -147,6 +154,7 @@ export function createRtsLiteGame(
   if (typeof window !== 'undefined') {
     window.addEventListener('click', onClick);
     window.addEventListener('contextmenu', onCtx);
+    window.addEventListener('keydown', onKeyR);
   }
 
   const systems: System[] = [
@@ -200,7 +208,7 @@ export function createRtsLiteGame(
           if (u.alive && u.team === 'blue') blue++;
           else if (u.alive) red++;
         });
-        hud.setText(`RTS-lite · 蓝 ${blue} · 红 ${red}\n左键选中 · 右键下令`);
+        hud.setText(`目标消灭红方 · 蓝 ${blue} · 红 ${red}\n左键选中 · 右键下令 · R 重开`);
       },
     },
   ];
@@ -216,6 +224,8 @@ export function createRtsLiteGame(
       hud.dispose();
       endOverlay.dispose();
       toast.dispose();
+      feel.dispose();
+      sfx.dispose();
     },
     stats: () => ({ status, kills: score.kills }),
   };

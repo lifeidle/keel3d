@@ -16,6 +16,8 @@ import { HudPanel } from '../blocks/ui/HudPanel';
 import { HealthBar } from '../blocks/ui/HealthBar';
 import { EndOverlay } from '../blocks/ui/EndOverlay';
 import { Toast } from '../blocks/ui/Toast';
+import { GameFeel } from '../blocks/fx/GameFeel';
+import { KitSfx } from '../blocks/audio/KitSfx';
 import type { System, EngineWorld } from '../engine/types';
 
 export interface BrLiteRecipeOpts extends BaseRecipeOpts {
@@ -111,6 +113,8 @@ export function createBrLiteGame(
   }
   const endOverlay = new EndOverlay();
   const toast = new Toast();
+  const feel = new GameFeel();
+  const sfx = new KitSfx();
   const rig = new CameraRig(camera, { defaultMode: 'shoulder', blend: 0.12 });
 
   let status: 'playing' | 'win' | 'lose' = 'playing';
@@ -120,7 +124,9 @@ export function createBrLiteGame(
   function onDn(e: KeyboardEvent) {
     keys.add(e.code);
     if (e.code === 'Space' || e.code === 'KeyJ') fireClicked = true;
-    if (e.code === 'KeyR') arsenal.reload();
+    if (e.code === 'KeyR' && status !== 'playing') {
+      if (typeof location !== 'undefined') location.reload();
+    } else if (e.code === 'KeyR') arsenal.reload();
   }
   function onUp(e: KeyboardEvent) {
     keys.delete(e.code);
@@ -187,7 +193,8 @@ export function createBrLiteGame(
             ph.damage(zone.outsideDps * ft);
             if (!ph.alive) {
               status = 'lose';
-              endOverlay.show(`毒圈淘汰 · 击杀 ${score.kills}`, false);
+              sfx.play('lose');
+              endOverlay.show(`阵亡 · 击杀 ${score.kills} — 按 R 再来`, false);
             }
           }
 
@@ -215,7 +222,8 @@ export function createBrLiteGame(
           });
           if (alive <= 0 && status === 'playing') {
             status = 'win';
-            endOverlay.show(`大吉大利 · 击杀 ${score.kills}`, true);
+            sfx.play('win');
+            endOverlay.show(`生还！击杀 ${score.kills} — 按 R 再来`, true);
             toast.show('吃鸡');
           }
           score.tick(ft);
@@ -253,6 +261,8 @@ export function createBrLiteGame(
       hpBar.dispose();
       endOverlay.dispose();
       toast.dispose();
+      feel.dispose();
+      sfx.dispose();
     },
     stats: () => ({ status, kills: score.kills, radius: zone.radius }),
   };

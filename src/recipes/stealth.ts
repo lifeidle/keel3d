@@ -13,6 +13,8 @@ import { Scoreboard } from '../blocks/gameplay/Scoreboard';
 import { HudPanel } from '../blocks/ui/HudPanel';
 import { EndOverlay } from '../blocks/ui/EndOverlay';
 import { Toast } from '../blocks/ui/Toast';
+import { GameFeel } from '../blocks/fx/GameFeel';
+import { KitSfx } from '../blocks/audio/KitSfx';
 import { WorldBar } from '../blocks/ui/WorldBar';
 import type { System, EngineWorld } from '../engine/types';
 
@@ -93,6 +95,8 @@ export function createStealthGame(
   const hud = new HudPanel({ id: 'stealth-hud', position: 'tl' });
   const endOverlay = new EndOverlay();
   const toast = new Toast();
+  const feel = new GameFeel();
+  const sfx = new KitSfx();
   const alertBar = new WorldBar({ width: 40, height: 4, color: '#e0a050' });
   const rig = new CameraRig(camera, { defaultMode: 'shoulder', blend: 0.12, shoulder: { distance: 5, height: 2.2, side: 0.5, lookAhead: 8 } });
 
@@ -103,6 +107,7 @@ export function createStealthGame(
   function onDn(e: KeyboardEvent) {
     keys.add(e.code);
     if (e.code === 'Space') noise.emit(player.position.x, player.position.z, 8, 'step');
+    if (e.code === 'KeyR' && status !== 'playing' && typeof location !== 'undefined') location.reload();
   }
   function onUp(e: KeyboardEvent) {
     keys.delete(e.code);
@@ -184,7 +189,7 @@ export function createStealthGame(
         eye.y += 1.2;
         rig.update(ft, eye, yaw);
         hud.setText(
-          `潜行 · 警戒 ${seenT > 0 ? '⚠' : '安全'} · 用时 ${score.time.toFixed(1)}s\n` +
+          `目标抵达出口 · 警戒 ${seenT > 0 ? '⚠' : '安全'} · ${score.time.toFixed(0)}s\n` +
             `WASD 移动 · 鼠标转向 · 空格 发出噪声 · 躲开橙色守卫`,
         );
       },
@@ -205,6 +210,8 @@ export function createStealthGame(
       hud.dispose();
       endOverlay.dispose();
       toast.dispose();
+      feel.dispose();
+      sfx.dispose();
       alertBar.dispose();
     },
     stats: () => ({ status, time: score.time, seenT }),

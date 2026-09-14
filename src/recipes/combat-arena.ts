@@ -15,6 +15,8 @@ import { HudPanel } from '../blocks/ui/HudPanel';
 import { HealthBar } from '../blocks/ui/HealthBar';
 import { DamageNumbers } from '../blocks/ui/DamageNumber';
 import { EndOverlay } from '../blocks/ui/EndOverlay';
+import { GameFeel } from '../blocks/fx/GameFeel';
+import { KitSfx } from '../blocks/audio/KitSfx';
 import type { System, EngineWorld } from '../engine/types';
 
 export interface CombatArenaRecipeOpts extends BaseRecipeOpts {
@@ -70,6 +72,9 @@ export function createCombatArenaGame(
   }
   const dmgNums = new DamageNumbers();
   const endOverlay = new EndOverlay();
+  const feel = new GameFeel();
+  const sfx = new KitSfx();
+  const KILL_GOAL = 10;
   const rig = new CameraRig(camera, { defaultMode: 'chase', blend: 0.15, chase: { distance: 12, height: 5, lookAhead: 4 } });
 
   interface D {
@@ -94,7 +99,7 @@ export function createCombatArenaGame(
     10,
   );
 
-  let status: 'playing' | 'lose' = 'playing';
+  let status: 'playing' | 'win' | 'lose' = 'playing';
   let yaw = 0;
   let spawnT = 1;
   let fireClicked = false;
@@ -107,6 +112,7 @@ export function createCombatArenaGame(
     keys.add(e.code);
     if (e.code === 'Space' || e.code === 'KeyJ') fireClicked = true;
     if (e.code === 'KeyK') aoeClicked = true;
+    if (e.code === 'KeyR' && status !== 'playing' && typeof location !== 'undefined') location.reload();
   }
   function onUp(e: KeyboardEvent) {
     keys.delete(e.code);
@@ -143,6 +149,12 @@ export function createCombatArenaGame(
         d.alive = false;
         drones.release(d);
         score.addKill();
+        sfx.play('hit');
+        if (score.kills >= KILL_GOAL && status === 'playing') {
+          status = 'win';
+          sfx.play('win');
+          endOverlay.show(`胜利！击落 ${score.kills} 架 — 按 R 再来`, true);
+        }
       }
     }
   }
@@ -239,7 +251,7 @@ export function createCombatArenaGame(
         const ammo = arsenal.reloading ? '装填…' : `${arsenal.mag}/${arsenal.reserve}`;
         hud.setText(
           `载具对战 · 击杀 ${score.kills} · 敌机 ${drones.activeCount} · HP ${playerHp.hp}\n` +
-            `WASD 驾驶 · 空格/J 主炮 · K 范围冲击 · 弹药 ${ammo}`,
+            `目标 ${KILL_GOAL} · WASD 驾驶 · 空格/J 主炮 · K 冲击 · ${ammo}`,
         );
       },
     },
@@ -259,6 +271,8 @@ export function createCombatArenaGame(
       hpBar.dispose();
       dmgNums.dispose();
       endOverlay.dispose();
+      feel.dispose();
+      sfx.dispose();
     },
     stats: () => ({ kills: score.kills, hp: playerHp.hp, status }),
   };
