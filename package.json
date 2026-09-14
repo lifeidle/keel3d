@@ -28,7 +28,8 @@
     "probe:all": "node scripts/probe-all.mjs",
     "demo": "npm run build && npm run preview",
     "bundle:report": "node scripts/bundle-report.mjs",
-    "unused:check": "node scripts/unused-check.mjs"
+    "unused:check": "node scripts/unused-check.mjs",
+    "sfx:gen": "node scripts/gen-sfx.mjs"
   },
   "dependencies": {
     "@dimforge/rapier3d": "^0.20.0",

@@ -61,6 +61,13 @@ npm run new-game mytd -- --recipe td --html
 
 ---
 
+## 品类一览（20+）
+
+FPS · TPS · 塔防 · 生存 · ARPG · 收集 · 地牢 · 拉力 · 竞速 · 飞行 · 空战 · 开放世界 · Roguelike · 平台 · 城建 · RTS-lite · 潜行 · 载具对战 · 音游 · 体素沙盒 · BR-lite · 物理益智 · 体育
+
+完整缺口与路线见 [docs/GENRE_COVERAGE.md](docs/GENRE_COVERAGE.md)。配方音效为**自研 Kit**（
+pm run sfx:gen）。
+
 ## 你能用它做什么
 
 | 框架已提供 | 你负责 |

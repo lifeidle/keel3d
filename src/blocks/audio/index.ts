@@ -12,3 +12,5 @@ export {
   type AudioHost,
   type ScoreDirectorOpts,
 } from './ScoreDirector';
+
+export { KitSfx, type KitSfxName } from './KitSfx';

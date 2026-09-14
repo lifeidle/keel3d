@@ -29,6 +29,7 @@ import { DamageNumbers } from '../blocks/ui/DamageNumber';
 import { WorldBar } from '../blocks/ui/WorldBar';
 import { EndOverlay } from '../blocks/ui/EndOverlay';
 import { BgmLayers } from '../blocks/audio/BgmLayers';
+import { KitSfx } from '../blocks/audio/KitSfx';
 import type { System, EngineWorld } from '../engine/types';
 
 export interface ArpgRecipeOpts extends BaseRecipeOpts {
@@ -123,7 +124,9 @@ export function createArpgGame(
     { id: 'inv', label: '背包', key: 'I' },
   ]);
   const KILL_GOAL = 10;
+  const sfx = new KitSfx();
   const bgm = new BgmLayers();
+  let ac: AudioContext | null = null;
   let bgmReady = false;
   function ensureBgm() {
     if (bgmReady || typeof AudioContext === 'undefined') return;
@@ -148,25 +151,6 @@ export function createArpgGame(
   const endOverlay = new EndOverlay();
   const enemyBar = new WorldBar({ width: 44, height: 4, color: '#e07070' });
   enemyBar.setVisible(false);
-
-  // optional tiny SFX (no assets required)
-  let ac: AudioContext | null = null;
-  function beep(freq: number) {
-    try {
-      if (typeof AudioContext === 'undefined') return;
-      ac = ac ?? new AudioContext();
-      const o = ac.createOscillator();
-      const g = ac.createGain();
-      o.frequency.value = freq;
-      g.gain.value = 0.04;
-      o.connect(g);
-      g.connect(ac.destination);
-      o.start();
-      o.stop(ac.currentTime + 0.05);
-    } catch {
-      /* silent */
-    }
-  }
 
   interface E {
     mesh: THREE.Mesh;
@@ -238,7 +222,7 @@ export function createArpgGame(
         xp.addXp(12);
         gold.add(5);
         for (const s of loot.roll()) inv.add(s);
-        beep(1320);
+        sfx.play('pickup');
         const sp = screenPos(e.mesh);
         dmgNums.spawn(sp.x, sp.y, '击杀', true);
         if (score.kills >= KILL_GOAL) quest.complete('k10');
@@ -280,7 +264,7 @@ export function createArpgGame(
 
   function attack() {
     if (!attackCd.tryFire()) return;
-    beep(880);
+    sfx.play('shoot');
     const list = liveEnemies()
       .filter((e) => e.alive)
       .map((e) => ({
@@ -319,7 +303,7 @@ export function createArpgGame(
 
   function aoeSkill() {
     if (!aoeCd.tryFire()) return;
-    beep(440);
+    sfx.play('boom');
     const list = liveEnemies().map((e) => ({
       x: e.mesh.position.x,
       z: e.mesh.position.z,
@@ -492,6 +476,7 @@ export function createArpgGame(
       bar.dispose();
       invGrid.dispose();
       bgm.detach();
+      sfx.dispose();
     },
     stats: () => ({
       hp: playerHealth.hp,
