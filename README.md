@@ -17,7 +17,20 @@
 | 语言/构建 | TypeScript + Vite |
 | 许可 | MIT（代码）· 素材见第三方声明 |
 
-> 需要支持 WebGPU 的浏览器（Chrome / Edge 新版，Safari 17+）。
+> 需要支持 WebGPU 的浏览器（Chrome / Edge 新版，Safari 17+）。**不向后兼容 WebGL**——技术栈一律最新。
+
+---
+
+## 15 分钟做出你的游戏
+
+完整步骤见 **[docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)**。
+
+```bash
+npm install && npm run build && npm run preview
+# 1) 打开 /hub.html 玩旗舰样例 Roguelike（可通关）
+# 2) npm run new-game mygame -- --recipe arpg --html
+# 3) 改 src/game/mygame/index.ts 里的数值 → 刷新预览
+```
 
 ---
 
