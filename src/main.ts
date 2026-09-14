@@ -84,12 +84,17 @@ boot().catch((err) => {
   console.error(err);
   const bootTxt = document.getElementById('bootTxt');
   const fill = document.getElementById('bootFill');
+  if (fill) fill.style.width = '100%';
   if (err instanceof WebGpuRequiredError) {
-    if (bootTxt)
-      bootTxt.textContent =
-        '本框架需要 WebGPU — 请用最新版 Chrome / Edge / Safari(17+) 或开启 Chrome 实验性 WebGPU 后刷新。' +
-        ' This framework requires WebGPU — update your browser or refresh.';
-    if (fill) fill.style.width = '100%';
+    if (bootTxt) {
+      bootTxt.innerHTML =
+        '<div style="max-width:28em;text-align:left;line-height:1.6">' +
+        '<strong>需要 WebGPU</strong><br/>' +
+        '请使用最新版 Chrome / Edge，或 Safari 17+。<br/>' +
+        'Chrome 可打开 <code>chrome://gpu</code> 查看 WebGPU 是否可用。<br/>' +
+        '<span style="opacity:.8">This framework requires WebGPU — update your browser.</span>' +
+        '</div>';
+    }
   } else if (bootTxt) {
     bootTxt.textContent = t('boot.fail') + ' — ' + String(err);
   }
