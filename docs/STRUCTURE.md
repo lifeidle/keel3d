@@ -1,8 +1,9 @@
 # 项目结构（KeeL 3D · 框架主轴 · 终态）
 
 > **产品是框架**。样例互不相干，只通过 L1/L2/L3 API 接入。  
-> **品牌**：Specul · **KeeL 3D** · npm `keel3d` · https://3d.specul.com  
-> 规划中的二维线：KeeL 2D · `2d.specul.com` · `keel2d`
+> **品牌**：Specul · **KeeL 3D** · npm `keel3d` · https://keel.specul.com  
+> 仓库：源码 `lifeidle/keel3d`、站点（门户 + `3d/` 演示）`speculcom/keel`  
+> 规划中的二维线：KeeL 2D · `keel2d`
 
 ## 顶层
 
@@ -11,8 +12,8 @@
 | `README.md` · `LICENSE` | 说明与许可 |
 | `hub.html` | 选型页（游戏形式 → 基底） |
 | `index.html` | Sample A 入口（FPS 骨架） |
-| `tower.html` | Sample B 独立入口 |
-| `cultivation.html` | Sample C 独立入口 |
+| `openworld.html` | Sample C 独立入口（`demo-cultivation` 开放世界） |
+| `*.html`（共 26 个） | 其余 demo 入口页；**入口一律用 HTML 文件名**，不用 `?game=` |
 | `package.json` · `tsconfig.json` · `vite.config.ts` · `wrangler.toml` | 工程配置 |
 | `src/` | 源代码 |
 | `public/` | 静态资产（音频/模型/Draco/Basis decoder） |
@@ -43,7 +44,7 @@ game/
   demo-flight/         飞行骨架
   demo-race/           赛车骨架
   demo-template/       新游戏模板
-main.ts               ?game= / window.__GAME_ID__ 路由
+main.ts               window.__GAME_ID__ 路由（入口用 HTML 文件名，不用 ?game=）
 ```
 
 ## 质量门禁说明

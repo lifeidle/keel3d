@@ -40,12 +40,31 @@ const waves = new WaveDirector({
 | `Toast` | 短提示 |
 | `EndOverlay` | 胜/负叠层 |
 | `HealthBar` | 2D 血条（可用 `setHp`） |
+| `PauseMenu` | 暂停菜单：Esc / 手柄 Start，继续 / 重开 / 回 hub。暴露 `paused` 状态供配方门控 sim |
+| `ControlsOverlay` | 开局操作浮层，底部居中，默认 6 秒自动隐藏（点击也可关闭） |
 
 ```ts
 import { HudPanel } from '../../blocks/ui/HudPanel';
 const hud = new HudPanel({ id: 'my-hud', position: 'tl' });
 hud.setText(`金币 ${eco.balance}`);
 // dispose() 时 hud.dispose()
+```
+
+**体验壳**（每个配方都该接；见 `docs/compose/spec/controls-shell.md`）：
+
+```ts
+import { PauseMenu } from '../../blocks/ui/PauseMenu';
+import { ControlsOverlay } from '../../blocks/ui/ControlsOverlay';
+
+const pause = new PauseMenu({ active: () => status === 'playing' });
+const controls = new ControlsOverlay({
+  hints: [{ keys: ['W', 'A', 'S', 'D'], label: '移动' }, { keys: ['Esc'], label: '暂停' }],
+});
+
+// 1) systems 里追加：pause.system, controls.system
+// 2) sim 门控：if (world.playing && status === 'playing' && !pause.paused)
+//    键盘/点击回调里直接改玩法的，也要各加一道 if (pause.paused) return;
+// 3) dispose() 里：pause.dispose(); controls.dispose();
 ```
 
 ## 空间/世界积木（既有）
@@ -180,5 +199,6 @@ gems.update(player.x, player.z);
 | `blocks/ui/` | `TacticalMap` | 罗盘 + 战术小地图 |
 | `blocks/player/` | `CharacterController` | 胶囊移动（跳/冲刺） |
 | `blocks/input/` | `Gamepad` | 手柄输入 |
+| `blocks/input/` | `TouchControls` · `isTouchDevice()` | 手机虚拟摇杆 + 全屏 look 面 + 可配置按钮簇（fps-arena / tps 已接） |
 
 nightraid 只保留战役内容：`game.ts` · `enemy` · `player` · `SoldierFactory` · `mission` · `hamlet` · `gunmodels` · `hud` · `systems/*` · 薄 `audio/music` 包装（BANK 表仍在样例）。

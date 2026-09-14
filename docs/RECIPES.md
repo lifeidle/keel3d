@@ -13,8 +13,7 @@
 | `dungeon` | dungeon.html | E/F 开门，Boss 房 J/空格 | Interactable · TriggerZone |
 | `fps-arena` | fps-arena.html | WASD + 鼠标/方向键，空格/J 射击 | pickTarget · Pool · kit |
 | `tps` | tps.html | WASD + 肩扛视角，Shift 跳，空格射击，手柄可用 | CharacterController · Gamepad · shoulder · Arsenal |
-| `flight-arena` | （new-game） | WASD 飞行，空格/J 射击 | Projectile · pickTarget |
-| `tps` | tps.html | 肩扛第三人称 | CharacterController · Gamepad · Arsenal |
+| `flight-arena` | flight-arena.html | WASD 飞行，空格/J 射击 | Projectile · pickTarget |
 | `roguelike` | roguelike.html | 程序化地牢 | ProcDungeon · LootTable · Inventory |
 | `platformer` | platformer.html | 跳平台登顶 | CharacterController · TriggerZone |
 | `tycoon` | tycoon.html | 点地建造 | PlaceGrid · BuildSystem · Economy |
@@ -26,6 +25,10 @@
 | `br-lite` | br.html | 毒圈生存 | ShrinkZone · Arsenal |
 | `puzzle` | puzzle.html | 推箱解谜 | TriggerZone |
 | `sports` | sports.html | 带球得分 | FactionMap · Scoreboard |
+
+**全品类统一体验壳**：每个配方都接了 `blocks/ui/PauseMenu`（Esc / 手柄 Start 暂停，可继续 / 重开 / 回 hub）与
+`blocks/ui/ControlsOverlay`（开局操作浮层，6 秒后自动隐藏）。fps-arena / tps 另外接了
+`blocks/input/TouchControls`（手机虚拟摇杆 + FIRE / RELOAD）。加配方时照 `docs/compose/spec/controls-shell.md` 的接线表补这四行即可。
 
 ---
 
