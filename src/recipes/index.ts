@@ -59,3 +59,4 @@ export { platformerRecipe, createPlatformerGame, type PlatformerRecipeOpts } fro
 export { tycoonRecipe, createTycoonGame, type TycoonRecipeOpts } from './tycoon';
 export { rtsLiteRecipe, createRtsLiteGame, type RtsLiteRecipeOpts } from './rts-lite';
 export { stealthRecipe, createStealthGame, type StealthRecipeOpts } from './stealth';
+export { combatArenaRecipe, createCombatArenaGame, type CombatArenaRecipeOpts } from './combat-arena';

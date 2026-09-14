@@ -32,6 +32,7 @@ export const GAME_LOADERS: Record<string, GameLoader> = {
   tycoon: () => import('./game/demo-tycoon'),
   rts: () => import('./game/demo-rts'),
   stealth: () => import('./game/demo-stealth'),
+  arena: () => import('./game/demo-arena'),
   // NEW_GAME_INSERT
 };
 

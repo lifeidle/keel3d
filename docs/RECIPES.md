@@ -14,6 +14,13 @@
 | `fps-arena` | fps-arena.html | WASD + 鼠标/方向键，空格/J 射击 | pickTarget · Pool · kit |
 | `tps` | tps.html | WASD + 肩扛视角，Shift 跳，空格射击，手柄可用 | CharacterController · Gamepad · shoulder · Arsenal |
 | `flight-arena` | （new-game） | WASD 飞行，空格/J 射击 | Projectile · pickTarget |
+| `tps` | tps.html | 肩扛第三人称 | CharacterController · Gamepad · Arsenal |
+| `roguelike` | roguelike.html | 程序化地牢 | ProcDungeon · LootTable · Inventory |
+| `platformer` | platformer.html | 跳平台登顶 | CharacterController · TriggerZone |
+| `tycoon` | tycoon.html | 点地建造 | PlaceGrid · BuildSystem · Economy |
+| `rts-lite` | rts.html | 选中下令 | FactionMap · Steering |
+| `stealth` | stealth.html | 躲视锥守卫 | VisionCone · NoiseEmitter |
+| `combat-arena` | arena.html | 载具对战 | Arsenal · areaHits · Gamepad |
 
 ---
 
