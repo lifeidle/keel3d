@@ -15,10 +15,13 @@ rmSync(dist, { recursive: true, force: true });
 mkdirSync(dist, { recursive: true });
 
 // copy src tree into package (consumers resolve TS or use emitted types)
+// NOTE: `ui` must be listed — the compiled graph pulls in src/ui/* (e.g.
+// blocks/input/TouchControls imports ../../ui/gyro), so omitting it leaves the
+// published `./src/*` export dangling even though dist/ itself still works.
 const srcOut = path.join(pkgDir, 'src');
 rmSync(srcOut, { recursive: true, force: true });
 mkdirSync(srcOut, { recursive: true });
-for (const dir of ['blocks', 'content', 'engine', 'physics', 'recipes', 'world', 'config.ts', 'i18n.ts', 'lib.ts', 'registry.ts', 'main.ts']) {
+for (const dir of ['blocks', 'content', 'engine', 'physics', 'recipes', 'ui', 'world', 'config.ts', 'i18n.ts', 'lib.ts', 'registry.ts', 'main.ts']) {
   const from = path.join(root, 'src', dir);
   const to = path.join(srcOut, dir);
   if (existsSync(from)) cpSync(from, to, { recursive: true });
