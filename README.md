@@ -21,6 +21,10 @@
 
 ---
 
+## 线上站点
+
+部署与自定义域名： [docs/DEPLOY.md](docs/DEPLOY.md)（https://3d.specul.com · `/` → hub）。
+
 ## 15 分钟做出你的游戏
 
 完整步骤见 **[docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)**。
