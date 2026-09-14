@@ -29,7 +29,8 @@
     "demo": "npm run build && npm run preview",
     "bundle:report": "node scripts/bundle-report.mjs",
     "unused:check": "node scripts/unused-check.mjs",
-    "sfx:gen": "node scripts/gen-sfx.mjs"
+    "sfx:gen": "node scripts/gen-sfx.mjs",
+    "pack:lib": "node scripts/build-lib.mjs"
   },
   "dependencies": {
     "@dimforge/rapier3d": "^0.20.0",

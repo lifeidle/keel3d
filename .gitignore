@@ -25,3 +25,9 @@ FRAMEWORK_PHASE2_PLAN.md
 FRAMEWORK_PHASE3_PLAN.md
 docs/RELEASE_v0.3.0.en.md
 .worktrees/
+
+# publishable package build output
+packages/keel3d/dist/
+packages/keel3d/src/
+packages/keel3d/LICENSE
+packages/keel3d/README.md
