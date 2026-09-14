@@ -27,6 +27,7 @@ export const GAME_LOADERS: Record<string, GameLoader> = {
   flightarena: () => import('./game/demo-flight-arena'),
   fpsarena: () => import('./game/demo-fps-arena'),
   tps: () => import('./game/demo-tps'),
+  rogue: () => import('./game/demo-rogue'),
   // NEW_GAME_INSERT
 };
 
