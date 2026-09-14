@@ -1,46 +1,34 @@
-# 部署 KeeL 3D 站点（用户可直接访问）
+# 部署（经典 GitHub Pages · 不用 Actions）
 
-目标域名：**https://3d.specul.com**（`public/CNAME` 已写入构建产物）。
+只有一个仓库：`github.com/lifeidle/keel3d`。  
+站点 = 构建产物 `dist/`，推到 **`gh-pages` 分支**。
 
-## 产物
+## 一次性设置（你操作）
 
-```bash
-npm ci
-npm run build
-# dist/：hub · 各骨架 · wasm/音频
-```
+1. 本地：`npm run deploy:pages`（会 build 并推送 `gh-pages`）  
+2. GitHub → Settings → Pages  
+   - Source：**Deploy from a branch**  
+   - Branch：**gh-pages** / **/** (root)  
+3. Custom domain：`3d.specul.com`（CNAME 已在产物里）  
+4. DNS：按 GitHub 提示加记录，勾选 Enforce HTTPS  
 
-- `/` → `hub.html`（选型 + 15 分钟路径）  
-- 完整 FPS 样例：`/fps.html`  
-- 旗舰可通关：`/roguelike.html`  
-- **WebGPU-only**（无 WebGL 回退）
-
-## 方式一：GitHub Pages（推荐，Actions 自动）
-
-1. Settings → Pages → Source：**GitHub Actions**  
-2. 推送 `master` 后自动 build 并发布 `dist/`  
-3. Custom domain：`3d.specul.com`，按提示配置 DNS，勾选 Enforce HTTPS  
-
-## 方式二：Cloudflare Pages
+## 日常更新网站
 
 ```bash
-npm run build
-npx wrangler pages deploy dist --project-name keel3d
+npm run deploy:pages
 ```
 
-`wrangler.toml` → `pages_build_output_dir = "dist"`。
+## 路径
 
-## 验证清单
-
-- [ ] `https://3d.specul.com/` 打开 hub  
-- [ ] `/roguelike.html` 可玩  
-- [ ] `/fps.html` 完整样例  
-- [ ] 无 WebGPU 时显示升级提示  
-- [ ] hub 上 GitHub 链接可点  
-
-## 站点 vs 仓库
-
-| 站点 | GitHub |
+| URL | 内容 |
 |---|---|
-| 演示 + 上手门面 | 源码 · Issue · `new-game` |
-| 只发布 `dist/` | 不部署源码树 |
+| `https://3d.specul.com/` | hub（选型 + 上手） |
+| `/roguelike.html` | 旗舰可通关样例 |
+| `/fps.html` | 完整 FPS 样例 |
+| `/GETTING 相关` | 文档在仓库 `docs/`，站点只放可玩 demo |
+
+## 说明
+
+- **不要**在 Pages 里选 GitHub Actions（本仓不依赖它做发布）  
+- `ci.yml` 仅用于代码检查，与网站发布无关  
+- 源码始终在默认分支；网站只含 `dist/` 静态文件  

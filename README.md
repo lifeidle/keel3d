@@ -23,9 +23,10 @@
 
 ## 线上站点
 
-部署与自定义域名： [docs/DEPLOY.md](docs/DEPLOY.md)（https://3d.specul.com · `/` → hub）。
+经典 GitHub Pages（不用 Actions）：pm run deploy:pages → 推送 gh-pages。详见 [docs/DEPLOY.md](docs/DEPLOY.md)。
 
 ## 15 分钟做出你的游戏
+
 
 完整步骤见 **[docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)**。
 
