@@ -19,6 +19,9 @@ import * as Steering from '../blocks/Steering';
 import { kitScatter } from '../blocks/kit/placeholders';
 import { ButtonBar } from '../blocks/ui/ButtonBar';
 import { QuestTracker } from '../blocks/ui/QuestTracker';
+import { Inventory } from '../blocks/gameplay/Inventory';
+import { InventoryGrid } from '../blocks/ui/InventoryGrid';
+import { LootTable } from '../blocks/gameplay/LootTable';
 import { HudPanel } from '../blocks/ui/HudPanel';
 import { HealthBar } from '../blocks/ui/HealthBar';
 import { DamageNumbers } from '../blocks/ui/DamageNumber';
@@ -86,15 +89,25 @@ export function createArpgGame(
   const gold = new Economy({ start: 0 });
   const run = new RunState();
   const quest = new QuestTracker({ title: '任务' });
+  const inv = new Inventory({ slots: 18, stackLimit: 9 });
+  const invGrid = new InventoryGrid(inv, { id: 'inv-grid' });
+  invGrid.hide();
+  const loot = new LootTable([
+    { id: 'gold_nugget', weight: 70, qty: [1, 3] },
+    { id: 'potion', weight: 25, qty: 1 },
+    { id: 'gem', weight: 5, qty: 1 },
+  ]);
   const bar = new ButtonBar({
     onClick: (id) => {
       if (id === 'attack') attack();
       if (id === 'aoe') aoeSkill();
+      if (id === 'inv') invGrid.toggle();
     },
   });
   bar.setSlots([
     { id: 'attack', label: '攻击', key: '空格/J' },
     { id: 'aoe', label: '旋风斩', key: 'K' },
+    { id: 'inv', label: '背包', key: 'I' },
   ]);
   const KILL_GOAL = 10;
   const bgm = new BgmLayers();
@@ -210,6 +223,7 @@ export function createArpgGame(
         score.addKill();
         run.addKill();
         gold.add(5);
+        for (const s of loot.roll()) inv.add(s);
         beep(1320);
         const sp = screenPos(e.mesh);
         dmgNums.spawn(sp.x, sp.y, '击杀', true);
@@ -309,6 +323,7 @@ export function createArpgGame(
     keys.add(e.code);
     if (e.code === 'Space' || e.code === 'KeyJ') attack();
     if (e.code === 'KeyK') aoeSkill();
+    if (e.code === 'KeyI') invGrid.toggle();
   }
   function onKeyUp(e: KeyboardEvent) {
     keys.delete(e.code);
@@ -440,7 +455,7 @@ export function createArpgGame(
         const aoeReady = aoeCd.ready ? '就绪' : `${(aoeCd.ratio * aoeCd.duration).toFixed(1)}s`;
         hud.setText(
           `HP ${playerHealth.hp}/${playerHpMax} · 击杀 ${score.kills} · 金 ${gold.balance}\n` +
-            `WASD 移动 · 空格/J 攻击 · K 旋风斩(${aoeReady})`,
+            `WASD 移动 · 空格/J 攻击 · K 旋风斩(${aoeReady}) · I 背包`,
         );
       },
     },
@@ -461,6 +476,7 @@ export function createArpgGame(
       enemyBar.dispose();
       quest.dispose();
       bar.dispose();
+      invGrid.dispose();
       bgm.detach();
     },
     stats: () => ({
