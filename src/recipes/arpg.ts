@@ -30,6 +30,7 @@ import { WorldBar } from '../blocks/ui/WorldBar';
 import { EndOverlay } from '../blocks/ui/EndOverlay';
 import { BgmLayers } from '../blocks/audio/BgmLayers';
 import { KitSfx } from '../blocks/audio/KitSfx';
+import { GameFeel } from '../blocks/fx/GameFeel';
 import type { System, EngineWorld } from '../engine/types';
 
 export interface ArpgRecipeOpts extends BaseRecipeOpts {
@@ -125,6 +126,7 @@ export function createArpgGame(
   ]);
   const KILL_GOAL = 10;
   const sfx = new KitSfx();
+  const feel = new GameFeel();
   const bgm = new BgmLayers();
   let ac: AudioContext | null = null;
   let bgmReady = false;
@@ -185,7 +187,7 @@ export function createArpgGame(
   const keys = new Set<string>();
   let spawnT = 0;
   let t = 0;
-  let status: 'playing' | 'lose' = 'playing';
+  let status: 'playing' | 'win' | 'lose' = 'playing';
   let facingX = 0;
   let facingZ = 1;
 
@@ -226,6 +228,7 @@ export function createArpgGame(
         const sp = screenPos(e.mesh);
         dmgNums.spawn(sp.x, sp.y, '击杀', true);
         if (score.kills >= KILL_GOAL) quest.complete('k10');
+        if (score.kills >= 12 && status === 'playing') showEnd(true);
         const id = 'drop' + score.kills;
         const mesh = new THREE.Mesh(dropGeo, dropMat);
         mesh.position.copy(e.mesh.position);
@@ -322,16 +325,26 @@ export function createArpgGame(
     if (e.code === 'Space' || e.code === 'KeyJ') attack();
     if (e.code === 'KeyK') aoeSkill();
     if (e.code === 'KeyI') invGrid.toggle();
+    if (e.code === 'KeyR' && status !== 'playing') restart();
   }
   function onKeyUp(e: KeyboardEvent) {
     keys.delete(e.code);
   }
 
-  function showEnd() {
-    if (status === 'lose') return;
-    status = 'lose';
+  function showEnd(win: boolean) {
+    if (status !== 'playing') return;
+    status = win ? 'win' : 'lose';
     run.set('kills', score.kills);
-    endOverlay.show(`倒下 — 击杀 ${score.kills} · 用时 ${run.time.toFixed(1)}s`, false);
+    sfx.play(win ? 'win' : 'lose');
+    endOverlay.show(
+      (win ? '胜利！' : '倒下 — ') +
+        `击杀 ${score.kills} · ${run.time.toFixed(0)}s — 按 R 再来`,
+      win,
+    );
+  }
+
+  function restart() {
+    if (typeof location !== 'undefined') location.reload();
   }
 
   if (typeof window !== 'undefined') {
@@ -401,7 +414,9 @@ export function createArpgGame(
             e.mesh.position.z += dir.z * enemySpeed * ft;
           } else if (Math.random() < ft * 0.8) {
             playerHealth.damage(6);
-            if (!playerHealth.alive) showEnd();
+            feel.flashOnce('rgba(255,60,60,0.28)', 150);
+            feel.shake(0.08, 0.18);
+            if (!playerHealth.alive) showEnd(false);
           }
         });
 
@@ -453,7 +468,7 @@ export function createArpgGame(
         const aoeReady = aoeCd.ready ? '就绪' : `${(aoeCd.ratio * aoeCd.duration).toFixed(1)}s`;
         hud.setText(
           `HP ${playerHealth.hp}/${playerHpMax} · 击杀 ${score.kills} · 金 ${gold.balance}\n` +
-            `WASD 移动 · 空格/J 攻击 · K 旋风斩(${aoeReady}) · I 背包`,
+            `目标击杀 12 · WASD 移动 · 空格/J 攻击 · K 旋风斩(${aoeReady}) · I 背包`,
         );
       },
     },
@@ -477,6 +492,7 @@ export function createArpgGame(
       invGrid.dispose();
       bgm.detach();
       sfx.dispose();
+      feel.dispose();
     },
     stats: () => ({
       hp: playerHealth.hp,

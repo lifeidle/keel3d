@@ -17,6 +17,8 @@ import { HudPanel } from '../blocks/ui/HudPanel';
 import { EndOverlay } from '../blocks/ui/EndOverlay';
 import { Toast } from '../blocks/ui/Toast';
 import { KitSfx } from '../blocks/audio/KitSfx';
+import { GameFeel } from '../blocks/fx/GameFeel';
+import { Countdown } from '../blocks/ui/Countdown';
 import type { System, EngineWorld } from '../engine/types';
 
 export interface TdTowerDef {
@@ -178,6 +180,9 @@ export function createTowerDefenseGame(
   const endOverlay = new EndOverlay();
   const toast = new Toast();
   const sfx = new KitSfx();
+  const feel = new GameFeel();
+  const waveClock = new Countdown({ id: 'td-clock' });
+  waveClock.start(180);
 
   const towerMeshes = new Map<string, THREE.Mesh>();
   const build = new BuildSystem({
@@ -244,7 +249,7 @@ export function createTowerDefenseGame(
   function syncHud() {
     const sel = selectable[Math.min(selected, selectable.length - 1)];
     hud.setText(
-      `金钱 ${eco.balance} · 波次 ${director.waveNumber}/${director.totalWaves} · 基地 ${baseHp}\n` +
+      `金钱 ${eco.balance} · 波次 ${director.waveNumber}/${director.totalWaves} · 基地 ${baseHp} · 剩余 ${waveClock.secondsLeft}s\n` +
         `选塔 ${selectable.map((d, i) => `${i + 1}${d.key}(${d.cost})`).join(' ')} · 当前 ${sel?.key ?? '-'}\n` +
         `左键放置/升级 · 右键售卖 · 场上 ${enemies.activeCount}` +
         (status !== 'playing' ? ` [${status}]` : ''),
@@ -313,6 +318,9 @@ export function createTowerDefenseGame(
   function onKey(e: KeyboardEvent) {
     const n = parseInt(e.key, 10);
     if (n >= 1 && n <= selectable.length) selected = n - 1;
+    if (e.code === 'KeyR' && status !== 'playing') {
+      if (typeof location !== 'undefined') location.reload();
+    }
   }
 
   if (typeof window !== 'undefined') {
@@ -334,6 +342,11 @@ export function createTowerDefenseGame(
           return;
         }
         director.update(ft);
+        waveClock.update(ft);
+        if (waveClock.done && status === 'playing') {
+          // time up: still win if all waves done, else lose pressure via remaining base
+          if (!director.finished) showEnd(false);
+        }
 
         enemies.forEachLive((e) => {
           if (!e.alive) return;
@@ -392,6 +405,8 @@ export function createTowerDefenseGame(
       endOverlay.dispose();
       toast.dispose();
       sfx.dispose();
+      feel.dispose();
+      waveClock.dispose();
     },
     stats: () => ({
       money: eco.balance,
