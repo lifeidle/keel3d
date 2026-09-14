@@ -33,6 +33,11 @@ export const GAME_LOADERS: Record<string, GameLoader> = {
   rts: () => import('./game/demo-rts'),
   stealth: () => import('./game/demo-stealth'),
   arena: () => import('./game/demo-arena'),
+  rhythm: () => import('./game/demo-rhythm'),
+  sandbox: () => import('./game/demo-sandbox'),
+  br: () => import('./game/demo-br'),
+  puzzle: () => import('./game/demo-puzzle'),
+  sports: () => import('./game/demo-sports'),
   // NEW_GAME_INSERT
 };
 

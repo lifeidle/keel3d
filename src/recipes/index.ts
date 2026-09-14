@@ -60,3 +60,8 @@ export { tycoonRecipe, createTycoonGame, type TycoonRecipeOpts } from './tycoon'
 export { rtsLiteRecipe, createRtsLiteGame, type RtsLiteRecipeOpts } from './rts-lite';
 export { stealthRecipe, createStealthGame, type StealthRecipeOpts } from './stealth';
 export { combatArenaRecipe, createCombatArenaGame, type CombatArenaRecipeOpts } from './combat-arena';
+export { rhythmRecipe, createRhythmGame, type RhythmRecipeOpts } from './rhythm';
+export { sandboxRecipe, createSandboxGame, type SandboxRecipeOpts } from './sandbox';
+export { brLiteRecipe, createBrLiteGame, type BrLiteRecipeOpts } from './br-lite';
+export { puzzleRecipe, createPuzzleGame, type PuzzleRecipeOpts } from './puzzle';
+export { sportsRecipe, createSportsGame, type SportsRecipeOpts } from './sports';
