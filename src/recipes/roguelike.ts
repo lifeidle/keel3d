@@ -1,5 +1,6 @@
 /**
- * Roguelike recipe — procedural rooms, combat, loot into inventory, boss exit.
+ * Roguelike flagship recipe — procedural rooms, combat, loot, boss.
+ * Designed as the "you can finish a real game" sample.
  */
 import * as THREE from 'three';
 import { defineGame, type BaseRecipeOpts } from '../content/defineGame';
@@ -8,6 +9,7 @@ import { CameraRig } from '../blocks/CameraRig';
 import { Pool } from '../blocks/Pool';
 import { Health } from '../blocks/gameplay/Health';
 import { Scoreboard } from '../blocks/gameplay/Scoreboard';
+import { Cooldown } from '../blocks/combat/Cooldown';
 import * as Steering from '../blocks/Steering';
 import { Inventory } from '../blocks/gameplay/Inventory';
 import { LootTable } from '../blocks/gameplay/LootTable';
@@ -27,7 +29,16 @@ export interface RoguelikeRecipeOpts extends BaseRecipeOpts {
   playerHp?: number;
   enemyHp?: number;
   enemySpeed?: number;
+  attackDamage?: number;
+  attackCd?: number;
 }
+
+const ROOM_LABEL: Record<RoomDef['kind'], string> = {
+  start: '起点',
+  combat: '战斗',
+  loot: '补给',
+  boss: '首领',
+};
 
 export function createRoguelikeGame(
   opts: RoguelikeRecipeOpts,
@@ -38,9 +49,11 @@ export function createRoguelikeGame(
   const layout = generateDungeon(seed, { roomCount: opts.roomCount ?? 6 });
   const cell = 18;
   const moveSpeed = opts.moveSpeed ?? 8;
-  const playerHpMax = opts.playerHp ?? 80;
-  const enemyHp = opts.enemyHp ?? 25;
-  const enemySpeed = opts.enemySpeed ?? 3.2;
+  const playerHpMax = opts.playerHp ?? 100;
+  const enemyHp = opts.enemyHp ?? 22;
+  const enemySpeed = opts.enemySpeed ?? 3.0;
+  const attackDamage = opts.attackDamage ?? 18;
+  const attackCd = new Cooldown(opts.attackCd ?? 0.35);
 
   const root = new THREE.Group();
   scene.add(root);
@@ -49,6 +62,7 @@ export function createRoguelikeGame(
   const bossMat = new THREE.MeshStandardMaterial({ color: 0x4a3040 });
   const lootMat = new THREE.MeshStandardMaterial({ color: 0x4a4a30 });
   const wallMat = new THREE.MeshStandardMaterial({ color: 0x5a5a52 });
+  const goalMat = new THREE.MeshStandardMaterial({ color: 0xffd27a, emissive: 0x332200 });
 
   const roomPos = new Map<string, THREE.Vector3>();
   for (const r of layout.rooms) {
@@ -60,7 +74,6 @@ export function createRoguelikeGame(
     floor.position.set(c.x, -0.1, c.z);
     floor.receiveShadow = true;
     root.add(floor);
-    // simple walls
     for (const [dx, dz, sw, sd] of [
       [0, r.h / 2, r.w, 0.4],
       [0, -r.h / 2, r.w, 0.4],
@@ -72,8 +85,13 @@ export function createRoguelikeGame(
       wall.castShadow = true;
       root.add(wall);
     }
+    if (r.kind === 'loot') {
+      const chest = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.8, 0.8), goalMat);
+      chest.position.set(c.x, 0.5, c.z);
+      chest.castShadow = true;
+      root.add(chest);
+    }
   }
-  // corridors as slabs
   for (const cor of layout.corridors) {
     const a = roomPos.get(cor.a);
     const b = roomPos.get(cor.b);
@@ -100,13 +118,13 @@ export function createRoguelikeGame(
   const invGrid = new InventoryGrid(inv, { id: 'rogue-inv' });
   invGrid.hide();
   const loot = new LootTable([
-    { id: 'scrap', weight: 60, qty: [1, 2] },
-    { id: 'potion', weight: 30, qty: 1 },
-    { id: 'relic', weight: 10, qty: 1 },
+    { id: '废料', weight: 55, qty: [1, 2] },
+    { id: '药水', weight: 35, qty: 1 },
+    { id: '遗物', weight: 10, qty: 1 },
   ]);
   const meta = new SaveSlot({ key: 'keel3d-rogue-meta', version: 1 });
   const hud = new HudPanel({ id: 'rogue-hud', position: 'tl' });
-  const hpBar = new HealthBar({ width: 120, height: 8 });
+  const hpBar = new HealthBar({ width: 140, height: 8 });
   if (hpBar.el) {
     hpBar.el.style.cssText += ';position:fixed;left:12px;bottom:12px;z-index:20;';
     document.body.appendChild(hpBar.el);
@@ -119,7 +137,9 @@ export function createRoguelikeGame(
   interface E {
     mesh: THREE.Mesh;
     hp: number;
+    maxHp: number;
     alive: boolean;
+    boss: boolean;
   }
   const enemyPool = new Pool<E>(
     () => {
@@ -129,11 +149,12 @@ export function createRoguelikeGame(
       );
       m.visible = false;
       root.add(m);
-      return { mesh: m, hp: 0, alive: false };
+      return { mesh: m, hp: 0, maxHp: 1, alive: false, boss: false };
     },
     (e) => {
       e.alive = false;
       e.mesh.visible = false;
+      e.boss = false;
     },
     16,
   );
@@ -150,8 +171,12 @@ export function createRoguelikeGame(
     for (let i = 0; i < n; i++) {
       const e = enemyPool.acquire();
       e.alive = true;
-      e.hp = enemyHp + (r.kind === 'boss' ? 20 : 0);
-      e.mesh.position.set(c.x + (i - 1) * 2, 0.5, c.z + (i % 2) * 2);
+      e.boss = r.kind === 'boss';
+      e.maxHp = enemyHp + (r.kind === 'boss' ? 25 : 0);
+      e.hp = e.maxHp;
+      (e.mesh.material as THREE.MeshStandardMaterial).color.setHex(r.kind === 'boss' ? 0x8b1a1a : 0xc44);
+      e.mesh.scale.setScalar(r.kind === 'boss' ? 1.35 : 1);
+      e.mesh.position.set(c.x + (i - 1) * 2.2, 0.5, c.z + (i % 2) * 2);
       e.mesh.visible = true;
     }
   }
@@ -161,21 +186,71 @@ export function createRoguelikeGame(
     cleared.add(r.id);
     if (r.kind === 'loot') {
       for (const s of loot.roll(2)) inv.add(s);
-      toast.show('拾取补给');
-    }
-    if (r.kind === 'boss') {
+      toast.show('打开补给箱');
+      sfx.play('pickup');
+    } else if (r.kind === 'boss') {
       status = 'win';
+      sfx.play('win');
       const prev = (meta.load<{ depth?: number }>()?.depth ?? 0) as number;
       if (depth > prev) meta.save({ depth });
-      endOverlay.show(`通关 · 层 ${depth} · 击杀 ${score.kills}`, true);
-    } else {
-      toast.show(`${r.id} 已肃清`);
+      const best = meta.load<{ depth?: number }>()?.depth ?? depth;
+      endOverlay.show(
+        `通关！层 ${depth} · 击杀 ${score.kills} · ${score.time.toFixed(0)}s · 最深 ${best} — 按 R 再来`,
+        true,
+      );
+    } else if (r.kind === 'combat') {
+      toast.show('房间肃清 · 前往下一处');
+      sfx.play('click');
     }
+  }
+
+  function usePotion() {
+    if (inv.count('药水') < 1) {
+      toast.show('没有药水');
+      return;
+    }
+    if (ph.hp >= playerHpMax) {
+      toast.show('生命已满');
+      return;
+    }
+    inv.remove('药水', 1);
+    ph.heal(28);
+    sfx.play('pickup');
+    toast.show('使用药水 +28');
+  }
+
+  function tryAttack() {
+    if (!attackCd.tryFire()) return;
+    let hit = false;
+    enemyPool.forEachLive((e) => {
+      if (!e.alive) return;
+      const d = e.mesh.position.distanceTo(player.position);
+      if (d < 1.8) {
+        e.hp -= attackDamage;
+        hit = true;
+        sfx.play('hit');
+        if (e.hp <= 0) {
+          e.alive = false;
+          enemyPool.release(e);
+          score.addKill();
+          sfx.play('boom');
+          for (const s of loot.roll()) inv.add(s);
+        }
+      }
+    });
+    if (!hit) sfx.play('shoot');
+  }
+
+  function restart() {
+    // simple reload for flagship polish
+    if (typeof location !== 'undefined') location.reload();
   }
 
   function onDn(e: KeyboardEvent) {
     keys.add(e.code);
     if (e.code === 'KeyI') invGrid.toggle();
+    if (e.code === 'KeyE') usePotion();
+    if (e.code === 'KeyR' && status !== 'playing') restart();
   }
   function onUp(e: KeyboardEvent) {
     keys.delete(e.code);
@@ -186,6 +261,7 @@ export function createRoguelikeGame(
   }
 
   spawnRoom(layout.rooms[0]);
+  toast.show('清空房间，走向下一间 · 空格攻击');
 
   const systems: System[] = [
     {
@@ -196,12 +272,13 @@ export function createRoguelikeGame(
           return;
         }
         score.tick(ft);
+        attackCd.update(ft);
         let mx = 0;
         let mz = 0;
-        if (keys.has('KeyW')) mz -= 1;
-        if (keys.has('KeyS')) mz += 1;
-        if (keys.has('KeyA')) mx -= 1;
-        if (keys.has('KeyD')) mx += 1;
+        if (keys.has('KeyW') || keys.has('ArrowUp')) mz -= 1;
+        if (keys.has('KeyS') || keys.has('ArrowDown')) mz += 1;
+        if (keys.has('KeyA') || keys.has('ArrowLeft')) mx -= 1;
+        if (keys.has('KeyD') || keys.has('ArrowRight')) mx += 1;
         const len = Math.hypot(mx, mz);
         if (len > 0) {
           mx /= len;
@@ -209,9 +286,9 @@ export function createRoguelikeGame(
           player.position.x = THREE.MathUtils.clamp(player.position.x + mx * moveSpeed * ft, start.x - 80, start.x + 80);
           player.position.z = THREE.MathUtils.clamp(player.position.z + mz * moveSpeed * ft, start.z - 80, start.z + 80);
         }
+        if (keys.has('Space')) tryAttack();
         rig.update(ft, player.position, Math.atan2(mx, mz) || 0);
 
-        // nearest room
         let best = 0;
         let bestD = Infinity;
         layout.rooms.forEach((r, i) => {
@@ -225,42 +302,32 @@ export function createRoguelikeGame(
         if (best !== roomIdx && bestD < 6) {
           roomIdx = best;
           const r = layout.rooms[roomIdx];
-          if (!cleared.has(r.id)) spawnRoom(r);
+          if (!cleared.has(r.id)) {
+            spawnRoom(r);
+            toast.show(`${ROOM_LABEL[r.kind]}房`);
+          }
         }
 
-        // enemies chase + touch damage
         let living = 0;
+        let bossLiving = false;
         enemyPool.forEachLive((e) => {
           if (!e.alive) return;
           living++;
+          if (e.boss) bossLiving = true;
           const dx = player.position.x - e.mesh.position.x;
           const dz = player.position.z - e.mesh.position.z;
           const d = Math.hypot(dx, dz);
           if (d > 1.2) {
             const dir = Steering.normalizeXZ(dx, dz);
-            e.mesh.position.x += dir.x * enemySpeed * ft;
-            e.mesh.position.z += dir.z * enemySpeed * ft;
-          } else if (Math.random() < ft * 0.9) {
-            ph.damage(5);
+            const sp = e.boss ? enemySpeed * 0.85 : enemySpeed;
+            e.mesh.position.x += dir.x * sp * ft;
+            e.mesh.position.z += dir.z * sp * ft;
+          } else if (Math.random() < ft * 0.7) {
+            ph.damage(e.boss ? 8 : 5);
             if (!ph.alive) {
               status = 'lose';
-              endOverlay.show(`阵亡 · 击杀 ${score.kills}`, false);
-            }
-          }
-        });
-
-        // auto-kill when player walks into enemy (melee-ish for skeleton)
-        enemyPool.forEachLive((e) => {
-          if (!e.alive) return;
-          const d = e.mesh.position.distanceTo(player.position);
-          if (d < 1.5 && keys.has('Space')) {
-            e.hp -= 20;
-            if (e.hp <= 0) {
-              e.alive = false;
-              enemyPool.release(e);
-              score.addKill();
-              sfx.play('hit');
-              for (const s of loot.roll()) inv.add(s);
+              sfx.play('lose');
+              endOverlay.show(`阵亡 · 击杀 ${score.kills} · ${score.time.toFixed(0)}s — 按 R 再来`, false);
             }
           }
         });
@@ -269,9 +336,12 @@ export function createRoguelikeGame(
         if (living === 0 && !cleared.has(cur.id)) roomCleared(cur);
 
         hpBar.setHp(ph.hp, playerHpMax);
+        const potions = inv.count('药水');
         hud.setText(
-          `层 ${depth} · 房 ${roomIdx + 1}/${layout.rooms.length} · 击杀 ${score.kills} · HP ${ph.hp}\n` +
-            `WASD 移动 · 空格攻击 · I 背包 · 房型 ${cur?.kind ?? '-'}`,
+          `层 ${depth} · ${ROOM_LABEL[cur?.kind ?? 'start']} ${roomIdx + 1}/${layout.rooms.length} · 击杀 ${score.kills}\n` +
+            `HP ${ph.hp}/${playerHpMax} · 药水 ${potions}` +
+            (bossLiving ? ' · ⚠ 首领' : '') +
+            `\nWASD 移动 · 空格攻击 · E 喝药 · I 背包`,
         );
       },
     },
@@ -292,7 +362,7 @@ export function createRoguelikeGame(
       sfx.dispose();
       invGrid.dispose();
     },
-    stats: () => ({ seed, room: roomIdx, kills: score.kills, status, depth, cleared: cleared.size }),
+    stats: () => ({ seed, room: roomIdx, kills: score.kills, status, depth, cleared: cleared.size, hp: ph.hp }),
   };
 }
 
