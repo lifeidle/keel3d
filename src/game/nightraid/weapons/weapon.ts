@@ -5,7 +5,7 @@ import { CONFIG } from '../../../config';
 import type { WeaponDef } from '../../../config';
 import { PhysicsWorld } from '../../../physics/world';
 import { Player } from '../player/player';
-import { Effects } from '../effects';
+import { CombatVfx } from '../../../blocks/fx/CombatVfx';
 import { Audio } from '../audio/audio';
 import { Arsenal } from '../../../blocks/combat/Arsenal';
 
@@ -31,7 +31,7 @@ export class Weapon {
   constructor(
     private physics: PhysicsWorld,
     private player: Player,
-    private effects: Effects,
+    private effects: CombatVfx,
     private audio: Audio,
     private getEnemies: () => unknown[] // unused: hits resolve via collider userData
   ) {}
@@ -147,14 +147,14 @@ export class Weapon {
         const smashed = ud.rec.hit(d.damage);
         if (smashed) this.audio.playWoodCrack();
         else this.audio.playHit();
-      } else if (ud && ud.type === 'jeep' && ud.jeep) {
+      } else if (ud && ud.type === 'wheeled' && ud.wheeled) {
         this.effects.spark(end);
         this.audio.playArmorClank();
-        ud.jeep.damage(d.damage);
-      } else if (ud && ud.type === 'tank' && ud.tank) {
+        ud.wheeled.damage(d.damage);
+      } else if (ud && ud.type === 'tracked' && ud.tracked) {
         this.effects.spark(end);
         this.audio.playArmorClank();
-        ud.tank.damage(d.damage * CONFIG.tank.bulletArmor);
+        ud.tracked.damage(d.damage * CONFIG.tank.bulletArmor);
       } else {
         this.effects.spark(end);
         this.effects.dust(end);

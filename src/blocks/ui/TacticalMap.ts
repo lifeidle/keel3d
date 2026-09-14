@@ -1,23 +1,34 @@
-// TacticalUI: HUD compass tape + circular minimap (both canvas).
+// TacticalMap: HUD compass tape + circular minimap (both canvas).
 // The minimap is player-centric and rotates with heading (facing = up);
 // obstacles always show, enemy blips appear when they recently fired or are
 // close. The compass tape shows bearing ticks plus enemy fire pings.
-import { CONFIG } from '../../../config';
-import { getLocale } from '../../../i18n';
-import type { Enemy } from '../ai/enemy';
-import type * as THREE from 'three';
+//
+// Block-layer: no game/ imports. Contacts are flat world-space points.
+import { CONFIG } from '../../config';
+import { getLocale } from '../../i18n';
 
-/** Structural enemy view for the tactical UIs — Enemy and net ghosts both fit. */
+/** Flat world-space contact for the tactical UIs. */
 export interface MapContact {
-  pos(): THREE.Vector3;
-  body: { translation(): { x: number; y: number; z: number } };
-  alive: boolean;
-  side: string;
-  downed: boolean;
-  classKey: string;
-  lastShot: number;
+  x: number;
+  z: number;
+  /** 'ally' | 'hostile' — default hostile. */
+  team?: string;
+  /** false/undefined skips the blip. */
+  alive?: boolean;
+  downed?: boolean;
+  /** Special class for color/size (e.g. 'rpg', 'lmg'). */
+  classKey?: string;
+  /** Last shot time in seconds (performance.now()/1000); drives fire pings. */
+  lastShot?: number;
 }
-import type { MapObstacle } from '../../../world/mapgen';
+
+/** Axis-aligned obstacle footprint (satisfied by mapgen MapObstacle). */
+export interface MapObstacleRect {
+  x: number;
+  z: number;
+  hx: number;
+  hz: number;
+}
 
 const VIEW_M = 40; // minimap view radius (meters)
 const PING_S = 2.5; // seconds an enemy fire ping stays visible
@@ -32,7 +43,7 @@ export interface ExfilBlip {
   active: boolean; // lit once the area is cleared
 }
 
-export class TacticalUI {
+export class TacticalMap {
   private mini = document.getElementById('minimap') as HTMLCanvasElement;
   private comp = document.getElementById('compass') as HTMLCanvasElement;
   private mctx = this.mini.getContext('2d')!;
@@ -48,7 +59,7 @@ export class TacticalUI {
     pz: number,
     yaw: number,
     enemies: MapContact[],
-    obstacles: MapObstacle[],
+    obstacles: MapObstacleRect[],
     half: number,
     barrels: Array<{ x: number; z: number }> = [],
     exfil: ExfilBlip | null = null,
@@ -101,11 +112,11 @@ export class TacticalUI {
     // enemy fire pings
     const now = performance.now() / 1000;
     for (const e of enemies) {
-      if (!e.alive) continue;
-      const age = now - e.lastShot;
+      if (e.alive === false) continue;
+      const lastShot = e.lastShot ?? -1e9;
+      const age = now - lastShot;
       if (age > PING_S) continue;
-      const t = e.body.translation();
-      const bearing = (Math.atan2(t.x - px, -(t.z - pz)) * 180) / Math.PI;
+      const bearing = (Math.atan2(e.x - px, -(e.z - pz)) * 180) / Math.PI;
       const rel = (((bearing - heading) % 360) + 540) % 360 - 180;
       if (Math.abs(rel) > halfSpan) continue;
       const x = W / 2 + rel * pxPerDeg;
@@ -135,7 +146,7 @@ export class TacticalUI {
     pz: number,
     yaw: number,
     soldiers: MapContact[],
-    obstacles: MapObstacle[],
+    obstacles: MapObstacleRect[],
     half: number,
     dumps: Array<{ x: number; z: number; used: boolean }>,
     camp: { x: number; z: number },
@@ -202,11 +213,10 @@ export class TacticalUI {
     // soldiers: hostile red (rpg orange), ally green, downed ally blinking yellow
     const now = performance.now();
     for (const e of soldiers) {
-      if (!e.alive) continue;
-      const t = e.body.translation();
-      const [x, z] = toMap(t.x, t.z);
+      if (e.alive === false) continue;
+      const [x, z] = toMap(e.x, e.z);
       let color = 'rgba(225, 90, 75, 0.95)'; // hostile
-      if (e.side === 'ally') {
+      if (e.team === 'ally') {
         color = e.downed
           ? `rgba(240, 210, 90, ${0.5 + 0.5 * Math.sin(now / 120)})`
           : 'rgba(105, 200, 120, 0.95)';
@@ -244,7 +254,7 @@ export class TacticalUI {
     pz: number,
     yaw: number,
     enemies: MapContact[],
-    obstacles: MapObstacle[],
+    obstacles: MapObstacleRect[],
     half: number,
     barrels: Array<{ x: number; z: number }>,
     exfil: ExfilBlip | null,
@@ -334,13 +344,13 @@ export class TacticalUI {
     // enemy blips: bright when recently fired, dim when close, else hidden
     const now = performance.now() / 1000;
     for (const e of enemies) {
-      if (!e.alive) continue;
-      const t = e.body.translation();
-      const age = now - e.lastShot;
-      const close = Math.hypot(t.x - px, t.z - pz) < 20;
+      if (e.alive === false) continue;
+      const lastShot = e.lastShot ?? -1e9;
+      const age = now - lastShot;
+      const close = Math.hypot(e.x - px, e.z - pz) < 20;
       if (age > PING_S && !close) continue;
-      const dx = (t.x - px) * s;
-      const dz = (t.z - pz) * s;
+      const dx = (e.x - px) * s;
+      const dz = (e.z - pz) * s;
       m.fillStyle = `rgba(208, 96, 80, ${age < PING_S ? 0.6 + 0.4 * (1 - age / PING_S) : 0.55})`;
       m.beginPath();
       m.arc(dx, dz, age < PING_S ? 4 : 3, 0, Math.PI * 2);

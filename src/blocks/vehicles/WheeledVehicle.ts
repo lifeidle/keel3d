@@ -1,20 +1,21 @@
-﻿// Driveable scout jeep ???the X package's fast recon vehicle.
+// Driveable scout car — fast open-top recon vehicle.
 //
-// Same driving model as Tank (dynamic body steered with setLinvel along the
-// heading, rotations locked) but tuned like a jeep instead of a 60-ton MBT:
-// quick throttle, tight turning, thin skin. No turret and no gun ???its value
-// is speed and reach, not firepower. The mouse still steers the hull in the
-// FPS style so driving feels consistent with the tank seat.
-
+// Same driving model as TrackedVehicle (dynamic body steered with setLinvel
+// along the heading, rotations locked) but tuned like a light scout: quick
+// throttle, tight turning, thin skin. No turret — its value is speed and
+// reach, not firepower. The mouse still steers the hull in the FPS style so
+// driving feels consistent with the tracked seat.
+//
+// Block-layer: no game/ imports. Enemy/Audio surfaces are injected via
+// VehicleHooks (defined in TrackedVehicle.ts).
 import * as THREE from 'three';
 import RAPIER from '@dimforge/rapier3d';
-import type { TankHooks } from '../world/tank';
-import type { PhysicsWorld } from '../../../physics/world';
-import { CONFIG } from '../../../config';
-import type { Enemy } from '../ai/enemy';
+import type { PhysicsWorld } from '../../physics/world';
+import { CONFIG } from '../../config';
+import type { VehicleHooks, VehicleTarget } from './TrackedVehicle';
 
-/** Pintle MG tuning. Full damage ???it's the jeep's only weapon. */
-const JEEP_MG = {
+/** Pintle MG tuning. Full damage — it's the scout car's only weapon. */
+const SCOUT_MG = {
   belt: 100,
   reload: 2.5,
   rate: 9, // rounds / second
@@ -24,8 +25,8 @@ const JEEP_MG = {
 
 const J = () => CONFIG.jeep;
 
-/** Open-top scout jeep rig: chassis, hood, windscreen frame, seats, wheels. */
-function buildJeepRig(): THREE.Group {
+/** Open-top scout rig: chassis, hood, windscreen frame, seats, wheels. */
+function buildScoutRig(): THREE.Group {
   const g = new THREE.Group();
   const body = new THREE.MeshStandardMaterial({ color: 0x55603f, roughness: 0.75, metalness: 0.25 });
   const dark = new THREE.MeshStandardMaterial({ color: 0x1f2225, roughness: 0.9 });
@@ -84,7 +85,7 @@ function buildJeepRig(): THREE.Group {
   g.add(mgMuzzle);
   (g as any).mgMuzzle = mgMuzzle;
 
-  // four wheels (visual spin only ???the hull glides via setLinvel)
+  // four wheels (visual spin only — the hull glides via setLinvel)
   const wg = new THREE.CylinderGeometry(0.38, 0.38, 0.24, 12);
   const wheels: THREE.Mesh[] = [];
   for (const [wx, wz] of [[-0.85, -1.15], [0.85, -1.15], [-0.85, 1.15], [0.85, 1.15]]) {
@@ -99,7 +100,7 @@ function buildJeepRig(): THREE.Group {
   return g;
 }
 
-export class Jeep {
+export class WheeledVehicle {
   body: RAPIER.RigidBody;
   group: THREE.Group;
   private wheels: THREE.Mesh[] = [];
@@ -109,7 +110,7 @@ export class Jeep {
   speed = 0; // signed m/s
   hp: number;
   // pintle MG belt
-  mgAmmo = JEEP_MG.belt;
+  mgAmmo = SCOUT_MG.belt;
   mgReloadT = 0;
   private mgFireCd = 0;
   private mgMuzzle = new THREE.Object3D();
@@ -118,7 +119,7 @@ export class Jeep {
   driver = false;
 
   constructor(
-    private hooks: TankHooks,
+    private hooks: VehicleHooks,
     x: number,
     z: number,
     yaw: number
@@ -140,9 +141,9 @@ export class Jeep {
         .setDensity(1.2),
       this.body
     );
-    this.body.userData = { type: 'jeep', jeep: this };
+    this.body.userData = { type: 'wheeled', wheeled: this };
 
-    this.group = buildJeepRig();
+    this.group = buildScoutRig();
     this.wheels = ((this.group as THREE.Group & { wheels?: THREE.Mesh[] }).wheels ?? []) as THREE.Mesh[];
     this.mgMuzzle = (this.group as any).mgMuzzle as THREE.Object3D;
     this.group.position.set(x, gy, z);
@@ -188,12 +189,11 @@ export class Jeep {
         m.material = mat;
       }
     });
-    this.hooks.onJeepDestroyed?.();
+    this.hooks.onWheeledDestroyed?.();
   }
 
   /**
    * Player driving: mouse steers the hull (FPS style), W/S throttle, A/D turn.
-   * The fire input is ignored ???the jeep carries no gun.
    */
   updatePlayer(
     dt: number,
@@ -217,10 +217,10 @@ export class Jeep {
     else this.speed *= Math.max(0, 1 - dt * 2.6);
     this.speed = THREE.MathUtils.clamp(this.speed, C.maxRev, C.maxSpeed);
 
-    // jeeps turn on the spot at low speed and arc at speed
+    // scouts turn on the spot at low speed and arc at speed
     if (Math.abs(move.x) > 0.05) {
       const grip = THREE.MathUtils.clamp(Math.abs(this.speed) / 4, 0.35, 1);
-      // same handedness fix as the tank: D (right) subtracts from yaw
+      // same handedness fix as the tracked vehicle: D (right) subtracts from yaw
       this.yaw -= move.x * C.turnRate * dt * grip * Math.sign(this.speed || 1);
     }
 
@@ -235,16 +235,16 @@ export class Jeep {
     if (this.mgReloadT > 0) {
       this.mgReloadT -= dt;
       if (this.mgReloadT <= 0) {
-        this.mgAmmo = JEEP_MG.belt;
+        this.mgAmmo = SCOUT_MG.belt;
         this.hooks.audio.playReload();
       }
       return;
     }
     if (!fire || this.mgFireCd > 0 || this.mgAmmo <= 0) return;
 
-    this.mgFireCd = 1 / JEEP_MG.rate;
+    this.mgFireCd = 1 / SCOUT_MG.rate;
     this.mgAmmo--;
-    if (this.mgAmmo <= 0) this.mgReloadT = JEEP_MG.reload;
+    if (this.mgAmmo <= 0) this.mgReloadT = SCOUT_MG.reload;
 
     const origin = this.mgMuzzle.getWorldPosition(new THREE.Vector3());
     const dir = new THREE.Vector3();
@@ -255,11 +255,11 @@ export class Jeep {
     dir.y += (Math.random() - 0.5) * spread * 2;
     dir.z += (Math.random() - 0.5) * spread * 2;
     dir.normalize();
-    const end = origin.clone().addScaledVector(dir, JEEP_MG.range);
+    const end = origin.clone().addScaledVector(dir, SCOUT_MG.range);
     const hit = this.hooks.physics.raycast(
       { x: origin.x, y: origin.y, z: origin.z },
       { x: dir.x, y: dir.y, z: dir.z },
-      JEEP_MG.range,
+      SCOUT_MG.range,
       this.hull
     );
     const stop = hit
@@ -277,7 +277,7 @@ export class Jeep {
       | undefined;
     const pt = new THREE.Vector3(hit.point.x, hit.point.y, hit.point.z);
     if (ud?.type === 'enemy' && ud.soldier && ud.soldier.alive) {
-      ud.soldier.damage(JEEP_MG.damage, pt, dir);
+      ud.soldier.damage(SCOUT_MG.damage, pt, dir);
     } else {
       this.hooks.effects.spark(pt);
     }
@@ -299,9 +299,9 @@ export class Jeep {
     this.wheelSpin += (this.speed / 0.38) * dt;
     for (const w of this.wheels) w.rotation.x = this.wheelSpin;
 
-    // run down infantry at speed (half the tank's lethality, no shell)
+    // run down infantry at speed (half the tracked lethality, no shell)
     if (Math.abs(this.speed) > 4) {
-      for (const e of this.hooks.getEnemies() as Enemy[]) {
+      for (const e of this.hooks.getEnemies() as VehicleTarget[]) {
         if (!e.alive) continue;
         const ep = e.body.translation();
         if (Math.hypot(ep.x - tr.x, ep.z - tr.z) < 1.6) {

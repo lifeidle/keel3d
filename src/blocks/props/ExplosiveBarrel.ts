@@ -1,18 +1,33 @@
-﻿// Explosible fuel drums: static props with HP that cook off into a radial
-// blast ???damages player AND enemies, nudges rigid bodies, and chain-detonates
+// Explosible fuel drums: static props with HP that cook off into a radial
+// blast — damages player AND enemies, nudges rigid bodies, and chain-detonates
 // neighbours through a short randomized fuse. Only the player's bullets damage
 // them (enemy fire is hitscan-to-player only), which keeps them a player tool.
+//
+// Block-layer: no game/ imports. Explosion SFX and the HD photo-texture
+// upgrade are injected; enemy damage goes through a structural Blastable
+// interface rather than the game's Enemy class.
 import * as THREE from 'three';
 import RAPIER from '@dimforge/rapier3d';
-import { CONFIG } from '../../../config';
-import { PhysicsWorld } from '../../../physics/world';
-import { Effects } from '../effects';
-import { Audio } from '../audio/audio';
-import { scorchTexture } from '../../../world/textures';
-import { upgrade } from '../world/phototex';
-import type { Enemy } from '../ai/enemy';
-import type { GeneratedMap } from '../../../world/mapgen';
-import { blastFalloff } from '../../../world/ballistics';
+import { CONFIG } from '../../config';
+import { PhysicsWorld } from '../../physics/world';
+import type { CombatVfx } from '../fx/CombatVfx';
+import { scorchTexture } from '../../world/textures';
+import type { GeneratedMap } from '../../world/mapgen';
+import { blastFalloff } from '../../world/ballistics';
+import type { MaterialUpgrader } from './DestructibleCover';
+
+/**
+ * Minimal enemy shape the blast needs. Structurally satisfied by the game's
+ * Enemy class; keeps this block free of game/ai imports.
+ */
+export interface Blastable {
+  alive: boolean;
+  body: {
+    translation(): { x: number; y: number; z: number };
+    applyImpulse(impulse: { x: number; y: number; z: number }, wake: boolean): void;
+  };
+  damage(dmg: number, point: THREE.Vector3, dir: THREE.Vector3): unknown;
+}
 
 export interface BarrelHooks {
   playerEye: () => THREE.Vector3;
@@ -23,6 +38,10 @@ export interface BarrelHooks {
   onBoom: () => void;
   /** Blast a point to let tanks etc. take radial damage too (HE vs armour). */
   onBlast: (p: THREE.Vector3, dmg: number, radius: number) => void;
+  /** Injected explosion SFX (called once per detonation). */
+  playExplosion?: () => void;
+  /** Async photo-set swap-in for the drum body ('rusty_metal'). */
+  upgradeMaterial?: MaterialUpgrader;
 }
 
 interface BarrelRec {
@@ -35,22 +54,21 @@ interface BarrelRec {
   fuse: number; // >=0: lit and counting down; -1: dormant
   flash: number; // hit-flash 0..1 (also the fuse blink)
   removed: boolean;
-  /** Bound to the owning BarrelManager (bullet/shell hit path). */
+  /** Bound to the owning ExplosiveBarrelField (bullet/shell hit path). */
   hit: (dmg: number) => void;
 }
 
 const EMISSIVE_BASE = 0.35; // keeps drums readable in the dark
 
-export class BarrelManager {
+export class ExplosiveBarrelField {
   private group = new THREE.Group();
   private list: BarrelRec[] = [];
 
   constructor(
     private physics: PhysicsWorld,
     private scene: THREE.Scene,
-    private effects: Effects,
-    private audio: Audio,
-    private getEnemies: () => Enemy[],
+    private effects: CombatVfx,
+    private getEnemies: () => Blastable[],
     private hooks: BarrelHooks
   ) {
     this.scene.add(this.group);
@@ -98,8 +116,8 @@ export class BarrelManager {
       emissive: 0xff5a22,
       emissiveIntensity: EMISSIVE_BASE,
     });
-    // rusty steel photo set (cylinders get UVs by default) ???async swap-in
-    upgrade(bodyMat, 'rusty_metal', 1, 0.8);
+    // rusty steel photo set (cylinders get UVs by default) — async swap-in
+    this.hooks.upgradeMaterial?.(bodyMat, 'rusty_metal', 1, 0.8);
     const bandMat = new THREE.MeshStandardMaterial({
       color: 0x555555,
       roughness: 0.4,
@@ -181,7 +199,7 @@ export class BarrelManager {
     p.y = rec.pos.y + B.height * 0.55;
 
     this.effects.explosion(p);
-    this.audio.playExplosion();
+    this.hooks.playExplosion?.();
     this.hooks.onBoom();
     this.hooks.onBlast(p, B.blastDamage, B.blastRadius);
 
@@ -238,7 +256,7 @@ export class BarrelManager {
     }
     if (kills > 0) this.hooks.onKill(kills);
 
-    // the player is not immune (kinematic ???no knockback, just hurt)
+    // the player is not immune (kinematic — no knockback, just hurt)
     const eye = this.hooks.playerEye();
     const pd = Math.hypot(eye.x - p.x, eye.y - p.y, eye.z - p.z);
     if (pd < B.blastRadius) {
@@ -311,3 +329,6 @@ export class BarrelManager {
     this.list = [];
   }
 }
+
+/** Back-compat alias for the old BarrelManager name. */
+export { ExplosiveBarrelField as BarrelManager };

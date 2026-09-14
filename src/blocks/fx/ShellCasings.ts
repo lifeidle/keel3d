@@ -1,10 +1,10 @@
-﻿// Spent brass casings ejected from the player's weapon on every shot.
+// Spent brass casings ejected from the player's weapon on every shot.
 // Real dynamic bodies (tiny cylinder + collider) so they tumble, bounce off the
 // terrain and roll realistically, then fade and despawn ~1.5s later. The brass
 // geometry + material are created once and shared by every casing.
 import * as THREE from 'three';
 import RAPIER from '@dimforge/rapier3d';
-import { PhysicsWorld } from '../../../physics/world';
+import { PhysicsWorld } from '../../physics/world';
 
 interface Casing {
   mesh: THREE.Mesh;
@@ -15,7 +15,7 @@ interface Casing {
 const LIFE = 1.5;
 const FADE = 0.4;
 
-export class CasingManager {
+export class ShellCasings {
   private group = new THREE.Group();
   private geo: THREE.CylinderGeometry;
   private mat: THREE.MeshStandardMaterial;
@@ -98,5 +98,22 @@ export class CasingManager {
         (c.mesh.material as THREE.MeshStandardMaterial).opacity = k;
       }
     }
+  }
+
+  /** Remove all live casings and drop the shared group from the scene. */
+  dispose(): void {
+    for (const c of this.list) {
+      try {
+        this.physics.world.removeRigidBody(c.body);
+      } catch {
+        /* already gone */
+      }
+      this.group.remove(c.mesh);
+      (c.mesh.material as THREE.Material).dispose();
+    }
+    this.list = [];
+    this.scene.remove(this.group);
+    this.geo.dispose();
+    this.mat.dispose();
   }
 }

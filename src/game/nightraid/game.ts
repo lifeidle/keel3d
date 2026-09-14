@@ -9,25 +9,26 @@ import { PhysicsWorld } from '../../physics/world';
 import { Player } from './player/player';
 import { EnemyManager } from './ai/enemy';
 import { Weapon } from './weapons/weapon';
-import { Effects } from './effects';
+import { CombatVfx } from '../../blocks/fx/CombatVfx';
 import { Audio } from './audio/audio';
 import { MusicDirector } from './audio/music';
 import type { Mood } from './audio/music';
 import { HUD } from './ui/hud';
-import { TacticalUI } from './ui/mapui';
+import { TacticalMap } from '../../blocks/ui/TacticalMap';
 import { generateMap, clearMap, GeneratedMap, seedFromURL } from '../../world/mapgen';
 import { buildGunModel } from './world/gunmodels';
-import { BarrelManager } from './world/barrels';
-import { CasingManager } from './world/casings';
+import { ExplosiveBarrelField } from '../../blocks/props/ExplosiveBarrel';
+import { ShellCasings } from '../../blocks/fx/ShellCasings';
+import { upgrade, type HDName } from '../../blocks/assets/PhotoTex';
 import { Mission } from './world/mission';
-import { Weather, moonForSeed } from './world/weather';
+import { Weather, moonForSeed } from '../../blocks/scene/Weather';
 import { TouchControls, isTouchDevice } from '../../ui/touch';
 import { Netplay } from '../../net/netplay';
 import { RemotePlayer, GhostSwarm } from '../../net/ghosts';
 import { SnapshotEnemy, SnapshotAlly, encodeSnapshot, decodeInput, NET_EVENTS, BTN, encodeEvent } from '../../net/protocol';
-import { Jeep } from './world/jeep';
-import { applyDayNight, loadTimeMode, saveTimeMode, type TimeMode } from './world/daynight';
-import { Tank } from './world/tank';
+import { WheeledVehicle } from '../../blocks/vehicles/WheeledVehicle';
+import { applyDayNight, loadTimeMode, saveTimeMode, type TimeMode } from '../../blocks/scene/TimeOfDay';
+import { TrackedVehicle } from '../../blocks/vehicles/TrackedVehicle';
 import { opScale, loadScale, setScale, SCALES, type OpScale, type ScaleKey } from '../../world/scale';
 import { QUALITY, detectQuality, type Quality } from '../../world/quality';
 import { QualityController } from '../../engine/quality/QualityController';
@@ -59,7 +60,7 @@ export class Game {
   private physics: PhysicsWorld;
   private input: Input;
   private audio = new Audio();
-  private effects = new Effects();
+  private effects = new CombatVfx();
   private player: Player;
   private enemies: EnemyManager;
   private weapon: Weapon;
@@ -67,8 +68,8 @@ export class Game {
   /** Systems read these during Phase A extraction; A12 tightens visibility. */
   get hudView() { return this.hud; }
   private music = new MusicDirector(this.audio);
-  private tactical = new TacticalUI();
-  private barrels: BarrelManager;
+  private tactical = new TacticalMap();
+  private barrels: ExplosiveBarrelField;
   private map: GeneratedMap;
   private mission: Mission;
   private weather: Weather;
@@ -83,7 +84,7 @@ export class Game {
   // first-person viewmodels (one cached model per slot, toggled on switch)
   private gunModels = new Map<string, THREE.Group>();
   private activeGun: THREE.Group | null = null;
-  private casings: CasingManager;
+  private casings: ShellCasings;
   private gunKick = 0; // viewmodel recoil impulse (decays each render frame)
   // bobPhase lives on HudSystem (A6)
 
@@ -168,14 +169,14 @@ export class Game {
   private introFrom = new THREE.Vector3();
   /** day/night choice from the main menu (persisted to localStorage) */
   private timeMode: TimeMode = 'night';
-  /** player-driveable tank (spawns mid-map) */
-  private playerTank: Tank | null = null;
-  /** enemy AI tank that hunts the player (outer band) */
-  private enemyTank: Tank | null = null;
-  /** tank currently driven by the player (driving = FPS gunner/chase cam) */
-  private driving: Tank | Jeep | null = null;
-  /** driveable scout jeep parked near the player's base (new each operation) */
-  private jeep: Jeep | null = null;
+  /** player-driveable tracked vehicle (spawns mid-map) */
+  private playerTank: TrackedVehicle | null = null;
+  /** enemy AI tracked vehicle that hunts the player (outer band) */
+  private enemyTank: TrackedVehicle | null = null;
+  /** vehicle currently driven by the player (driving = FPS gunner/chase cam) */
+  private driving: TrackedVehicle | WheeledVehicle | null = null;
+  /** driveable scout car parked near the player's base (new each operation) */
+  private jeep: WheeledVehicle | null = null;
   /** C toggles the tank camera: gunner seat (1st) or chase (3rd) */
   private tankCamThird = true;
   private tankHintCd = 0; // throttle "press F to board" hint
@@ -200,7 +201,7 @@ export class Game {
     this.timeMode = loadTimeMode();
 
     this.engine.scene.add(this.effects.group);
-    this.casings = new CasingManager(this.physics, this.engine.scene);
+    this.casings = new ShellCasings(this.physics, this.engine.scene);
 
     // first-person weapon viewmodels: one procedural model per slot (cached)
     for (const w of CONFIG.weapons) {
@@ -220,11 +221,10 @@ export class Game {
     if (new URLSearchParams(location.search).has('debug')) {
       (window as unknown as { __sfProbe?: () => unknown }).__sfProbe = () => this.enemies.probe();
     }
-    this.barrels = new BarrelManager(
+    this.barrels = new ExplosiveBarrelField(
       this.physics,
       this.engine.scene,
       this.effects,
-      this.audio,
       // client mode: barrels don't settle damage locally (host does)
       () => (this.netMode === 'client' ? [] : this.enemies.getEnemies()),
       {
@@ -236,6 +236,8 @@ export class Game {
           this.addShake(0.7);
         },
         onBlast: (p, dmg, radius) => this.blastTanks(p, dmg, radius),
+        playExplosion: () => this.audio.playExplosion(),
+        upgradeMaterial: (m, n, r, s) => upgrade(m, n as HDName, r ?? 1, s ?? 0.85),
       }
     );
 
@@ -1150,7 +1152,7 @@ export class Game {
       muzzleFlash: (pos: THREE.Vector3, radius: number, strength: number) =>
         this.flashMuzzle(pos, radius, strength),
       addShake: (amount: number) => this.addShake(amount),
-      onTankDestroyed: (_tk: Tank, playerInside: boolean) => {
+      onTrackedDestroyed: (_tk: TrackedVehicle, playerInside: boolean) => {
         if (playerInside) {
           // the driver rides the ammo rack — kill
           this.damagePlayer(9999);
@@ -1160,12 +1162,12 @@ export class Game {
       },
     });
 
-    // scout jeep: parked near the player's flag, quick recon to the front
+    // scout car: parked near the player's flag, quick recon to the front
     const b = this.map.base;
     const jx = b.x + Math.cos(Math.random() * Math.PI * 2) * 9;
     const jz = b.z + Math.sin(Math.random() * Math.PI * 2) * 9;
-    this.jeep = new Jeep(
-      { ...mkHooks(), onJeepDestroyed: () => this.onJeepDestroyed() },
+    this.jeep = new WheeledVehicle(
+      { ...mkHooks(), onWheeledDestroyed: () => this.onJeepDestroyed() },
       jx,
       jz,
       Math.random() * Math.PI * 2
@@ -1174,11 +1176,11 @@ export class Game {
 
     const spot = this.map.tankSpots;
     if (spot.player) {
-      this.playerTank = new Tank(mkHooks(), spot.player.x, spot.player.z, Math.random() * Math.PI * 2);
+      this.playerTank = new TrackedVehicle(mkHooks(), spot.player.x, spot.player.z, Math.random() * Math.PI * 2);
       this.playerTank.attach(scene);
     }
     if (spot.enemy) {
-      this.enemyTank = new Tank(
+      this.enemyTank = new TrackedVehicle(
         mkHooks(),
         spot.enemy.x,
         spot.enemy.z,
@@ -1313,7 +1315,7 @@ export class Game {
 
   /** The scout jeep burned with the driver aboard: eject wounded, not dead. */
   private onJeepDestroyed() {
-    if (this.driving instanceof Jeep) {
+    if (this.driving instanceof WheeledVehicle) {
       this.leaveTank(false);
       this.damagePlayer(40);
       this.hud.addKill(`<b>${t('jeep.destroyed')}</b>`);

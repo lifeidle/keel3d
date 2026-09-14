@@ -1,14 +1,37 @@
-﻿// Destructible cover: wooden crates you can shoot apart to open sightlines.
+// Destructible cover: wooden crates you can shoot apart to open sightlines.
 // Each crate is an independent static body with HP; bullets chip it, and at
 // zero HP it shatters into a few tumbling debris fragments (dynamic bodies that
-// settle and fade out). Sandbags / concrete / ruins stay solid ???only timber goes.
+// settle and fade out). Sandbags / concrete / ruins stay solid — only timber goes.
+//
+// Block-layer: no game/ imports. Audio (wood-crack on shatter) and the async
+// HD photo-texture upgrade are injected via constructor opts.
 import * as THREE from 'three';
 import RAPIER from '@dimforge/rapier3d';
-import { CONFIG } from '../../../config';
-import { PhysicsWorld } from '../../../physics/world';
-import { Audio } from '../audio/audio';
-import { crateTexture } from '../../../world/textures';
-import { upgrade } from '../world/phototex';
+import { CONFIG } from '../../config';
+import { PhysicsWorld } from '../../physics/world';
+import { crateTexture } from '../../world/textures';
+
+/** Injected audio surface — a single crack when a crate shatters. */
+export interface DestructibleCoverSfx {
+  playWoodCrack?: () => void;
+}
+
+/**
+ * Injected HD texture upgrade (e.g. phototex.upgrade). Optional: without it
+ * crates keep their procedural canvas wood texture.
+ */
+export type MaterialUpgrader = (
+  mat: THREE.MeshStandardMaterial,
+  name: string,
+  repeat?: number,
+  normalScale?: number
+) => void;
+
+export interface DestructibleCoverOpts {
+  sfx?: DestructibleCoverSfx;
+  /** Async photo-set swap-in; called with 'plywood' when a crate is built. */
+  upgradeMaterial?: MaterialUpgrader;
+}
 
 interface CrateRec {
   mesh: THREE.Mesh;
@@ -19,7 +42,7 @@ interface CrateRec {
   hp: number;
   alive: boolean;
   flash: number;
-  /** Bound to the owning Destructibles manager (shell/bullet hit path). */
+  /** Bound to the owning DestructibleCover manager (shell/bullet hit path). */
   hit: (dmg: number) => boolean;
 }
 
@@ -29,18 +52,22 @@ interface FragRec {
   dieAt: number;
 }
 
-export class Destructibles {
+export class DestructibleCover {
   private group = new THREE.Group();
   private crates: CrateRec[] = [];
   private frags: FragRec[] = [];
   private now = 0;
+  private sfx: DestructibleCoverSfx | undefined;
+  private upgradeMaterial: MaterialUpgrader | undefined;
 
   constructor(
     private scene: THREE.Scene,
     private physics: PhysicsWorld,
-    private audio: Audio,
-    private rand: () => number
+    private rand: () => number,
+    opts: DestructibleCoverOpts = {}
   ) {
+    this.sfx = opts.sfx;
+    this.upgradeMaterial = opts.upgradeMaterial;
     scene.add(this.group);
   }
 
@@ -57,7 +84,7 @@ export class Destructibles {
     });
     mat.color.offsetHSL(0, 0, (this.rand() - 0.5) * 0.05);
     // plywood photo set swaps in async once decoded (all crates share the pair)
-    upgrade(mat, 'plywood', 2, 0.8);
+    this.upgradeMaterial?.(mat, 'plywood', 2, 0.8);
     const mesh = new THREE.Mesh(new THREE.BoxGeometry(s, s, s), mat);
     mesh.position.set(x, cy, z);
     mesh.castShadow = true;
@@ -118,7 +145,7 @@ export class Destructibles {
       /* gone */
     }
 
-    this.audio.playWoodCrack();
+    this.sfx?.playWoodCrack?.();
 
     // spawn tumbling debris fragments (dynamic, short-lived)
     const count = CONFIG.destructible.fragments;

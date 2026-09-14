@@ -1,4 +1,4 @@
-﻿// Seeded rolling terrain for the night arena.
+// Seeded rolling terrain for the night arena.
 //
 // One height function drives three consumers so they can never drift apart:
 //   1. the render mesh (displaced grid + vertex colours)
@@ -12,7 +12,7 @@ import RAPIER from '@dimforge/rapier3d';
 import { CONFIG } from '../config';
 import { PhysicsWorld } from '../physics/world';
 import { groundTexture } from './textures';
-import { upgrade } from '../game/nightraid/world/phototex';
+import { upgrade } from '../blocks/assets/PhotoTex';
 
 /** Deterministic 2D hash -> [0,1). */
 function hash2(ix: number, iz: number, seed: number): number {

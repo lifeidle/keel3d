@@ -1,4 +1,4 @@
-﻿// Ruined village clusters ???the skyline content layer (F package).
+// Ruined village clusters ???the skyline content layer (F package).
 //
 // Each cluster is a small gutted hamlet: one two-storey shell with a doorway,
 // window apertures, an open shed, broken wall stubs, rubble, rooftop junk and
@@ -14,8 +14,8 @@ import * as THREE from 'three';
 import RAPIER from '@dimforge/rapier3d';
 import { PhysicsWorld } from '../../../physics/world';
 import { Terrain } from '../../../world/terrain';
-import type { Plumes } from '../world/plumes';
-import { upgrade } from '../world/phototex';
+import type { SmokeColumns } from '../../../blocks/fx/SmokeColumns';
+import { upgrade } from '../../../blocks/assets/PhotoTex';
 
 export interface HamletHandles {
   colliders: RAPIER.Collider[];
@@ -39,7 +39,7 @@ interface Ctx {
   physics: PhysicsWorld;
   terrain: Terrain;
   rand: () => number;
-  plumes: Plumes;
+  plumes: SmokeColumns;
   cx: number;
   cz: number;
   yaw: number; // snapped to 0/90/180/270
@@ -50,7 +50,7 @@ interface Ctx {
   physics: PhysicsWorld;
   terrain: Terrain;
   rand: () => number;
-  plumes: Plumes;
+  plumes: SmokeColumns;
   cx: number;
   cz: number;
   yaw: number; // snapped to 0/90/180/270
@@ -72,7 +72,7 @@ export function placeHamlet(
   physics: PhysicsWorld,
   terrain: Terrain,
   rand: () => number,
-  plumes: Plumes,
+  plumes: SmokeColumns,
   cx: number,
   cz: number,
   yaw: number

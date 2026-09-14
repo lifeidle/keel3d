@@ -8,7 +8,7 @@ import { QualityController } from './engine/quality/QualityController';
 import { createEngineAsync, WebGpuRequiredError } from './engine/renderer';
 import { detectQuality } from './world/quality';
 import { initI18n, t } from './i18n';
-import { prefetchHD } from './game/nightraid/world/phototex';
+import { prefetchHD } from './blocks/assets/PhotoTex';
 import { FullscreenUI } from './ui/fullscreen';
 import { resolveGameId, loadGame, DEFAULT_GAME_ID } from './registry';
 import { mountSampleGame } from './content/host';

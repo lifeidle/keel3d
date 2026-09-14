@@ -2,9 +2,9 @@
 // can see) and, for rain/storm, spawns a camera-locked rain field with wind
 // drift. Deterministic from the map seed so ?seed= reproduces the same sky.
 import * as THREE from 'three';
-import { CONFIG } from '../../../config';
-import { QUALITY, type Quality } from '../../../world/quality';
-import { mulberry32 } from '../../../util/rng';
+import { CONFIG } from '../../config';
+import { QUALITY, type Quality } from '../../world/quality';
+import { mulberry32 } from '../../util/rng';
 
 export type WeatherKind = 'clear' | 'mist' | 'rain' | 'storm';
 

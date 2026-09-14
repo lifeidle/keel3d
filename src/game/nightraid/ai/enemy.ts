@@ -64,7 +64,7 @@ import type { EnemyClassDef } from '../../../config';
 import { PhysicsWorld } from '../../../physics/world';
 import { Audio } from '../audio/audio';
 import { Player } from '../player/player';
-import { Effects } from '../effects';
+import { CombatVfx } from '../../../blocks/fx/CombatVfx';
 
 // scratch objects for the per-frame rifle orientation (no per-frame allocs)
 const Q_HAND = new THREE.Quaternion();
@@ -218,7 +218,7 @@ export class Enemy implements CombatTarget {
     private physics: PhysicsWorld,
     private scene: THREE.Scene,
     private audio: Audio,
-    private effects: Effects,
+    private effects: CombatVfx,
     spawn: THREE.Vector3,
     private cls: EnemyClassDef,
     side: Side = 'hostile',
@@ -1045,13 +1045,13 @@ export class Enemy implements CombatTarget {
     }
   }
 
-  /** Does this ray hit count as hitting the target? The open-top scout jeep
+  /** Does this ray hit count as hitting the target? The open-top scout car
    *  is transparent to line of sight while someone drives it: you can see and
-   *  shoot the driver, and the rounds chew the jeep instead. */
+   *  shoot the driver, and the rounds chew the vehicle instead. */
   private rayHitsTarget(hit: { collider: RAPIER.Collider }, target: CombatTarget): boolean {
     if (hit.collider.handle === target.collider.handle) return true;
-    const ud = hit.collider.parent()?.userData as { type?: string; jeep?: { driver: boolean } } | undefined;
-    return !!ud && ud.type === 'jeep' && !!ud.jeep?.driver;
+    const ud = hit.collider.parent()?.userData as { type?: string; wheeled?: { driver: boolean } } | undefined;
+    return !!ud && ud.type === 'wheeled' && !!ud.wheeled?.driver;
   }
 
   private hasLineTo(target: CombatTarget): boolean {
@@ -1169,7 +1169,7 @@ export class EnemyManager {
     private physics: PhysicsWorld,
     private scene: THREE.Scene,
     private audio: Audio,
-    private effects: Effects
+    private effects: CombatVfx
   ) {}
 
   /**

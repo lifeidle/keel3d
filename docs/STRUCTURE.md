@@ -27,7 +27,9 @@
 ```
 engine/     L1 内核（WebGPU · 循环 · 输入 · 质量 · 资产 · 音频）
 blocks/     L2 积木（Pool Path Steering GridAStar CameraRig Unit
-            ChunkWorld MapBuilder scene/*）
+            ChunkWorld MapBuilder scene/* fx/* props/* vehicles/*
+            assets/* audio/* combat/* gameplay/* ui/* interact/*
+            progress/* build/* kit/*）
 content/    L3 契约（GameSpec · defineGame · mountSampleGame host）
 registry.ts 组合根：id → 动态 import 内容包（唯一可依赖 game/*）
 physics/    物理封装（参数注入）
