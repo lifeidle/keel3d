@@ -7,6 +7,7 @@ import { CameraRig } from '../blocks/CameraRig';
 import { HudPanel } from '../blocks/ui/HudPanel';
 import { EndOverlay } from '../blocks/ui/EndOverlay';
 import { Toast } from '../blocks/ui/Toast';
+import { KitSfx } from '../blocks/audio/KitSfx';
 import { Scoreboard } from '../blocks/gameplay/Scoreboard';
 import type { System, EngineWorld } from '../engine/types';
 
