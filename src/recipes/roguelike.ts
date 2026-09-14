@@ -17,6 +17,7 @@ import { HealthBar } from '../blocks/ui/HealthBar';
 import { EndOverlay } from '../blocks/ui/EndOverlay';
 import { Toast } from '../blocks/ui/Toast';
 import { InventoryGrid } from '../blocks/ui/InventoryGrid';
+import { KitSfx } from '../blocks/audio/KitSfx';
 import type { System, EngineWorld } from '../engine/types';
 
 export interface RoguelikeRecipeOpts extends BaseRecipeOpts {
@@ -112,6 +113,7 @@ export function createRoguelikeGame(
   }
   const endOverlay = new EndOverlay();
   const toast = new Toast();
+  const sfx = new KitSfx();
   const rig = new CameraRig(camera, { defaultMode: 'orbit', blend: 0.2, orbit: { distance: 22, height: 18, pitch: 0.7 } });
 
   interface E {
@@ -257,6 +259,7 @@ export function createRoguelikeGame(
               e.alive = false;
               enemyPool.release(e);
               score.addKill();
+              sfx.play('hit');
               for (const s of loot.roll()) inv.add(s);
             }
           }
@@ -286,6 +289,7 @@ export function createRoguelikeGame(
       hpBar.dispose();
       endOverlay.dispose();
       toast.dispose();
+      sfx.dispose();
       invGrid.dispose();
     },
     stats: () => ({ seed, room: roomIdx, kills: score.kills, status, depth, cleared: cleared.size }),

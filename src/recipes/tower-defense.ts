@@ -16,6 +16,7 @@ import { BuildSystem, type BuildCatalog, type BuildingDef } from '../blocks/buil
 import { HudPanel } from '../blocks/ui/HudPanel';
 import { EndOverlay } from '../blocks/ui/EndOverlay';
 import { Toast } from '../blocks/ui/Toast';
+import { KitSfx } from '../blocks/audio/KitSfx';
 import type { System, EngineWorld } from '../engine/types';
 
 export interface TdTowerDef {
@@ -176,6 +177,7 @@ export function createTowerDefenseGame(
   const hud = new HudPanel({ id: 'td-hud', position: 'tl' });
   const endOverlay = new EndOverlay();
   const toast = new Toast();
+  const sfx = new KitSfx();
 
   const towerMeshes = new Map<string, THREE.Mesh>();
   const build = new BuildSystem({
@@ -236,6 +238,7 @@ export function createTowerDefenseGame(
     if (status !== 'playing') return;
     status = win ? 'win' : 'lose';
     endOverlay.show(win ? '胜利' : '失败', win);
+    sfx.play(win ? 'win' : 'lose');
   }
 
   function syncHud() {
@@ -388,6 +391,7 @@ export function createTowerDefenseGame(
       hud.dispose();
       endOverlay.dispose();
       toast.dispose();
+      sfx.dispose();
     },
     stats: () => ({
       money: eco.balance,

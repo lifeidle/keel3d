@@ -14,6 +14,7 @@ import { HudPanel } from '../blocks/ui/HudPanel';
 import { HealthBar } from '../blocks/ui/HealthBar';
 import { DamageNumbers } from '../blocks/ui/DamageNumber';
 import { EndOverlay } from '../blocks/ui/EndOverlay';
+import { KitSfx } from '../blocks/audio/KitSfx';
 import type { System, EngineWorld } from '../engine/types';
 
 export interface FpsArenaOpts extends BaseRecipeOpts {
@@ -106,6 +107,7 @@ export function createFpsArena(
   }
   const dmgNums = new DamageNumbers();
   const endOverlay = new EndOverlay();
+  const sfx = new KitSfx();
   let status: 'playing' | 'lose' = 'playing';
 
   const keys = new Set<string>();
@@ -117,7 +119,7 @@ export function createFpsArena(
   function onDn(e: KeyboardEvent) {
     keys.add(e.code);
     if (e.code === 'Space' || e.code === 'KeyJ') fireClicked = true;
-    if (e.code === 'KeyR') arsenal.reload();
+    if (e.code === 'KeyR') { if (arsenal.reload()) sfx.play('reload'); }
   }
   function onUp(e: KeyboardEvent) {
     keys.delete(e.code);
@@ -194,7 +196,7 @@ export function createFpsArena(
         const fireHeld = keys.has('Space') || keys.has('KeyJ');
         if (world.playing && status === 'playing') {
           const outcome = arsenal.update(ft, fireHeld, fireClicked);
-          if (outcome === 'fired') hitscan();
+          if (outcome === 'fired') { sfx.play('shoot'); hitscan(); }
           fireClicked = false;
 
           score.tick(ft);
@@ -273,6 +275,7 @@ export function createFpsArena(
       hpBar.dispose();
       dmgNums.dispose();
       endOverlay.dispose();
+      sfx.dispose();
       cross?.remove();
       cross = null;
     },

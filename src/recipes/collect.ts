@@ -11,6 +11,7 @@ import { RunState } from '../blocks/progress/RunState';
 import { HudPanel } from '../blocks/ui/HudPanel';
 import { Toast } from '../blocks/ui/Toast';
 import { EndOverlay } from '../blocks/ui/EndOverlay';
+import { KitSfx } from '../blocks/audio/KitSfx';
 import type { System, EngineWorld } from '../engine/types';
 
 export interface CollectRecipeOpts extends BaseRecipeOpts {
@@ -94,6 +95,7 @@ export function createCollectGame(
   const hud = new HudPanel({ id: 'collect-hud', position: 'tl' });
   const toast = new Toast();
   const endOverlay = new EndOverlay();
+  const sfx = new KitSfx();
   const rig = new CameraRig(camera, { defaultMode: 'chase', chase: { distance: 12, height: 6, lookAhead: 2 } });
 
   function restart() {
@@ -173,6 +175,7 @@ export function createCollectGame(
       hud.dispose();
       toast.dispose();
       endOverlay.dispose();
+      sfx.dispose();
     },
     stats: () => ({ got, n, status, time: score.time }),
   };

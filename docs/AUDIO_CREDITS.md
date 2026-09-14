@@ -16,6 +16,7 @@
 | 英语无线电语音 ×14（Tango Down / 进出战场 / 胜负 / 呼救 / 击杀 播报） | OpenGameArt "Radio Soldier"（SoundBiterSFX，CC-BY-SA 4.0）与 "Soldier Voice Acting"（CC-BY 3.0） | CC-BY-SA 4.0 / CC-BY 3.0 |
 | 中文语音 ×15（指挥/指令/胜负/连杀播报） | 本项目 Windows TTS（Huihui）本地合成 | 自有，无第三方权利 |
 | 纹理 ×12（diffuse+normal） | AmbientCG 衍生 | CC0 |
+| **配方 Kit 音效 ×9**（click/pickup/hit/shoot/boom/reload/win/lose/place） | **本仓库脚本合成** scripts/gen-sfx.mjs → public/audio/kit/ | **MIT（自有，可商用）** |
 
 ## CC-BY 必需署名
 
