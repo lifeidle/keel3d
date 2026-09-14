@@ -490,6 +490,7 @@
         tags: ['roguelike', 'procgen'],
         demo: './roguelike.html',
         cmd: 'npm run new-game myrogue -- --recipe roguelike --html',
+        note: '清房 → 补给 → Boss。空格攻击，E 喝药，I 背包，R 重开。',
         blocks: [['ProcDungeon', '地牢'], ['LootTable', '掉落'], ['Inventory', '背包']],
       },
       {
@@ -498,6 +499,7 @@
         tags: ['platformer', 'jump'],
         demo: './platformer.html',
         cmd: 'npm run new-game myplat -- --recipe platformer --html',
+        note: '3 条命登顶。WASD + 空格/Shift 跳，坠落回出生点，R 重开。',
         blocks: [['CharacterController', '跳跃'], ['TriggerZone', '终点']],
       },
       {
@@ -506,6 +508,7 @@
         tags: ['tycoon', 'build'],
         demo: './tycoon.html',
         cmd: 'npm run new-game mytycoon -- --recipe tycoon --html',
+        note: '人口达到 50 获胜。1/2/3 选建筑，点空地建造，R 重开。',
         blocks: [['PlaceGrid', '地块'], ['BuildSystem', '建造'], ['Economy', '经济']],
       },
       {
@@ -514,6 +517,7 @@
         tags: ['rts', 'faction'],
         demo: './rts.html',
         cmd: 'npm run new-game myrts -- --recipe rts-lite --html',
+        note: '消灭红方全部单位。左键选中，右键下令，R 重开。',
         blocks: [['FactionMap', '阵营'], ['Steering', '移动']],
       },
       {
@@ -522,6 +526,7 @@
         tags: ['stealth', 'vision'],
         demo: './stealth.html',
         cmd: 'npm run new-game mystealth -- --recipe stealth --html',
+        note: '不被发现抵达出口。WASD 移动，空格会发出噪声，R 重开。',
         blocks: [['VisionCone', '视锥'], ['NoiseEmitter', '噪声']],
       },
       {
@@ -530,6 +535,7 @@
         tags: ['vehicle', 'combat'],
         demo: './arena.html',
         cmd: 'npm run new-game myarena -- --recipe combat-arena --html',
+        note: '驾驶击落 10 架无人机。WASD 驾驶，空格/J 主炮，K 冲击，R 重开。',
         blocks: [['Arsenal', '弹药'], ['areaHits', 'AOE'], ['Gamepad', '手柄']],
       },
       {
@@ -538,6 +544,7 @@
         tags: ['rhythm', 'beat'],
         demo: './rhythm.html',
         cmd: 'npm run new-game myrhythm -- --recipe rhythm --html',
+        note: '空格/J 卡拍，连击 20 获胜；失误断连击，R 重开。',
         blocks: [['BeatClock', '节拍']],
       },
       {
@@ -546,6 +553,7 @@
         tags: ['voxel', 'sandbox'],
         demo: './sandbox.html',
         cmd: 'npm run new-game mysandbox -- --recipe sandbox --html',
+        note: '放置 10 块达成；点击放/挖，X 切换，1-5 选色，R 重开。',
         blocks: [['VoxelChunk', '体素']],
       },
       {
@@ -554,6 +562,7 @@
         tags: ['br', 'shrink'],
         demo: './br.html',
         cmd: 'npm run new-game mybr -- --recipe br-lite --html',
+        note: '毒圈内存活到最后。WASD + 射击，R 重开。',
         blocks: [['ShrinkZone', '毒圈'], ['Arsenal', '武器']],
       },
       {
@@ -562,6 +571,7 @@
         tags: ['physics', 'puzzle'],
         demo: './puzzle.html',
         cmd: 'npm run new-game mypuzzle -- --recipe puzzle --html',
+        note: '把箱子推到金点。WASD 推箱，R 重开。',
         blocks: [['TriggerZone', '机关']],
       },
       {
@@ -570,6 +580,7 @@
         tags: ['sports', 'ball'],
         demo: './sports.html',
         cmd: 'npm run new-game mysports -- --recipe sports --html',
+        note: '先到 3 球获胜。WASD 靠近球推射，R 重开。',
         blocks: [['FactionMap', '队伍'], ['Scoreboard', '比分']],
       },
       {
