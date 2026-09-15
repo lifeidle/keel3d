@@ -86,8 +86,15 @@ body {
   text-rendering: optimizeLegibility;
   min-height: 100vh;
 }
+/* 全站无横向滚动条：任何宽度（320 手机 → 3440 超宽屏）都不出现横向拖动条。
+   clip = 视觉裁切但不产生滚动容器；旧浏览器回退 hidden。 */
+html, body { overflow-x: clip; }
+@supports not (overflow-x: clip) {
+  html, body { overflow-x: hidden; }
+}
 a { color: inherit; text-decoration: none; }
 img, svg { max-width: 100%; }
+code, kbd, pre, .mono { overflow-wrap: anywhere; }
 ::selection { background: rgba(34, 211, 197, .28); }
 
 .container { width: var(--container); margin: 0 auto; }
