@@ -5,19 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>KeeL 3D — 选品类 · 配基底 · 做游戏</title>
   <meta name="description" content="KeeL 3D（Specul）：WebGPU 三维游戏基座。选择 FPS / 塔防 / 开放世界 / 飞行 / 赛车等形式，查看开发基底与可玩样例。keel.specul.com" />
-  <meta name="theme-color" content="#0b1220" />
+  <meta name="theme-color" content="#05080f" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b1220'/%3E%3Cpath d='M18 40 L32 16 L46 40 Z' fill='none' stroke='%236ec8ff' stroke-width='3'/%3E%3Ccircle cx='32' cy='36' r='4' fill='%23ffd27a'/%3E%3C/svg%3E" />
+  <!-- 全站统一品牌外壳。用站点根绝对路径引用：dev 下由 public/brand.css 提供，
+       构建后 Vite 会按 base('./') 重写成 ./brand.css，两种情况下都能命中。 -->
+  <link rel="stylesheet" href="/brand.css" />
   <style>
     :root {
-      --bg: #0b1220;
-      --bg2: #121a2b;
-      --card: #162033;
-      --card2: #1c2940;
-      --line: #2a3a55;
-      --ink: #e8eef7;
-      --muted: #8fa3bc;
-      --accent: #6ec8ff;
-      --accent2: #ffd27a;
+      --bg: #05080f;
+      --bg2: #0a101c;
+      --card: #0d1524;
+      --card2: #121b2c;
+      --line: rgba(148, 163, 184, .14);
+      --ink: #f4f7fb;
+      --muted: #94a3b8;
+      --accent: #22d3c5;
+      --accent2: #f5c542;
       --ok: #5dcea0;
       --warn: #f0a86a;
       --danger: #e07070;
@@ -29,7 +32,7 @@
     html, body { height: 100%; }
     body {
       font-family: var(--font);
-      background: radial-gradient(1200px 600px at 20% -10%, #1a2a48 0%, var(--bg) 55%);
+      background: var(--bg);
       color: var(--ink);
       line-height: 1.55;
       min-height: 100%;
@@ -37,7 +40,21 @@
     a { color: var(--accent); text-decoration: none; }
     a:hover { text-decoration: underline; }
 
-    .wrap { max-width: 1100px; margin: 0 auto; padding: 36px 22px 80px; }
+    /* brand.css 的 [data-theme="light"] 与本文件的 :root 同权重，
+       后者在文档中更靠后 → 必须在本文件里再声明一次浅色 token，否则明暗切换无效。 */
+    [data-theme="light"] {
+      --bg: #f4f7fb;
+      --bg2: #eef3fa;
+      --card: #ffffff;
+      --card2: #f7fafc;
+      --line: rgba(15, 23, 42, .12);
+      --ink: #0f172a;
+      --muted: #5b6b82;
+      --accent2: #a16207;
+    }
+
+    /* 与 brand.css 的 .container 同宽，保证顶部/内容左右对齐 */
+    .wrap { width: var(--container); margin: 0 auto; padding: 36px 0 72px; }
 
     header.hero { margin-bottom: 28px; }
     .eyebrow {
@@ -76,6 +93,13 @@
       color: var(--muted);
     }
     .flow-step b { color: var(--accent2); font-weight: 600; margin-right: 6px; }
+
+    .doclinks {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 14px;
+      margin-top: 12px; font-size: 12.5px; color: var(--muted);
+    }
+    .doclinks a { color: var(--muted); border-bottom: 1px solid var(--line); }
+    .doclinks a:hover { color: var(--accent); border-bottom-color: var(--accent); text-decoration: none; }
 
     h2.section {
       font-size: 18px;
@@ -117,7 +141,7 @@
     }
     .card.active {
       border-color: var(--accent);
-      box-shadow: 0 0 0 1px var(--accent), 0 10px 28px rgba(110,200,255,0.12);
+      box-shadow: 0 0 0 1px var(--accent), 0 10px 28px rgba(34, 211, 197, 0.12);
     }
     .card .icon {
       width: 42px; height: 42px;
@@ -125,7 +149,7 @@
       display: grid; place-items: center;
       font-size: 20px;
       margin-bottom: 12px;
-      background: rgba(110,200,255,0.1);
+      background: rgba(34, 211, 197, 0.1);
       border: 1px solid var(--line);
     }
     .card h3 { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
@@ -175,7 +199,7 @@
     }
     .btn:hover { text-decoration: none; border-color: var(--accent); }
     .btn.primary {
-      background: linear-gradient(180deg, #3d9fd4, #2a7fb8);
+      background: linear-gradient(135deg, #a78bfa, #22d3c5);
       border-color: transparent;
       color: #fff;
     }
@@ -215,7 +239,7 @@
       gap: 10px;
       font-size: 13px;
       padding: 8px 0;
-      border-bottom: 1px dashed rgba(42,58,85,0.7);
+      border-bottom: 1px dashed rgba(148, 163, 184, 0.18);
     }
     .kv-row:last-child { border-bottom: none; }
     .kv-row dt { color: var(--muted); }
@@ -303,7 +327,27 @@
     }
   </style>
 </head>
-<body>
+<body class="brand-ambient">
+  <header class="site-header">
+    <div class="container site-bar">
+      <a class="brand" href="https://keel.specul.com/" title="龙骨 Keel">
+        <span class="brand-dot" aria-hidden="true"></span>
+        <span class="brand-name">KEEL</span>
+        <span class="brand-sub" id="markSub"
+              data-zh-sub="3D · 游戏基座" data-en-sub="3D · game framework">3D · 游戏基座</span>
+      </a>
+      <nav class="nav-links" aria-label="站点导航">
+        <a href="https://specul.com/">首页</a>
+        <a href="https://specul.com/nav.html">导航</a>
+        <a href="https://keel.specul.com/">龙骨 Keel</a>
+        <a href="./hub.html">3D 演示</a>
+        <a href="https://specul.com/legal.html">法律</a>
+        <button class="icon-btn" id="themeBtn" type="button" aria-label="切换明暗主题">☾</button>
+        <button class="icon-btn" id="langBtn" type="button" aria-label="Switch language">EN</button>
+      </nav>
+    </div>
+  </header>
+
   <div class="wrap">
     <header class="hero">
       <div class="eyebrow">KeeL 3D · Specul · WebGPU · <a href="https://github.com/lifeidle/keel3d" target="_blank" rel="noopener">GitHub</a></div>
@@ -319,6 +363,13 @@
         <div class="flow-step"><b>2</b>查看基底与积木</div>
         <div class="flow-step"><b>3</b>npm run new-game -- --recipe</div>
         <div class="flow-step"><b>4</b>只 import 你需要的模块</div>
+      </div>
+      <div class="doclinks">
+        <span>文档：</span>
+        <a href="https://github.com/lifeidle/keel3d#readme">README</a>
+        <a href="https://github.com/lifeidle/keel3d/blob/master/docs/QUICKSTART.md">Quickstart</a>
+        <a href="https://github.com/lifeidle/keel3d/blob/master/docs/BLOCKS.md">积木手册</a>
+        <a href="https://github.com/lifeidle/keel3d/blob/master/docs/RECIPES.md">配方说明</a>
       </div>
     </header>
 
@@ -369,17 +420,38 @@
       </div>
     </div>
 
-    <footer>
-      <span>MIT · KeeL 3D · <a href="https://keel.specul.com">keel.specul.com</a> · 需 WebGPU 浏览器</span>
-      <span>
-        <a href="https://github.com/lifeidle/keel3d#readme">README</a> ·
-        <a href="https://github.com/lifeidle/keel3d/blob/master/docs/QUICKSTART.md">Quickstart</a> ·
-        <a href="https://github.com/lifeidle/keel3d/blob/master/docs/BLOCKS.md">积木手册</a> · <a href="https://github.com/lifeidle/keel3d/blob/master/docs/RECIPES.md">配方说明</a>
-      </span>
+    <footer class="site-footer">
+      <div class="container foot-row">
+        <div>
+          <div>© 2026 Specul · 投机 · 推演</div>
+          <div class="foot-legal">
+            <details>
+              <summary>版权 · 免责 · 许可</summary>
+              <p>
+                本站自有文案、界面设计与编排版权归 Specul 所有。龙骨 Keel 代码以仓库 <strong>MIT</strong> 许可发布；
+                在线演示中的第三方素材（CC0 / CC-BY / CC-BY-SA）权利归原作者，必需署名与完整清单见「素材与致谢」。
+                演示按「现状」提供，不构成任何担保或服务承诺；战斗类内容纯属虚构。
+              </p>
+              <p>
+                <a href="https://specul.com/legal.html">法律条款</a> ·
+                <a href="https://keel.specul.com/credits.html">素材与致谢</a>
+              </p>
+            </details>
+          </div>
+        </div>
+        <div class="foot-links">
+          <a href="https://specul.com/">首页</a> ·
+          <a href="https://specul.com/nav.html">导航</a> ·
+          <a href="https://keel.specul.com/">龙骨 Keel</a> ·
+          <a href="https://github.com/lifeidle/keel3d" target="_blank" rel="noopener">GitHub</a>
+        </div>
+      </div>
     </footer>
   </div>
 
   <div class="toast" id="toast">已复制</div>
+
+  <script src="/brand.js" defer></script>
 
   <script>
     /** @type {Array<any>} */

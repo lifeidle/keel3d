@@ -128,7 +128,7 @@ const STRINGS: Record<string, { zh: string; en: string }> = {
   'help.field5':   { zh: '敌营边缘和基地附近各有一处弹药补给；M 键随时打开战术地图。', en: 'An ammo dump sits by each camp edge; M opens the tactical map anytime.' },
   'help.credits':      { zh: '素材与致谢', en: 'ASSETS & CREDITS' },
   'help.creditsText':  { zh: '游戏源代码以 MIT 许可发布。音频与纹理来自 OpenGameArt、Kenney、incompetech 与 AmbientCG 等开放素材库（CC0 / CC-BY），其中 CC-BY 素材的必需署名如下：', en: 'The source code is released under the MIT license. Audio and textures come from OpenGameArt, Kenney, incompetech and AmbientCG (CC0 / CC-BY). Required CC-BY attributions:' },
-  'help.creditsTail':  { zh: '其余素材为 CC0 或本项目自有（中文语音为本地合成）。完整许可清单见仓库 docs/THIRD_PARTY_NOTICES.md。', en: 'All other assets are CC0 or made in-house (Chinese voice lines are locally synthesized). Full license list: docs/THIRD_PARTY_NOTICES.md in the repository.' },
+  'help.creditsTail':  { zh: '完整许可清单与必需署名见 keel.specul.com/credits.html，网站条款见 specul.com/legal.html；仓库内另见 docs/THIRD_PARTY_NOTICES.md。', en: 'Full licence register: keel.specul.com/credits.html · site terms: specul.com/legal.html · repo: docs/THIRD_PARTY_NOTICES.md.' },
   'help.disclaimer':   { zh: '免责声明', en: 'DISCLAIMER' },
   'help.disclaimerText': { zh: '本游戏按"现状"提供，不附带任何明示或默示的保证。游戏内容纯属虚构，与任何现实人物、组织或事件无关。使用者需自行承担运行本游戏所产生的设备与数据风险，作者与分发者对任何直接或间接损失概不负责。各第三方素材依其原始许可条款提供。', en: 'This game is provided "as is", without warranty of any kind, express or implied. All content is fictional and unrelated to any real person, organization or event. Use at your own risk; the authors and distributors are not liable for any direct or indirect damages. Third-party assets are provided under their respective licenses.' },
 

@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://yexi.org/sitemap.xml
+Sitemap: https://keel.specul.com/3d/sitemap.xml

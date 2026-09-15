@@ -1064,3 +1064,29 @@ body.touch .mouse-only { display: none; }
   font-size: clamp(12px, 1.7vh, 16px);
   letter-spacing: 1px;
 }
+
+/* ---------- 返回选型（演示门户出口）----------
+   每个骨架页在 #boot 之后都带一个 <a class="hub-back">，用品牌青绿 #22d3c5
+   与站点外壳呼应；z-index 高于 #boot(9999)，加载中/加载失败时也能看见并点击。 */
+.hub-back {
+  position: fixed;
+  left: 12px;
+  bottom: 12px;
+  z-index: 10000;
+  font: 500 11px/1 "Segoe UI", "PingFang SC", system-ui, sans-serif;
+  letter-spacing: 0.06em;
+  color: rgba(216, 224, 232, 0.75);
+  text-decoration: none;
+  padding: 7px 11px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 178, 210, 0.28);
+  background: rgba(5, 8, 15, 0.62);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.hub-back:hover {
+  color: #22d3c5;
+  border-color: rgba(34, 211, 197, 0.55);
+  background: rgba(5, 8, 15, 0.88);
+}

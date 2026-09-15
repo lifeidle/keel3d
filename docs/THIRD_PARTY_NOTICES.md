@@ -97,6 +97,13 @@ Three.js, Rapier, Draco, Basis transcoder — see their respective licenses
 
 游戏内已同步展示于「操作说明 → 素材与致谢」。
 
+**线上对应页面**（对外可引用的规范地址）：
+
+- 完整素材与许可清单：<https://keel.specul.com/credits.html>
+- 站点法律条款（自有内容 / 第三方组件 / 免责 / 隐私）：<https://specul.com/legal.html>
+
+向公众分发在线演示时，站点级署名即由上面两页承担；只发布「你自己的游戏 + 自有素材」时无需引用它们。
+
 ---
 
 ## 7. 商用快速结论

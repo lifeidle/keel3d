@@ -2,7 +2,7 @@
 
 **Name reservation** for **KeeL 3D** — a WebGPU browser game framework by [Specul](https://specul.com).
 
-- Product site: https://3d.specul.com  
+- Product site: https://keel.specul.com  
 - Source & docs: see the KeeL 3D repository  
 - License: MIT  
 
@@ -12,7 +12,7 @@ This 0.0.1 package does not include the full framework. Future versions will pub
 
 | Package | Domain | Status |
 |---|---|---|
-| `keel3d` | 3d.specul.com | this package |
+| `keel3d` | keel.specul.com | this package |
 | `keel2d` | 2d.specul.com | planned |
 
 ## License

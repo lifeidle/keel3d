@@ -12,7 +12,7 @@ This 0.0.1 package is a **placeholder** only. The 2D toolkit is under developmen
 
 | Package | Domain | Status |
 |---|---|---|
-| `keel3d` | 3d.specul.com | 3D framework |
+| `keel3d` | keel.specul.com | 3D framework |
 | `keel2d` | 2d.specul.com | this placeholder |
 
 ## License

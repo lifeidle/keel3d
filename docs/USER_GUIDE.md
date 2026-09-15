@@ -1,6 +1,6 @@
 # KeeL 3D 使用指南
 
-> **KeeL 3D** · Specul · https://3d.specul.com · npm `keel3d`  
+> **KeeL 3D** · Specul · https://keel.specul.com · npm `keel3d`  
 > 面向「想做网页 3D 游戏、不想从零搭引擎」的人。
 
 ---

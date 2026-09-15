@@ -60,4 +60,4 @@ try {
   rmSync(work, { recursive: true, force: true });
 }
 
-console.log('Next: Settings → Pages → Deploy from a branch → gh-pages / root → domain 3d.specul.com');
+console.log('Next: Settings → Pages → Deploy from a branch → gh-pages / root → domain keel.specul.com');

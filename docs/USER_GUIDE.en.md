@@ -1,6 +1,6 @@
 # KeeL 3D — User Guide
 
-> **KeeL 3D** · by [Specul](https://specul.com) · https://3d.specul.com · npm: `keel3d`  
+> **KeeL 3D** · by [Specul](https://specul.com) · https://keel.specul.com · npm: `keel3d`  
 > A browser-native **3D game foundation** (WebGPU + three.js + Rapier + TypeScript).
 
 ---

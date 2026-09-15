@@ -29,7 +29,7 @@ cd ../keel.specul && node sync-3d.mjs
 
 - **不要**在 Pages 里选 GitHub Actions；`ci.yml` 只做 typecheck / test / build，与发布无关。
 - `npm run deploy:pages` 是源码仓的 gh-pages 历史脚本，**已不是当前发布路径**，保留仅为兼容。
-- ⚠️ `public/CNAME` 里仍是旧的 `3d.specul.com`，历史产物会把它带进 `dist/` 与 `keel.specul/3d/`。
-  生效的是站点仓根目录那份 `keel.specul/CNAME`（`keel.specul.com`）。
-  **不要单独改产物里的 CNAME**——换域名要按 GitHub 重绑流程走，改错会让站点掉线。
+- `public/CNAME` 已统一为 `keel.specul.com`，与站点仓根目录那份一致；产物里的 `3d/CNAME`
+  与站点仓根目录的 `CNAME` 不会再打架。**换域名仍要走 GitHub 重绑流程**，改错会让站点掉线。
+- `public/robots.txt`、`public/sitemap.xml` 也已统一指向 `keel.specul.com`（此前指向已弃用的 `yexi.org`）。
 - 源码在默认分支；网站只含静态产物，不含源码。

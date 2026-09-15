@@ -31,4 +31,4 @@
 > "Crypto" and "Long Note Two" by Kevin MacLeod (incompetech.com), licensed under
 > Creative Commons: By Attribution 4.0. http://creativecommons.org/licenses/by/4.0/
 
-以上署名已同步展示于游戏内"操作说明 → 素材与致谢"。
+以上署名已同步展示于游戏内"操作说明 → 素材与致谢"，并发布于 <https://keel.specul.com/credits.html>。
