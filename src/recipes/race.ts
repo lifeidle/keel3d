@@ -13,6 +13,8 @@ import { Path, type PathPoint } from '../blocks/Path';
 import { BestScoreSlot } from '../blocks/progress/SaveSlot';
 import { HudPanel } from '../blocks/ui/HudPanel';
 import { EndOverlay } from '../blocks/ui/EndOverlay';
+import { PauseMenu } from '../blocks/ui/PauseMenu';
+import { ControlsOverlay } from '../blocks/ui/ControlsOverlay';
 import type { System, EngineWorld } from '../engine/types';
 
 /** Default looped track (used when `track` is omitted). */
@@ -122,6 +124,17 @@ export function createRaceGame(
 
   const hud = new HudPanel({ id: 'race-hud', position: 'tl' });
   const endOverlay = new EndOverlay();
+  const pause = new PauseMenu({ title: '赛车', active: () => status === 'playing' });
+  const controls = new ControlsOverlay({
+    title: '赛车',
+    hints: [
+      { keys: ['自动'], label: '驾驶演示' },
+      { keys: ['圈速'], label: '最佳圈存档' },
+      { keys: ['Esc'], label: '暂停' },
+    ],
+    footer: '桌面设备体验更佳',
+    duration: 6,
+  });
 
   let dist = 0;
   let t = 0;
@@ -135,7 +148,7 @@ export function createRaceGame(
       name: `${opts.id}.sim`,
       update(ft: number, world: EngineWorld) {
         t += ft;
-        if (world.playing && status === 'playing') {
+        if (world.playing && status === 'playing' && !pause.paused) {
           const prev = dist;
           dist = (dist + speed * ft) % track.totalLen;
           lapT += ft;
@@ -163,6 +176,8 @@ export function createRaceGame(
         );
       },
     },
+    pause.system,
+    controls.system,
   ];
 
   return {
@@ -171,6 +186,8 @@ export function createRaceGame(
       scene.remove(root);
       hud.dispose();
       endOverlay.dispose();
+      pause.dispose();
+      controls.dispose();
     },
     stats: () => ({
       lap,

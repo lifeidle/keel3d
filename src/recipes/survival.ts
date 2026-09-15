@@ -15,6 +15,8 @@ import { Timers } from '../blocks/gameplay/Timers';
 import * as Steering from '../blocks/Steering';
 import { HudPanel } from '../blocks/ui/HudPanel';
 import { EndOverlay } from '../blocks/ui/EndOverlay';
+import { PauseMenu } from '../blocks/ui/PauseMenu';
+import { ControlsOverlay } from '../blocks/ui/ControlsOverlay';
 import type { System, EngineWorld } from '../engine/types';
 
 export interface SurvivalRecipeOpts extends BaseRecipeOpts {
@@ -161,6 +163,17 @@ export function createSurvivalGame(
     blend: 0.2,
     chase: { distance: 10, height: 5, lookAhead: 2 },
   });
+  const pause = new PauseMenu({ title: '波次生存', active: () => status === 'playing' });
+  const controls = new ControlsOverlay({
+    title: '波次生存',
+    hints: [
+      { keys: ['W', 'A', 'S', 'D'], label: '移动' },
+      { keys: ['贴近'], label: '近战反击' },
+      { keys: ['Esc'], label: '暂停' },
+    ],
+    footer: '撑过全部波次',
+    duration: 6,
+  });
 
   const systems: System[] = [
     {
@@ -168,7 +181,7 @@ export function createSurvivalGame(
       update(ft: number, world: EngineWorld) {
         t += ft;
         timers.update(ft);
-        if (!world.playing || status !== 'playing') {
+        if (!world.playing || status !== 'playing' || pause.paused) {
           hud.setText(`HP ${playerHealth.hp}/${playerHealth.max} · 击杀 ${score.kills} [${status}]`);
           return;
         }
@@ -231,6 +244,8 @@ export function createSurvivalGame(
         );
       },
     },
+    pause.system,
+    controls.system,
   ];
 
   if (typeof window !== 'undefined') {
@@ -249,6 +264,8 @@ export function createSurvivalGame(
       scene.remove(root);
       hud.dispose();
       endOverlay.dispose();
+      pause.dispose();
+      controls.dispose();
       timers.clear();
     },
     stats: () => ({

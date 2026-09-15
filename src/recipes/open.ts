@@ -18,6 +18,8 @@ import { HealthBar } from '../blocks/ui/HealthBar';
 import { Pickup, PickupField } from '../blocks/interact/Pickup';
 import { TriggerZone } from '../blocks/interact/TriggerZone';
 import { QuestTracker } from '../blocks/ui/QuestTracker';
+import { PauseMenu } from '../blocks/ui/PauseMenu';
+import { ControlsOverlay } from '../blocks/ui/ControlsOverlay';
 import type { System, EngineWorld } from '../engine/types';
 
 export interface OpenWorldRecipeOpts extends BaseRecipeOpts {
@@ -233,6 +235,18 @@ export function createOpenWorldGame(
   let status: 'playing' | 'win' = 'playing';
   const chainDoneFlags = { orbs: false, realm: false, beast: false };
 
+  const pause = new PauseMenu({ title: '开放世界', active: () => status === 'playing' });
+  const controls = new ControlsOverlay({
+    title: '开放世界',
+    hints: [
+      { keys: ['8字'], label: '自动巡行' },
+      { keys: ['1', '2', '3'], label: 'fps/追随/环绕' },
+      { keys: ['Esc'], label: '暂停' },
+    ],
+    footer: '灵珠·突破·妖兽 目标链',
+    duration: 6,
+  });
+
   function checkChain() {
     if (!goalChain || chainDone) return;
     const flags = chainDoneFlags;
@@ -283,6 +297,7 @@ export function createOpenWorldGame(
     {
       name: `${opts.id}.sim`,
       update(ft: number, world: EngineWorld) {
+        if (!pause.paused) {
         t += ft;
         // figure-8 (Lissajous) patrol: crosses the central dais twice per cycle.
         player.position.x = Math.cos(t * 0.3) * 14;
@@ -334,6 +349,7 @@ export function createOpenWorldGame(
           beastMax = Math.max(beastMax, beasts.activeCount);
           checkChain();
         }
+        } // end !pause.paused
 
         ensureHud();
         xpBar?.setRatio(progress);
@@ -351,6 +367,8 @@ export function createOpenWorldGame(
         }
       },
     },
+    pause.system,
+    controls.system,
   ];
 
   if (typeof window !== 'undefined') window.addEventListener('keydown', onKey);
@@ -362,6 +380,8 @@ export function createOpenWorldGame(
       scene.remove(root);
       chunkWorld.dispose();
       quest.dispose();
+      pause.dispose();
+      controls.dispose();
       hudEl?.remove();
       hudEl = null;
       xpBar?.dispose();

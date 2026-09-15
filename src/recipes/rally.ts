@@ -168,7 +168,7 @@ export function createRallyGame(
       pause.dispose();
       controls.dispose();
     },
-    stats: () => ({ lap, cp: nextCp, best: best.read('bestLap') }),
+    stats: () => ({ lap, cp: nextCp, best: best.read('bestLap'), status: 'playing' as const }),
   };
 }
 

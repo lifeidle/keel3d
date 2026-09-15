@@ -222,7 +222,7 @@ export function createFlightArena(
       pause.dispose();
       controls.dispose();
     },
-    stats: () => ({ kills: score.kills }),
+    stats: () => ({ kills: score.kills, status: 'playing' as const }),
   };
 }
 

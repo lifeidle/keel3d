@@ -9,6 +9,8 @@ import * as THREE from 'three';
 import { defineGame, type BaseRecipeOpts } from '../content/defineGame';
 import { CameraRig } from '../blocks/CameraRig';
 import { HudPanel } from '../blocks/ui/HudPanel';
+import { PauseMenu } from '../blocks/ui/PauseMenu';
+import { ControlsOverlay } from '../blocks/ui/ControlsOverlay';
 import type { System, EngineWorld } from '../engine/types';
 
 export interface FlightRecipeOpts extends BaseRecipeOpts {
@@ -73,13 +75,24 @@ export function createFlightGame(
   });
 
   const hud = new HudPanel({ id: 'flight-hud', position: 'tl' });
+  const pause = new PauseMenu({ title: '飞行' });
+  const controls = new ControlsOverlay({
+    title: '飞行',
+    hints: [
+      { keys: ['自动'], label: '圆周巡飞演示' },
+      { keys: ['重力'], label: '0 · air 物理' },
+      { keys: ['Esc'], label: '暂停' },
+    ],
+    footer: '空战见 flight-arena',
+    duration: 6,
+  });
   let t = 0;
 
   const systems: System[] = [
     {
       name: `${opts.id}.sim`,
       update(ft: number, world: EngineWorld) {
-        if (world.playing) t += ft;
+        if (world.playing && !pause.paused) t += ft;
         plane.position.set(
           Math.cos(t * orbitSpeed) * r,
           altitude + Math.sin(t * bobSpeed) * bob,
@@ -93,6 +106,8 @@ export function createFlightGame(
         );
       },
     },
+    pause.system,
+    controls.system,
   ];
 
   return {
@@ -100,12 +115,15 @@ export function createFlightGame(
     dispose() {
       scene.remove(root);
       hud.dispose();
+      pause.dispose();
+      controls.dispose();
     },
     stats: () => ({
       x: plane.position.x,
       y: plane.position.y,
       z: plane.position.z,
       time: t,
+      status: 'playing' as const,
     }),
   };
 }
