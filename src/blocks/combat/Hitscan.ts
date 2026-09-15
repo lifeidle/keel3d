@@ -37,6 +37,12 @@ export interface CastOpts {
   /** Skip one body's collider so a shot fired from inside (or near) the
    *  shooter's own capsule never hits itself. */
   excludeCollider?: unknown;
+  /** Skip a LIST of colliders (e.g. all allied characters): the ray iterates
+   *  past each excluded hit and continues. Needed because the caster API
+   *  supports a single exclude only, and clusters (several allies in one
+   *  spot) would otherwise block each other's shots and line of sight.
+   *  Takes precedence over `excludeCollider` when both are given. */
+  excludeColliders?: unknown[];
   /** Injectable for deterministic tests. Default Math.random. */
   random?: () => number;
 }
@@ -91,7 +97,10 @@ export function jitterDir(
 
 /**
  * Cast a hitscan ray: jitter the aim (spread), raycast, resolve the terminal
- * point. No damage/VFX here — the caller owns the outcome.
+ * point. With `excludeColliders`, hits on listed colliders are skipped and the
+ * cast continues just past them (the caster API excludes one collider per
+ * call, so the loop re-casts from a point 1cm beyond each excluded hit). No
+ * damage/VFX here — the caller owns the outcome.
  */
 export function castHitscan(
   caster: RayCaster,
@@ -103,7 +112,36 @@ export function castHitscan(
   const range = opts.range ?? 120;
   const random = opts.random ?? Math.random;
   const d = jitterDir(dir, spread, random);
-  const hit = caster.raycast(origin, d, range, opts.excludeCollider);
+
+  const skip =
+    opts.excludeColliders && opts.excludeColliders.length
+      ? opts.excludeColliders
+      : opts.excludeCollider != null
+        ? [opts.excludeCollider]
+        : [];
+
+  let o: Vec3 = { x: origin.x, y: origin.y, z: origin.z };
+  let left = range;
+  let hit: RayHit | null = null;
+  if (skip.length === 0) {
+    hit = caster.raycast(o, d, left, undefined);
+  } else {
+    const first = skip[0];
+    for (;;) {
+      hit = caster.raycast(o, d, left, first);
+      if (!hit) break;
+      if (!skip.includes(hit.collider)) break;
+      // advance just past this excluded collider and continue
+      const step = hit.toi + 0.01;
+      o = { x: o.x + d.x * step, y: o.y + d.y * step, z: o.z + d.z * step };
+      left = left - step;
+      if (left <= 0.02) {
+        hit = null;
+        break;
+      }
+    }
+  }
+
   const end: Vec3 = hit
     ? { ...hit.point }
     : {

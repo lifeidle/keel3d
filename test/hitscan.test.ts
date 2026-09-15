@@ -102,3 +102,41 @@ test('castHitscan: spread jitter is applied before the cast (deterministic)', ()
   const ang = angleBetween({ x: 0, y: 0, z: -1 }, res.dir);
   assert.ok(ang > 0 && ang <= 0.3 + 1e-9, `expected jittered dir, angle=${ang}`);
 });
+
+test('castHitscan: excludeColliders skips listed colliders and continues the ray', () => {
+  // cluster scenario: two "allies" (A, B) sit between the shooter and the
+  // target; the shot must pass both and land on the target.
+  const A = { id: 'A' };
+  const B = { id: 'B' };
+  const TARGET = { id: 'target' };
+  const colliders = [
+    { c: A, z: -5 },
+    { c: B, z: -8 },
+    { c: TARGET, z: -20 },
+  ];
+  let calls = 0;
+  const caster: RayCaster = {
+    raycast: (o, _d, max, ex) => {
+      calls++;
+      const cand = colliders
+        .filter((h) => h.z < o.z && h.z >= o.z - max && h.c !== ex)
+        .sort((a, b) => b.z - a.z); // nearest (largest z) first
+      if (!cand.length) return null;
+      const h = cand[0];
+      return {
+        collider: h.c,
+        toi: o.z - h.z,
+        point: { x: 0, y: 0, z: h.z },
+        normal: { x: 0, y: 0, z: 1 },
+      };
+    },
+  };
+  const res = castHitscan(caster, { x: 0, y: 0, z: 0 }, { x: 0, y: 0, z: -1 }, {
+    spread: 0,
+    range: 50,
+    excludeColliders: [A, B],
+  });
+  assert.equal(res.hit?.collider, TARGET, `expected the target, got ${res.hit?.collider?.id}`);
+  assert.deepEqual(res.end, { x: 0, y: 0, z: -20 });
+  assert.equal(calls, 2, 'expected one re-cast past each excluded collider');
+});
