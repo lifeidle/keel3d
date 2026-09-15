@@ -39,6 +39,24 @@
     try { localStorage.setItem('specul-theme', light ? 'light' : 'dark'); } catch (e) {}
   }
 
+  // 当前页导航高亮：跨域链接也能用（比较 pathname）。
+  // 末尾统一成 "" 或 "/xxx"，"index.html" 视为目录首页。
+  (function markCurrent() {
+    function norm(p) {
+      p = (p || '/').replace(/index\.html$/, '').replace(/\/+$/, '');
+      return p || '/';
+    }
+    var here = norm(location.pathname);
+    var links = document.querySelectorAll('.nav-links > a, .foot-links > a');
+    for (var i = 0; i < links.length; i++) {
+      var a = links[i];
+      var path;
+      try { path = new URL(a.getAttribute('href'), location.href).pathname; } catch (e) { continue; }
+      if (new URL(a.getAttribute('href'), location.href).host !== location.host) continue;
+      if (norm(path) === here) a.setAttribute('aria-current', 'page');
+    }
+  })();
+
   var lang = 'zh';
   var theme = 'dark';
   try { lang = localStorage.getItem('specul-lang') || 'zh'; } catch (e) {}

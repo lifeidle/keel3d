@@ -41,7 +41,9 @@
     a:hover { text-decoration: underline; }
 
     /* brand.css 的 [data-theme="light"] 与本文件的 :root 同权重，
-       后者在文档中更靠后 → 必须在本文件里再声明一次浅色 token，否则明暗切换无效。 */
+       后者在文档中更靠后 → 必须在本文件里再声明一次浅色 token，否则明暗切换无效。
+       注意 --accent 也要跟着换深色：亮青 #22d3c5 放在白底上只有 ~1.9:1，
+       正文级文字（链接 / 积木名 / 眉标）会基本看不见。 */
     [data-theme="light"] {
       --bg: #f4f7fb;
       --bg2: #eef3fa;
@@ -50,11 +52,16 @@
       --line: rgba(15, 23, 42, .12);
       --ink: #0f172a;
       --muted: #5b6b82;
+      --accent: #0f766e;
       --accent2: #a16207;
+      --ok: #15803d;
+      --warn: #b45309;
+      --danger: #b91c1c;
     }
 
-    /* 与 brand.css 的 .container 同宽，保证顶部/内容左右对齐 */
-    .wrap { width: var(--container); margin: 0 auto; padding: 36px 0 72px; }
+    /* 与 brand.css 的 .container 同宽，保证顶部/内容左右对齐。
+       position/z-index 是双保险：底纹已改为 z-index:-1，不会再盖住首屏内容。 */
+    .wrap { position: relative; z-index: 1; width: var(--container); margin: 0 auto; padding: 40px 0 76px; }
 
     header.hero { margin-bottom: 28px; }
     .eyebrow {
@@ -74,6 +81,11 @@
       letter-spacing: -0.02em;
       line-height: 1.2;
       margin-bottom: 10px;
+      /* 品牌渐变标题：--grad-text 由 brand.css 提供，明暗两套都可见 */
+      background: var(--grad-text);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
     }
     .lede { color: var(--muted); max-width: 52em; font-size: 15px; }
     .lede strong { color: var(--ink); font-weight: 600; }
@@ -102,12 +114,19 @@
     .doclinks a:hover { color: var(--accent); border-bottom-color: var(--accent); text-decoration: none; }
 
     h2.section {
-      font-size: 18px;
-      font-weight: 600;
-      margin: 32px 0 14px;
+      font-size: 19px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      margin: 36px 0 16px;
       display: flex;
       align-items: center;
       gap: 10px;
+    }
+    h2.section::before {
+      content: "";
+      width: 3px; height: 17px; border-radius: 3px;
+      background: var(--accent);
+      flex-shrink: 0;
     }
     h2.section::after {
       content: "";
@@ -325,6 +344,33 @@
       opacity: 1;
       transform: translateX(-50%) translateY(0);
     }
+
+    /* ===== 浅色模式下的组件修正 =====
+       深色下用 rgba(0,0,0,α) 做"凹陷"背景，换到白底会变成一块脏灰；
+       这里逐项换成低透明度墨色，并补上阴影与边框的浅色版本。 */
+    [data-theme="light"] .tag,
+    [data-theme="light"] .block-list li { background: rgba(15, 23, 42, .04); }
+    [data-theme="light"] .card .icon { background: rgba(15, 118, 110, .08); }
+    [data-theme="light"] .card { background: var(--card); }
+    [data-theme="light"] .flow-step { background: #fff; }
+    /* 注意 :not(.primary)：本块在样式表末尾，若不排除，同权重的
+       [data-theme="light"] .btn 会盖掉 .btn.primary 的渐变背景。 */
+    [data-theme="light"] .btn:not(.primary) { background: #fff; }
+    [data-theme="light"] .btn:not(.primary):hover { background: var(--bg2); }
+    [data-theme="light"] .kv-row { border-bottom-color: rgba(15, 23, 42, .1); }
+    [data-theme="light"] .card:hover,
+    [data-theme="light"] .card:focus-visible { box-shadow: 0 10px 26px -14px rgba(15, 23, 42, .28); }
+    [data-theme="light"] .card.active {
+      box-shadow: 0 0 0 1px var(--accent), 0 10px 26px -16px rgba(15, 118, 110, .5);
+    }
+    [data-theme="light"] .eyebrow { border-color: rgba(15, 118, 110, .32); }
+    /* 命令块保持深色（像文档站那样），但把提示字提亮到可读 */
+    [data-theme="light"] .cmd .copy-hint { color: rgba(226, 232, 240, .7); }
+    [data-theme="light"] .toast {
+      background: #fff; border-color: var(--line-strong);
+      box-shadow: 0 12px 30px -14px rgba(15, 23, 42, .35);
+    }
+    [data-theme="light"] .detail { box-shadow: var(--shadow); }
   </style>
 </head>
 <body class="brand-ambient">
@@ -332,18 +378,20 @@
     <div class="container site-bar">
       <a class="brand" href="https://keel.specul.com/" title="龙骨 Keel">
         <span class="brand-dot" aria-hidden="true"></span>
-        <span class="brand-name">KEEL</span>
-        <span class="brand-sub" id="markSub"
-              data-zh-sub="3D · 游戏基座" data-en-sub="3D · game framework">3D · 游戏基座</span>
+        <span class="brand-text">
+          <span class="brand-name">KEEL</span>
+          <span class="brand-sub" id="markSub"
+                data-zh-sub="3D · 游戏基座" data-en-sub="3D · game framework">3D · 游戏基座</span>
+        </span>
       </a>
       <nav class="nav-links" aria-label="站点导航">
         <a href="https://specul.com/">首页</a>
         <a href="https://specul.com/nav.html">导航</a>
         <a href="https://keel.specul.com/">龙骨 Keel</a>
-        <a href="./hub.html">3D 演示</a>
-        <a href="https://specul.com/legal.html">法律</a>
-        <button class="icon-btn" id="themeBtn" type="button" aria-label="切换明暗主题">☾</button>
-        <button class="icon-btn" id="langBtn" type="button" aria-label="Switch language">EN</button>
+        <span class="nav-tools">
+          <button class="icon-btn" id="themeBtn" type="button" aria-label="切换明暗主题">☾</button>
+          <button class="icon-btn" id="langBtn" type="button" aria-label="Switch language">EN</button>
+        </span>
       </nav>
     </div>
   </header>
@@ -421,29 +469,25 @@
     </div>
 
     <footer class="site-footer">
-      <div class="container foot-row">
-        <div>
-          <div>© 2026 Specul · 投机 · 推演</div>
-          <div class="foot-legal">
-            <details>
-              <summary>版权 · 免责 · 许可</summary>
-              <p>
-                本站自有文案、界面设计与编排版权归 Specul 所有。龙骨 Keel 代码以仓库 <strong>MIT</strong> 许可发布；
-                在线演示中的第三方素材（CC0 / CC-BY / CC-BY-SA）权利归原作者，必需署名与完整清单见「素材与致谢」。
-                演示按「现状」提供，不构成任何担保或服务承诺；战斗类内容纯属虚构。
-              </p>
-              <p>
-                <a href="https://specul.com/legal.html">法律条款</a> ·
-                <a href="https://keel.specul.com/credits.html">素材与致谢</a>
-              </p>
-            </details>
+      <div class="container">
+        <div class="foot-row">
+          <div class="foot-brand">
+            <span class="brand-dot" aria-hidden="true"></span>
+            <span class="foot-copy">© 2026 Specul · 投机 · 推演</span>
           </div>
+          <nav class="foot-links" aria-label="页脚导航">
+            <a href="https://specul.com/">首页</a>
+            <a href="https://specul.com/nav.html">导航</a>
+            <a href="https://keel.specul.com/">龙骨 Keel</a>
+            <a href="https://github.com/lifeidle/keel3d" target="_blank" rel="noopener">GitHub</a>
+          </nav>
         </div>
-        <div class="foot-links">
-          <a href="https://specul.com/">首页</a> ·
-          <a href="https://specul.com/nav.html">导航</a> ·
-          <a href="https://keel.specul.com/">龙骨 Keel</a> ·
-          <a href="https://github.com/lifeidle/keel3d" target="_blank" rel="noopener">GitHub</a>
+        <div class="foot-legal-links">
+          <span class="foot-legal-label">法律</span>
+          <a href="https://specul.com/legal.html">法律条款</a>
+          <a href="https://specul.com/legal.html#s6">免责声明</a>
+          <a href="https://specul.com/legal.html#s8">隐私与本地存储</a>
+          <a href="https://keel.specul.com/credits.html">素材与致谢</a>
         </div>
       </div>
     </footer>
@@ -662,7 +706,7 @@
         demo: './template.html',
         spec: { camera: 'orbit' },
         cmd: 'npm run new-game mygame -- --title "My Game" --html',
-        note: '先到 3 球获胜。WASD 靠近球推射，R 重开。',
+        note: '最简可运行入口：一个相机 + 一张地图。从这里开始写你自己的系统，不需要的积木不会进包。',
         blocks: [['CameraRig', '视角'], ['MapBuilder', '地图']],
       },
     ];
