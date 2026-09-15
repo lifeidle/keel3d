@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KeeL 3D Game</title>
+    <meta name="theme-color" content="#0a0e16" />
+    <link rel="icon" href="data:," />
+    <style>
+      :root { color-scheme: dark; }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html, body { height: 100%; background: #05080f; color: #f4f7fb;
+        font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif; }
+      #app { position: fixed; inset: 0; }
+      #app canvas { display: block; width: 100%; height: 100%; }
+      #boot { position: fixed; inset: 0; display: flex; flex-direction: column;
+        align-items: center; justify-content: center; gap: 14px;
+        background: #05080f; transition: opacity .4s ease; z-index: 10; }
+      #boot.hidden { opacity: 0; pointer-events: none; }
+      .bootLogo { font-size: 22px; font-weight: 650; letter-spacing: .04em; }
+      .bootSub { font-size: 12px; letter-spacing: .22em; color: #94a3b8; text-transform: uppercase; }
+      .bootBarWrap { width: min(320px, 60vw); height: 3px; border-radius: 3px;
+        background: rgba(148,163,184,.2); overflow: hidden; }
+      #bootFill { width: 0; height: 100%; border-radius: 3px;
+        background: linear-gradient(90deg, #8b7cf8, #22d3c5); transition: width .3s ease; }
+      #bootTxt { font-size: 12px; color: #94a3b8; }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <div id="boot">
+      <div class="bootLogo">KeeL 3D Game</div>
+      <div class="bootSub">keel3d</div>
+      <div class="bootBarWrap"><div id="bootFill"></div></div>
+      <div id="bootTxt">加载中… 需要支持 WebGPU 的浏览器</div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

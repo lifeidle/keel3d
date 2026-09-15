@@ -37,6 +37,9 @@
     "unused:check": "node scripts/unused-check.mjs",
     "sfx:gen": "node scripts/gen-sfx.mjs",
     "pack:lib": "node scripts/build-lib.mjs",
+    "lib:check": "node scripts/lib-check.mjs",
+    "create:build": "node scripts/build-create.mjs",
+    "pack:all": "npm run pack:lib && npm run create:build && npm run lib:check",
     "deploy:pages": "node scripts/deploy-pages.mjs"
   },
   "dependencies": {

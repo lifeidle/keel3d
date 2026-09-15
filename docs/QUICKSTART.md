@@ -12,6 +12,15 @@
 
 ## 1. 跑起来
 
+**最快（不用 clone）：**
+
+```bash
+npm create keel3d@latest my-game -- --recipe arpg
+cd my-game && npm install && npm run dev     # → http://localhost:5173
+```
+
+**改框架本身（clone 仓库）：**
+
 ```bash
 npm install
 npm run build

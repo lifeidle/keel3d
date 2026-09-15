@@ -1,0 +1,22 @@
+{
+  "name": "keel3d-game",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "A game built on KeeL 3D (WebGPU browser game framework).",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@dimforge/rapier3d": "^0.20.0",
+    "keel3d": "^0.4.0",
+    "three": "^0.186.0"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2",
+    "vite": "^8.3.0"
+  }
+}

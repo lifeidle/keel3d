@@ -31,6 +31,15 @@
       "import": "./dist/lib.js",
       "default": "./dist/lib.js"
     },
+    "./recipes": {
+      "types": "./dist/recipes/index.d.ts",
+      "import": "./dist/recipes/index.js",
+      "default": "./dist/recipes/index.js"
+    },
+    "./blocks/*": "./dist/blocks/*",
+    "./content/*": "./dist/content/*",
+    "./engine/*": "./dist/engine/*",
+    "./world/*": "./dist/world/*",
     "./src/*": "./src/*"
   },
   "types": "./dist/lib.d.ts",

@@ -1,0 +1,40 @@
+{
+  "name": "create-keel3d",
+  "version": "0.4.0",
+  "description": "Scaffold a KeeL 3D (WebGPU browser 3D game framework) project.",
+  "license": "MIT",
+  "author": "Specul / KeeL 3D authors",
+  "type": "module",
+  "bin": {
+    "create-keel3d": "index.js"
+  },
+  "files": [
+    "index.js",
+    "recipes.json",
+    "template",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lifeidle/keel3d.git"
+  },
+  "homepage": "https://github.com/lifeidle/keel3d",
+  "bugs": {
+    "url": "https://github.com/lifeidle/keel3d/issues"
+  },
+  "keywords": [
+    "keel3d",
+    "webgpu",
+    "threejs",
+    "game",
+    "framework",
+    "create",
+    "scaffold"
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
+}

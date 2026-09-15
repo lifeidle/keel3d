@@ -27,15 +27,30 @@
 
 ## 15 分钟做出你的游戏
 
+### 最快：不用 clone 仓库
+
+```bash
+npm create keel3d@latest my-game -- --recipe roguelike
+cd my-game && npm install && npm run dev     # → http://localhost:5173
+```
+
+一个 `src/game.ts` 就是你的游戏：换配方、改数值即可。
+20 个配方（`td` · `arpg` · `roguelike` · `tps` · `platformer` · `tycoon` · `stealth` · `rhythm` …）见
+[docs/RECIPES.md](docs/RECIPES.md)。加 `--template blank` 得到空白起点自己写 System。
+
+### 想改框架本身：clone 仓库
 
 完整步骤见 **[docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)**。
 
 ```bash
 npm install && npm run build && npm run preview
 # 1) 打开 /hub.html 玩旗舰样例 Roguelike（可通关）
-# 2) npm run new-game mygame -- --recipe arpg --html
+# 2) npm run new-game mygame -- --recipe arpg
 # 3) 改 src/game/mygame/index.ts 里的数值 → 刷新预览
 ```
+
+> 新增品类/骨架只需改 **`src/catalog/catalog.json`** 一处，再跑 `npm run catalog:gen`；
+> hub 卡片、探针、构建入口、注册表、文档全部自动同步（`npm run catalog:check` 在 CI 里把关）。
 
 ---
 

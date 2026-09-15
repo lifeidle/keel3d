@@ -9,6 +9,23 @@
 
 ## 1. 跑起来（2 分钟）
 
+**两种起手方式，先选一种。**
+
+### A. 不用 clone 仓库（最快，推荐先试）
+
+```bash
+npm create keel3d@latest my-game -- --recipe roguelike
+cd my-game
+npm install
+npm run dev          # → http://localhost:5173
+```
+
+打开就是一个能玩的游戏。你的代码只有 `src/game.ts` 一个文件。
+换玩法：`--recipe arpg|td|tps|platformer|tycoon|stealth|rhythm|…`（共 20 个，见 [RECIPES.md](./RECIPES.md)）；
+要空白起点自己写 System：`--template blank`。
+
+### B. clone 仓库（要改框架本身时）
+
 ```bash
 git clone https://github.com/lifeidle/keel3d.git
 cd keel3d

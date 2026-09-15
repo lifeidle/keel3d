@@ -24,6 +24,23 @@ export { mountSampleGame, type MountSampleOptions, type MountedSample } from './
 // Engine types (host-owned loop)
 export type { System, EngineWorld, EngineHost, GameModule } from './engine/types';
 
+// Host bootstrap — 仓库外项目用它起引擎，不必自己接线（与仓库内 main.ts 同一条路径）
+export {
+  createHost,
+  bootGame,
+  type Host,
+  type BootedGame,
+  type BootOptions,
+  type BootDom,
+} from './content/boot';
+
+// Engine / quality 原语（需要自定义宿主时使用）
+export { Engine } from './engine/Engine';
+export { createEngineAsync, WebGpuRequiredError } from './engine/renderer';
+export { QualityController } from './engine/quality/QualityController';
+export { detectQuality } from './world/quality';
+export { initI18n, t } from './i18n';
+
 // Core L2 blocks (stable surface)
 export { Pool } from './blocks/Pool';
 export { Path, type PathPoint } from './blocks/Path';

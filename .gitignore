@@ -33,3 +33,7 @@ packages/keel3d/dist/
 packages/keel3d/src/
 packages/keel3d/LICENSE
 packages/keel3d/README.md
+# create-keel3d 的模板与配方清单由 scripts/build-create.mjs
+# 从 templates/starter + src/catalog/catalog.json 生成，勿提交
+packages/create-keel3d/template/
+packages/create-keel3d/recipes.json

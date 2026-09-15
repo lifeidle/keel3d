@@ -13,6 +13,6 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true
   },
-  "include": ["src/lib.ts"],
+  "include": ["src/lib.ts", "src/recipes/index.ts"],
   "exclude": ["src/game/**", "node_modules"]
 }

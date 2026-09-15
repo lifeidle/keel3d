@@ -16,8 +16,8 @@ scope: 把 KeeL 3D 从「可 fork 的仓库」变成「可直接搭建游戏的�
 | 阶段 | 状态 | 交付 | 验收 |
 |---|---|---|---|
 | **P0** 单一真相源 | ✅ **完成** | `src/catalog/`（24 品类 + 20 配方）+ `scripts/catalog-{lib,gen,check}.mjs` + `scripts/scaffolds.mjs`；`new-game` 改为数据驱动 | `catalog:check` 零漂移 · typecheck ✓ · test 88/88 ✓ · build ✓ · **probe-all 25/25 ✓** |
+| **P1** 仓库外基座 | ✅ **完成** | 配方进公共 API（`keel3d/recipes` 编译产物 + 类型）· 新增引导层 `createHost`/`bootGame` 并导出 · `templates/starter` · `packages/create-keel3d` · `scripts/lib-check.mjs` · dist specifier 后处理 | **空目录 `create-keel3d` → 可玩**（浏览器实测：canvas 1280×800 · HUD 出现 · 0 错误 · 0 个 404）|
 | **P5** 剩余两条品类 | ⏳ 下一步 | 卡牌/桌游 3D · 银河恶魔城（走新的 1 处改动流程） | 两条配方 + 单测 + 配方页 + probe + hub 卡片 |
-| **P1** 仓库外基座 | ⏳ | 配方进公共 API + `templates/starter` + `examples/` + `create-keel3d` | 仓库外空目录 5 分钟可玩 |
 | **P2** npm 门面 | ⏳（不发布） | 包 README 重写 + homepage/keywords/0.4.0 + CHANGELOG | `npm pack` 内容正确，只差一条 publish 命令 |
 | **P3** 演示站升级 | ⏳ | hub 缩略图 + 「从零开始」区块 + RECIPES/矩阵回填 | `catalog:check` + 站点探针 |
 | **P4/P6** 收口 | ⏳ | `unused:check` / `license-check` / 治理文件 | 全门禁绿 |

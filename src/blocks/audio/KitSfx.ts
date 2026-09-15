@@ -20,11 +20,23 @@ export class KitSfx {
   private ctx: AudioContext | null = null;
   private buffers = new Map<string, AudioBuffer>();
   private loading = new Set<string>();
+  /** 404 过的名字记下来，避免每次 play 都重新发一次必然失败的请求（控制台刷屏） */
+  private failed = new Set<string>();
   private muted = false;
   private vol = 0.45;
+  private base = BASE;
 
   get ready(): boolean {
     return !!this.ctx;
+  }
+
+  /**
+   * 改素材根路径。仓库内默认 'audio/kit/'（相对页面）；
+   * 外部工程若把素材放在别处（CDN / 子目录）可在这里覆盖。
+   */
+  setBase(base: string): void {
+    this.base = base.endsWith('/') ? base : base + '/';
+    this.failed.clear();
   }
 
   setMuted(on: boolean): void {
@@ -71,16 +83,21 @@ export class KitSfx {
   }
 
   private async load(name: string): Promise<AudioBuffer | null> {
+    if (this.failed.has(name)) return null;
     if (!this.ctx || this.loading.has(name)) return this.buffers.get(name) ?? null;
     this.loading.add(name);
     try {
-      const res = await fetch(BASE + name + '.wav');
-      if (!res.ok) return null;
+      const res = await fetch(this.base + name + '.wav');
+      if (!res.ok) {
+        this.failed.add(name);
+        return null;
+      }
       const raw = await res.arrayBuffer();
       const buf = await this.ctx.decodeAudioData(raw);
       this.buffers.set(name, buf);
       return buf;
     } catch {
+      this.failed.add(name);
       return null;
     } finally {
       this.loading.delete(name);
