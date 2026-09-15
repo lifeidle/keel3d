@@ -106,11 +106,12 @@
       "probe": "#td-hud",
       "icon": "🏰",
       "title": "塔防骨架",
-      "blurb": "固定路线 · 放塔可升级/售卖 · 波次经济。",
+      "blurb": "3 图连关 · 放塔可升级/售卖 · 波次经济。",
       "tags": [
         "fixed",
         "orbit",
-        "Path"
+        "Path",
+        "campaign"
       ],
       "recipe": "td",
       "spec": {
@@ -119,7 +120,7 @@
       },
       "cmd": "npm run new-game mytd -- --recipe td --html",
       "createCmd": "npm create keel3d@latest my-td -- --recipe td",
-      "note": "守住 180 秒清完波次则胜。1/2/3 选塔，左键放置/升级，右键售卖，R 重开。",
+      "note": "3 图连关（S 弯→双 S→蛇形），清全部波次进下一图：塔按 50% 退款、金钱保留、敌 HP 每图 +15；基地 180 秒内被毁则负。1/2/3 选塔，左键放置/升级，右键售卖，R 重开。",
       "blocks": [
         [
           "Path",

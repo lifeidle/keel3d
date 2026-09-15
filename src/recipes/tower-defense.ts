@@ -35,11 +35,25 @@ export interface TdTowerDef {
   upgradeCost?: number;
 }
 
-export interface TowerDefenseRecipeOpts extends BaseRecipeOpts {
+export interface TDMapDef {
+  name: string;
   /** Lane polyline (XZ). */
   lane: PathPoint[];
   /** Buildable pad centers. */
   pads: Array<{ x: number; z: number }>;
+}
+
+export interface TowerDefenseRecipeOpts extends BaseRecipeOpts {
+  /** Lane polyline (single map; ignored when `maps` is provided). */
+  lane?: PathPoint[];
+  /** Buildable pad centers (single map). */
+  pads?: Array<{ x: number; z: number }>;
+  /**
+   * Campaign: maps played in order. Clear all waves on a map → next map
+   * (fresh layout, base restored, towers sold back at 50%, money kept,
+   * enemy HP scales +15/map). Winning the last map wins the campaign.
+   */
+  maps?: TDMapDef[];
   waves?: WaveDef[];
   startMoney?: number;
   baseHp?: number;
@@ -87,7 +101,15 @@ export function createTowerDefenseGame(
   deps: { scene: THREE.Scene; camera: THREE.PerspectiveCamera },
 ) {
   const { scene, camera } = deps;
-  const lane = new Path(opts.lane);
+  const maps: TDMapDef[] =
+    opts.maps && opts.maps.length
+      ? opts.maps
+      : opts.lane && opts.pads
+        ? [{ name: 'default', lane: opts.lane, pads: opts.pads }]
+        : (() => {
+            throw new Error('[td] recipe: provide `maps` (campaign) or `lane`+`pads` (single map)');
+          })();
+  const isCampaign = maps.length > 1;
   const towerDefs = opts.towers ?? DEFAULT_TOWERS;
   const startMoney = opts.startMoney ?? 100;
   const baseHpMax = opts.baseHp ?? 20;
@@ -109,39 +131,26 @@ export function createTowerDefenseGame(
   root.add(ground);
 
   const pos = { x: 0, y: 0, z: 0 };
-  for (let d = 0; d <= lane.totalLen; d += 2) {
-    lane.sampleAt(d, pos);
-    const slab = new THREE.Mesh(
-      new THREE.BoxGeometry(2.2, 0.08, 2.2),
-      new THREE.MeshStandardMaterial({ color: 0xc49a52 }),
-    );
-    slab.position.set(pos.x, 0.04, pos.z);
-    slab.receiveShadow = true;
-    root.add(slab);
-  }
-
-  const end = lane.end();
-  const base = new THREE.Mesh(
-    new THREE.BoxGeometry(2.4, 2.6, 2.4),
-    new THREE.MeshStandardMaterial({ color: 0x3d7ec4 }),
-  );
-  base.position.set(end.x, 1.3, end.z);
-  base.castShadow = true;
-  root.add(base);
 
   // PlaceGrid tracks pad occupancy (cell = pad index for this recipe)
   const grid = new PlaceGrid({ originX: -30, originZ: -30, cell: 4, width: 16, height: 16 });
-  const pads = opts.pads.map((p, i) => {
-    const m = new THREE.Mesh(
-      new THREE.CylinderGeometry(1.3, 1.3, 0.2, 18),
-      new THREE.MeshStandardMaterial({ color: 0x8a9a7a }),
-    );
-    m.position.set(p.x, 0.1, p.z);
-    m.receiveShadow = true;
-    root.add(m);
-    const cell = grid.worldToCell(p.x, p.z);
-    return { x: p.x, z: p.z, mesh: m, ix: cell.ix, iz: cell.iz, index: i, occupied: false };
-  });
+
+  interface Pad {
+    x: number;
+    z: number;
+    mesh: THREE.Mesh;
+    ix: number;
+    iz: number;
+    index: number;
+    occupied: boolean;
+  }
+  let mapIdx = 0;
+  let lane = new Path(maps[0].lane);
+  let pads: Pad[] = [];
+  /** Lane slabs + base + pads of the current map (rebuilt on advance). */
+  const mapGroup = new THREE.Group();
+  root.add(mapGroup);
+  let director: WaveDirector;
 
   interface E {
     mesh: THREE.Mesh;
@@ -184,7 +193,6 @@ export function createTowerDefenseGame(
   const sfx = new KitSfx();
   const feel = new GameFeel();
   const waveClock = new Countdown({ id: 'td-clock' });
-  waveClock.start(180);
   const pause = new PauseMenu({
     title: '塔防',
     active: () => status === 'playing',
@@ -197,7 +205,9 @@ export function createTowerDefenseGame(
       { keys: ['右键'], label: '售卖' },
       { keys: ['Esc'], label: '暂停' },
     ],
-    footer: '桌面设备体验更佳',
+    footer: isCampaign
+      ? `${maps.length} 图连关 · 清全部波次进下一图 · 桌面体验更佳`
+      : '桌面设备体验更佳',
     duration: 6,
   });
 
@@ -235,38 +245,102 @@ export function createTowerDefenseGame(
     },
   });
 
-  const director = new WaveDirector({
-    waves: opts.waves ?? defaultWaves(),
-    spawnFn: () => {
-      const e = enemies.acquire();
-      e.alive = true;
-      e.speed = enemySpeed;
-      e.dist = 0;
-      e.health = new Health({
-        max: enemyHp + director.waveNumber * 8,
-        onDeath: () => {
-          e.alive = false;
-          enemies.release(e);
-          eco.add(bounty);
-        },
-      });
-      e.mesh.visible = true;
-      lane.sampleAt(0, pos);
-      e.mesh.position.set(pos.x, 0.6, pos.z);
-    },
-  });
+  /**
+   * Rebuild the current map (lane slabs, base, pads) and (re)start the wave
+   * director. Towers from the previous map are sold back at 50% and money is
+   * kept; base HP and the 180s clock are restored. Enemy HP scales +15/map.
+   */
+  function buildMap(idx: number) {
+    // Clear towers of the previous map (refund 50%, release grid + meshes).
+    for (const b of [...build.buildings]) {
+      const removed = build.remove(b.ix, b.iz);
+      grid.release(b.ix, b.iz);
+      const key = `${b.ix},${b.iz}`;
+      const mesh = towerMeshes.get(key);
+      if (mesh) {
+        root.remove(mesh);
+        mesh.geometry.dispose();
+        (mesh.material as THREE.Material).dispose();
+        towerMeshes.delete(key);
+      }
+      if (removed) eco.add(Math.floor((removed.def.cost || 0) * 0.5));
+    }
+
+    mapIdx = idx;
+    mapGroup.traverse((o) => {
+      const m = o as THREE.Mesh;
+      if (m.isMesh) m.geometry.dispose();
+    });
+    mapGroup.clear();
+    lane = new Path(maps[idx].lane);
+    for (let d = 0; d <= lane.totalLen; d += 2) {
+      lane.sampleAt(d, pos);
+      const slab = new THREE.Mesh(
+        new THREE.BoxGeometry(2.2, 0.08, 2.2),
+        new THREE.MeshStandardMaterial({ color: 0xc49a52 }),
+      );
+      slab.position.set(pos.x, 0.04, pos.z);
+      slab.receiveShadow = true;
+      mapGroup.add(slab);
+    }
+    const end = lane.end();
+    const base = new THREE.Mesh(
+      new THREE.BoxGeometry(2.4, 2.6, 2.4),
+      new THREE.MeshStandardMaterial({ color: 0x3d7ec4 }),
+    );
+    base.position.set(end.x, 1.3, end.z);
+    base.castShadow = true;
+    mapGroup.add(base);
+    pads = maps[idx].pads.map((p, i) => {
+      const m = new THREE.Mesh(
+        new THREE.CylinderGeometry(1.3, 1.3, 0.2, 18),
+        new THREE.MeshStandardMaterial({ color: 0x8a9a7a }),
+      );
+      m.position.set(p.x, 0.1, p.z);
+      m.receiveShadow = true;
+      mapGroup.add(m);
+      const cell = grid.worldToCell(p.x, p.z);
+      return { x: p.x, z: p.z, mesh: m, ix: cell.ix, iz: cell.iz, index: i, occupied: false };
+    });
+    director = new WaveDirector({
+      waves: opts.waves ?? defaultWaves(),
+      spawnFn: () => {
+        const e = enemies.acquire();
+        e.alive = true;
+        e.speed = enemySpeed;
+        e.dist = 0;
+        e.health = new Health({
+          max: enemyHp + mapIdx * 15 + director.waveNumber * 8,
+          onDeath: () => {
+            e.alive = false;
+            enemies.release(e);
+            eco.add(bounty);
+          },
+        });
+        e.mesh.visible = true;
+        lane.sampleAt(0, pos);
+        e.mesh.position.set(pos.x, 0.6, pos.z);
+      },
+    });
+    baseHp = baseHpMax;
+    waveClock.start(180);
+  }
+
+  buildMap(0);
 
   function showEnd(win: boolean) {
     if (status !== 'playing') return;
     status = win ? 'win' : 'lose';
-    endOverlay.show(win ? '胜利' : '失败', win);
+    endOverlay.show(win ? (isCampaign ? '通关 · 全部地图完成' : '胜利') : '失败', win);
     sfx.play(win ? 'win' : 'lose');
   }
 
   function syncHud() {
     const sel = selectable[Math.min(selected, selectable.length - 1)];
+    const mapLine = isCampaign ? `地图 ${mapIdx + 1}/${maps.length} · ${maps[mapIdx].name}\n` : '';
     hud.setText(
-      `金钱 ${eco.balance} · 波次 ${director.waveNumber}/${director.totalWaves} · 基地 ${baseHp} · 剩余 ${waveClock.secondsLeft}s\n` +
+      mapLine +
+        `金钱 ${eco.balance} · 波次 ${director.waveNumber}/${director.totalWaves} · 基地 ${baseHp} · 剩余 ${waveClock.secondsLeft}s\n` +
         `选塔 ${selectable.map((d, i) => `${i + 1}${d.key}(${d.cost})`).join(' ')} · 当前 ${sel?.key ?? '-'}\n` +
         `左键放置/升级 · 右键售卖 · 场上 ${enemies.activeCount}` +
         (status !== 'playing' ? ` [${status}]` : ''),
@@ -403,7 +477,16 @@ export function createTowerDefenseGame(
           }
         }
 
-        if (director.finished && enemies.activeCount === 0) showEnd(true);
+        if (director.finished && enemies.activeCount === 0 && status === 'playing') {
+          if (mapIdx + 1 < maps.length) {
+            const clearedName = maps[mapIdx].name;
+            buildMap(mapIdx + 1);
+            toast.show(`地图「${clearedName}」清空 · 下一图「${maps[mapIdx].name}」`);
+            sfx.play('win');
+          } else {
+            showEnd(true);
+          }
+        }
         syncHud();
       },
     },
@@ -435,6 +518,8 @@ export function createTowerDefenseGame(
       baseHp,
       status,
       towers: build.buildings.length,
+      map: mapIdx + 1,
+      mapCount: maps.length,
     }),
   };
 }
