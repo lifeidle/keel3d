@@ -62,26 +62,25 @@ npm run new-game mydgn -- --recipe dungeon --html
 
 会：
 
-1. 生成 `src/game/<id>`  
-2. 在 `src/registry.ts` 注册  
-3. 可选 `<id>.html` + Vite 多页入口  
+1. 生成 `src/game/<id>`（配方包装或空白模板）
+2. 生成 `<id>.html` 入口（可立即打开）
+3. 往 `src/catalog/catalog.json` 追加一条（`showcase:false`）
+4. 自动跑 `catalog-gen`，同步 registry / vite / probe / docs
 
 打开 `/<id>.html`。手写方式见 `docs/BLOCKS.md` 与 `src/recipes/tower-defense.ts`。
 
-手写方式（无脚手架）：
+> **注册是自动的**：`src/registry.ts`、`vite.config.ts`、`scripts/probe-all.mjs`、`hub.html`
+> 的多页清单都由 `src/catalog/catalog.json` 生成，**不要手改**（会被 `catalog:gen` 覆盖）。
+> 改完 catalog 跑一次即可：
 
 ```bash
-# Windows
-xcopy /E /I src\game\demo-template src\game\mygame
+npm run catalog:gen      # 从真相源生成全部下游
+npm run catalog:check    # 校验零漂移（CI 门禁）
 ```
 
-然后在 `src/registry.ts` 加一行：
-
-```ts
-mygame: () => import('./game/mygame'),
-```
-
-内容包只需 `export default defineGame({ id, title, create })`。
+手写方式（不用脚手架）：把 `src/game/demo-template` 拷成 `src/game/mygame`，
+然后在 `src/catalog/catalog.json` 的 `genres` 里加一条（`page`/`gameId`/`gameModule` 指向新包），
+跑 `npm run catalog:gen` 即可注册。内容包只需 `export default defineGame({ id, title, create })`。
 
 ## 4. 最小 System 模板
 

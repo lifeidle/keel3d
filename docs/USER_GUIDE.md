@@ -112,7 +112,9 @@ export default defineGame({
 });
 ```
 
-**不要**改 `main.ts` 业务分支；新游戏只在 `src/registry.ts` 由脚手架加一行。
+**不要**改 `main.ts` 业务分支；新游戏交给脚手架 `npm run new-game <id>`：它生成内容包与入口页，
+并在 `src/catalog/catalog.json` 追加条目后自动同步全部下游。
+**`src/registry.ts` 与 `vite.config.ts` 的多页清单是生成文件，不要手改**（见 `docs/CATALOG.md`）。
 
 ---
 

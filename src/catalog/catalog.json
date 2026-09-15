@@ -1,0 +1,1071 @@
+{
+  "_comment": "唯一真相源。genres = 演示站品类卡片（每个对应一个 HTML 入口）；recipes = 配方清单（供 new-game / create-keel3d 使用）。其余位置（hub.html GENRES、docs/RECIPES.md、scripts/probe-all.mjs、vite.config.ts、src/registry.ts、包 README）全部由 node scripts/catalog-gen.mjs 生成，请勿手改。校验：node scripts/catalog-check.mjs",
+  "version": 1,
+  "updated": "2026-09-15",
+  "genres": [
+    {
+      "id": "nightraid",
+      "gameId": "nightraid",
+      "gameModule": "./game/nightraid/module",
+      "page": "fps",
+      "probe": "#boot",
+      "icon": "🎖️",
+      "title": "FPS 完整战役 · Night Raid",
+      "blurb": "旗舰样例：完整第一人称战役，多武器/敌人 AI/载具/天气/昼夜。",
+      "tags": [
+        "fps",
+        "campaign",
+        "flagship"
+      ],
+      "recipe": null,
+      "spec": {
+        "camera": "fps",
+        "map": "seeded",
+        "boot": "特殊启动路径"
+      },
+      "cmd": "npm run new-game myfps -- --recipe fps-arena --html",
+      "createCmd": "npm create keel3d@latest my-fps -- --recipe fps-arena",
+      "note": "完整战役见 fps.html（nightraid 专属启动路径，不走 defineGame 内容包）。想从零做 FPS 请用 fps-arena 配方。",
+      "blocks": [
+        [
+          "EnemyAI",
+          "敌军 AI"
+        ],
+        [
+          "Arsenal",
+          "武器库"
+        ],
+        [
+          "TrackedVehicle",
+          "载具"
+        ],
+        [
+          "Weather",
+          "天气"
+        ],
+        [
+          "TimeOfDay",
+          "昼夜"
+        ]
+      ],
+      "thumb": null,
+      "status": "playable"
+    },
+    {
+      "id": "fps",
+      "gameId": "fpsarena",
+      "gameModule": "./game/demo-fps-arena",
+      "page": "fps-arena",
+      "probe": "#fps-arena-hud",
+      "icon": "🎯",
+      "title": "FPS 骨架",
+      "blurb": "轻量第一人称靶场 · 目标会反击 · 血条/飘字/结算。",
+      "tags": [
+        "fps",
+        "hitscan",
+        "recipe"
+      ],
+      "recipe": "fps-arena",
+      "spec": {
+        "camera": "fps",
+        "create": "fpsArenaRecipe"
+      },
+      "cmd": "npm run new-game myfps -- --recipe fps-arena --html",
+      "createCmd": "npm create keel3d@latest my-fps -- --recipe fps-arena",
+      "note": "完整战役见 fps.html。竞技场：击杀 15 得胜；空格/J 射击，R 换弹，受击有红闪。",
+      "blocks": [
+        [
+          "pickTarget",
+          "选敌"
+        ],
+        [
+          "Cooldown",
+          "射速"
+        ],
+        [
+          "HealthBar",
+          "血条"
+        ],
+        [
+          "DamageNumber",
+          "飘字"
+        ],
+        [
+          "EndOverlay",
+          "结算"
+        ]
+      ],
+      "thumb": null,
+      "status": "playable"
+    },
+    {
+      "id": "td",
+      "gameId": "tower",
+      "gameModule": "./game/demo-tower",
+      "page": "tower",
+      "probe": "#td-hud",
+      "icon": "🏰",
+      "title": "塔防骨架",
+      "blurb": "固定路线 · 放塔可升级/售卖 · 波次经济。",
+      "tags": [
+        "fixed",
+        "orbit",
+        "Path"
+      ],
+      "recipe": "td",
+      "spec": {
+        "camera": "orbit",
+        "map": "fixed + Path"
+      },
+      "cmd": "npm run new-game mytd -- --recipe td --html",
+      "createCmd": "npm create keel3d@latest my-td -- --recipe td",
+      "note": "守住 180 秒清完波次则胜。1/2/3 选塔，左键放置/升级，右键售卖，R 重开。",
+      "blocks": [
+        [
+          "Path",
+          "车道"
+        ],
+        [
+          "WaveDirector",
+          "波次"
+        ],
+        [
+          "Economy",
+          "金币"
+        ],
+        [
+          "BuildSystem",
+          "升级/卖"
+        ],
+        [
+          "PlaceGrid",
+          "格子"
+        ]
+      ],
+      "thumb": null,
+      "status": "playable"
+    },
+    {
+      "id": "open",
+      "gameId": "cultivation",
+      "gameModule": "./game/demo-cultivation",
+      "page": "openworld",
+      "probe": "#cultivation-hud",
+      "icon": "🌄",
+      "title": "开放世界骨架",
+      "blurb": "chunk 流式 · 视角 1/2/3 · 拾取与触发区。",
+      "tags": [
+        "stream",
+        "ChunkWorld"
+      ],
+      "recipe": null,
+      "spec": {
+        "camera": "chase/orbit/fps",
+        "map": "stream"
+      },
+      "cmd": "npm run new-game myworld -- --html",
+      "createCmd": "npm create keel3d@latest my-world -- --template blank",
+      "note": "探索：捡灵珠、上中央台。1/2/3 切视角。",
+      "blocks": [
+        [
+          "ChunkWorld",
+          "环加载"
+        ],
+        [
+          "Pickup",
+          "拾取"
+        ],
+        [
+          "TriggerZone",
+          "触发"
+        ]
+      ],
+      "thumb": null,
+      "status": "skeleton"
+    },
+    {
+      "id": "arpg",
+      "gameId": "arpgdemo",
+      "gameModule": "./game/demo-arpg",
+      "page": "arpg",
+      "probe": "#arpg-hud",
+      "icon": "⚔️",
+      "title": "俯视 ARPG 骨架",
+      "blurb": "WASD · 近战/弹道/旋风斩 · 掉落金币 · 任务追踪。",
+      "tags": [
+        "orbit",
+        "combat"
+      ],
+      "recipe": "arpg",
+      "spec": {
+        "camera": "orbit"
+      },
+      "cmd": "npm run new-game myarpg -- --recipe arpg --html",
+      "createCmd": "npm create keel3d@latest my-arpg -- --recipe arpg",
+      "note": "击杀 12 得胜。空格/J 攻击，K 旋风斩，I 背包，E 无；受伤有闪屏。",
+      "blocks": [
+        [
+          "Cooldown",
+          "CD"
+        ],
+        [
+          "pickTarget",
+          "选敌"
+        ],
+        [
+          "Projectile",
+          "弹道"
+        ],
+        [
+          "areaHits",
+          "旋风斩"
+        ],
+        [
+          "WorldBar",
+          "敌血条"
+        ]
+      ],
+      "thumb": null,
+      "status": "playable"
+    },
+    {
+      "id": "collect",
+      "gameId": "collectdemo",
+      "gameModule": "./game/demo-collect",
+      "page": "collect",
+      "probe": "#collect-hud",
+      "icon": "✨",
+      "title": "收集骨架",
+      "blurb": "捡满目标后回金圈交付。",
+      "tags": [
+        "Pickup",
+        "TriggerZone"
+      ],
+      "recipe": "collect",
+      "spec": {
+        "camera": "chase"
+      },
+      "cmd": "npm run new-game mycol -- --recipe collect --html",
+      "createCmd": "npm create keel3d@latest my-collect -- --recipe collect",
+      "note": "60 秒内收满灵珠回金圈。WASD 移动，R 重开。",
+      "blocks": [
+        [
+          "PickupField",
+          "自动拾取"
+        ],
+        [
+          "TriggerZone",
+          "交付"
+        ],
+        [
+          "RunState",
+          "局内统计"
+        ],
+        [
+          "EndOverlay",
+          "结算"
+        ]
+      ],
+      "thumb": null,
+      "status": "playable"
+    },
+    {
+      "id": "rally",
+      "gameId": "rallydemo",
+      "gameModule": "./game/demo-rally",
+      "page": "rally",
+      "probe": "#rally-hud",
+      "icon": "🏁",
+      "title": "拉力赛骨架",
+      "blurb": "检查点顺序 · 最佳圈速存档。",
+      "tags": [
+        "Path",
+        "SaveSlot"
+      ],
+      "recipe": "rally",
+      "spec": {
+        "camera": "chase"
+      },
+      "cmd": "npm run new-game myrally -- --recipe rally --html",
+      "createCmd": "npm create keel3d@latest my-rally -- --recipe rally",
+      "note": "按序穿光圈冲线才算完整圈；比最佳圈速。",
+      "blocks": [
+        [
+          "BestScoreSlot",
+          "最佳成绩"
+        ],
+        [
+          "TriggerZone",
+          "检查点"
+        ],
+        [
+          "Toast",
+          "圈速提示"
+        ]
+      ],
+      "thumb": null,
+      "status": "playable"
+    },
+    {
+      "id": "dungeon",
+      "gameId": "dungeondemo",
+      "gameModule": "./game/demo-dungeon",
+      "page": "dungeon",
+      "probe": "#dungeon-hud",
+      "icon": "🗝️",
+      "title": "地牢骨架",
+      "blurb": "多房间门锁 · 简易 Boss。",
+      "tags": [
+        "Interactable",
+        "rooms"
+      ],
+      "recipe": "dungeon",
+      "spec": {
+        "camera": "chase"
+      },
+      "cmd": "npm run new-game mydgn -- --recipe dungeon --html",
+      "createCmd": "npm create keel3d@latest my-dungeon -- --recipe dungeon",
+      "note": "清怪开门到 Boss 房，击杀 Boss 后去出口。E/F 开门，J/空格 打 Boss，R 重开。",
+      "blocks": [
+        [
+          "Interactable",
+          "开门"
+        ],
+        [
+          "TriggerZone",
+          "出口"
+        ],
+        [
+          "LevelTable",
+          "房间链"
+        ],
+        [
+          "MinimapDots",
+          "小地图"
+        ]
+      ],
+      "thumb": null,
+      "status": "playable"
+    },
+    {
+      "id": "flight",
+      "gameId": "flight",
+      "gameModule": "./game/demo-flight",
+      "page": "flight",
+      "probe": "#flight-hud",
+      "icon": "✈️",
+      "title": "飞行骨架",
+      "blurb": "chase · gravity 0 · 可扩展空战。",
+      "tags": [
+        "air",
+        "chase"
+      ],
+      "recipe": null,
+      "spec": {
+        "camera": "chase",
+        "player": "air"
+      },
+      "cmd": "npm run new-game myflight -- --html",
+      "createCmd": "npm create keel3d@latest my-flight -- --template blank",
+      "note": "探索飞行；空战见 flight-arena。",
+      "blocks": [
+        [
+          "CameraRig",
+          "跟机"
+        ],
+        [
+          "Path",
+          "航线"
+        ]
+      ],
+      "thumb": null,
+      "status": "skeleton"
+    },
+    {
+      "id": "flight-arena",
+      "gameId": "flightarena",
+      "gameModule": "./game/demo-flight-arena",
+      "page": "flight-arena",
+      "probe": "#boot",
+      "icon": "🛩️",
+      "title": "空战骨架",
+      "blurb": "空中缠斗 · 敌机波次 · 弹道射击。",
+      "tags": [
+        "air",
+        "combat",
+        "recipe"
+      ],
+      "recipe": "flight-arena",
+      "spec": {
+        "camera": "chase",
+        "player": "air",
+        "create": "flightArenaRecipe"
+      },
+      "cmd": "npm run new-game myfa -- --recipe flight-arena --html",
+      "createCmd": "npm create keel3d@latest my-flight-arena -- --recipe flight-arena",
+      "note": "WASD 飞行，空格/J 射击。原为未在 hub 列出的页面，本版补齐。",
+      "blocks": [
+        [
+          "Projectile",
+          "弹道"
+        ],
+        [
+          "pickTarget",
+          "选敌"
+        ],
+        [
+          "CameraRig",
+          "跟机"
+        ]
+      ],
+      "thumb": null,
+      "status": "skeleton"
+    },
+    {
+      "id": "race",
+      "gameId": "race",
+      "gameModule": "./game/demo-race",
+      "page": "race",
+      "probe": "#race-hud",
+      "icon": "🏎️",
+      "title": "赛车骨架",
+      "blurb": "环线赛道 · 最佳圈速。",
+      "tags": [
+        "vehicle",
+        "fixed"
+      ],
+      "recipe": null,
+      "spec": {
+        "camera": "chase",
+        "player": "vehicle"
+      },
+      "cmd": "npm run new-game myrace -- --recipe rally --html",
+      "createCmd": "npm create keel3d@latest my-race -- --recipe rally",
+      "note": "也可拉力赛配方。",
+      "blocks": [
+        [
+          "Path",
+          "中心线"
+        ],
+        [
+          "BestScoreSlot",
+          "圈速"
+        ]
+      ],
+      "thumb": null,
+      "status": "skeleton"
+    },
+    {
+      "id": "tps",
+      "gameId": "tps",
+      "gameModule": "./game/demo-tps",
+      "page": "tps",
+      "probe": "#tps-hud",
+      "icon": "🧍",
+      "title": "第三人称 TPS",
+      "blurb": "肩扛视角 · CharacterController · 手柄 · 射击。",
+      "tags": [
+        "tps",
+        "shoulder",
+        "gamepad"
+      ],
+      "recipe": "tps",
+      "spec": {
+        "camera": "shoulder",
+        "create": "tpsRecipe"
+      },
+      "cmd": "npm run new-game mytps -- --recipe tps --html",
+      "createCmd": "npm create keel3d@latest my-tps -- --recipe tps",
+      "note": "肩扛第三人称。击杀 12 得胜；Shift 跳，空格/J 射击，R 换弹/重开。",
+      "blocks": [
+        [
+          "CharacterController",
+          "移动"
+        ],
+        [
+          "Gamepad",
+          "手柄"
+        ],
+        [
+          "Arsenal",
+          "弹匣"
+        ],
+        [
+          "shoulder",
+          "肩扛相"
+        ]
+      ],
+      "thumb": null,
+      "status": "playable"
+    },
+    {
+      "id": "rogue",
+      "gameId": "rogue",
+      "gameModule": "./game/demo-rogue",
+      "page": "roguelike",
+      "probe": "#rogue-hud",
+      "icon": "🗡️",
+      "title": "Roguelike · 旗舰可通关",
+      "blurb": "程序化房间 · 战利品背包 · Boss。",
+      "tags": [
+        "roguelike",
+        "procgen"
+      ],
+      "recipe": "roguelike",
+      "spec": {
+        "camera": "orbit",
+        "create": "roguelikeRecipe"
+      },
+      "cmd": "npm run new-game myrogue -- --recipe roguelike --html",
+      "createCmd": "npm create keel3d@latest my-rogue -- --recipe roguelike",
+      "note": "清房 → 补给 → Boss。空格攻击，E 喝药，I 背包，R 重开。",
+      "blocks": [
+        [
+          "ProcDungeon",
+          "地牢"
+        ],
+        [
+          "LootTable",
+          "掉落"
+        ],
+        [
+          "Inventory",
+          "背包"
+        ]
+      ],
+      "thumb": null,
+      "status": "playable"
+    },
+    {
+      "id": "plat",
+      "gameId": "plat",
+      "gameModule": "./game/demo-plat",
+      "page": "platformer",
+      "probe": "#plat-hud",
+      "icon": "🪜",
+      "title": "平台跳跃",
+      "blurb": "跳跃平台 · 登顶旗。",
+      "tags": [
+        "platformer",
+        "jump"
+      ],
+      "recipe": "platformer",
+      "spec": {
+        "camera": "chase",
+        "create": "platformerRecipe"
+      },
+      "cmd": "npm run new-game myplat -- --recipe platformer --html",
+      "createCmd": "npm create keel3d@latest my-platformer -- --recipe platformer",
+      "note": "3 条命登顶。WASD + 空格/Shift 跳，坠落回出生点，R 重开。",
+      "blocks": [
+        [
+          "CharacterController",
+          "跳跃"
+        ],
+        [
+          "TriggerZone",
+          "终点"
+        ]
+      ],
+      "thumb": null,
+      "status": "playable"
+    },
+    {
+      "id": "tycoon",
+      "gameId": "tycoon",
+      "gameModule": "./game/demo-tycoon",
+      "page": "tycoon",
+      "probe": "#tycoon-hud",
+      "icon": "🏗️",
+      "title": "城建经营",
+      "blurb": "点地建造 · 产出金币 · 人口。",
+      "tags": [
+        "tycoon",
+        "build"
+      ],
+      "recipe": "tycoon",
+      "spec": {
+        "camera": "orbit",
+        "create": "tycoonRecipe"
+      },
+      "cmd": "npm run new-game mytycoon -- --recipe tycoon --html",
+      "createCmd": "npm create keel3d@latest my-tycoon -- --recipe tycoon",
+      "note": "人口达到 50 获胜。1/2/3 选建筑，点空地建造，R 重开。",
+      "blocks": [
+        [
+          "PlaceGrid",
+          "地块"
+        ],
+        [
+          "BuildSystem",
+          "建造"
+        ],
+        [
+          "Economy",
+          "经济"
+        ]
+      ],
+      "thumb": null,
+      "status": "playable"
+    },
+    {
+      "id": "rts",
+      "gameId": "rts",
+      "gameModule": "./game/demo-rts",
+      "page": "rts",
+      "probe": "#rts-hud",
+      "icon": "🗺️",
+      "title": "RTS-lite",
+      "blurb": "选中 · 下令 · 两军交战。",
+      "tags": [
+        "rts",
+        "faction"
+      ],
+      "recipe": "rts-lite",
+      "spec": {
+        "camera": "orbit",
+        "create": "rtsLiteRecipe"
+      },
+      "cmd": "npm run new-game myrts -- --recipe rts-lite --html",
+      "createCmd": "npm create keel3d@latest my-rts -- --recipe rts-lite",
+      "note": "消灭红方全部单位。左键选中，右键下令，R 重开。",
+      "blocks": [
+        [
+          "FactionMap",
+          "阵营"
+        ],
+        [
+          "Steering",
+          "移动"
+        ]
+      ],
+      "thumb": null,
+      "status": "playable"
+    },
+    {
+      "id": "stealth",
+      "gameId": "stealth",
+      "gameModule": "./game/demo-stealth",
+      "page": "stealth",
+      "probe": "#stealth-hud",
+      "icon": "🥷",
+      "title": "潜行",
+      "blurb": "躲开视锥守卫 · 抵达出口。",
+      "tags": [
+        "stealth",
+        "vision"
+      ],
+      "recipe": "stealth",
+      "spec": {
+        "camera": "chase",
+        "create": "stealthRecipe"
+      },
+      "cmd": "npm run new-game mystealth -- --recipe stealth --html",
+      "createCmd": "npm create keel3d@latest my-stealth -- --recipe stealth",
+      "note": "不被发现抵达出口。WASD 移动，空格会发出噪声，R 重开。",
+      "blocks": [
+        [
+          "VisionCone",
+          "视锥"
+        ],
+        [
+          "NoiseEmitter",
+          "噪声"
+        ]
+      ],
+      "thumb": null,
+      "status": "playable"
+    },
+    {
+      "id": "arena",
+      "gameId": "arena",
+      "gameModule": "./game/demo-arena",
+      "page": "arena",
+      "probe": "#arena-hud",
+      "icon": "💥",
+      "title": "载具对战",
+      "blurb": "驾驶载具 · 主炮 + 范围冲击。",
+      "tags": [
+        "vehicle",
+        "combat"
+      ],
+      "recipe": "combat-arena",
+      "spec": {
+        "camera": "chase",
+        "player": "vehicle",
+        "create": "combatArenaRecipe"
+      },
+      "cmd": "npm run new-game myarena -- --recipe combat-arena --html",
+      "createCmd": "npm create keel3d@latest my-arena -- --recipe combat-arena",
+      "note": "驾驶击落 10 架无人机。WASD 驾驶，空格/J 主炮，K 冲击，R 重开。",
+      "blocks": [
+        [
+          "Arsenal",
+          "弹药"
+        ],
+        [
+          "areaHits",
+          "AOE"
+        ],
+        [
+          "Gamepad",
+          "手柄"
+        ]
+      ],
+      "thumb": null,
+      "status": "playable"
+    },
+    {
+      "id": "rhythm",
+      "gameId": "rhythm",
+      "gameModule": "./game/demo-rhythm",
+      "page": "rhythm",
+      "probe": "#rhythm-hud",
+      "icon": "🎵",
+      "title": "音游",
+      "blurb": "BPM 网格 · 节拍判定。",
+      "tags": [
+        "rhythm",
+        "beat"
+      ],
+      "recipe": "rhythm",
+      "spec": {
+        "camera": "orbit",
+        "create": "rhythmRecipe"
+      },
+      "cmd": "npm run new-game myrhythm -- --recipe rhythm --html",
+      "createCmd": "npm create keel3d@latest my-rhythm -- --recipe rhythm",
+      "note": "空格/J 卡拍，连击 20 获胜；失误断连击，R 重开。",
+      "blocks": [
+        [
+          "BeatClock",
+          "节拍"
+        ]
+      ],
+      "thumb": null,
+      "status": "playable"
+    },
+    {
+      "id": "sandbox",
+      "gameId": "sandbox",
+      "gameModule": "./game/demo-sandbox",
+      "page": "sandbox",
+      "probe": "#sandbox-hud",
+      "icon": "🧊",
+      "title": "体素沙盒",
+      "blurb": "点击放置/破坏方块。",
+      "tags": [
+        "voxel",
+        "sandbox"
+      ],
+      "recipe": "sandbox",
+      "spec": {
+        "camera": "orbit",
+        "create": "sandboxRecipe"
+      },
+      "cmd": "npm run new-game mysandbox -- --recipe sandbox --html",
+      "createCmd": "npm create keel3d@latest my-sandbox -- --recipe sandbox",
+      "note": "放置 10 块达成；点击放/挖，X 切换，1-5 选色，R 重开。",
+      "blocks": [
+        [
+          "VoxelChunk",
+          "体素"
+        ]
+      ],
+      "thumb": null,
+      "status": "playable"
+    },
+    {
+      "id": "br",
+      "gameId": "br",
+      "gameModule": "./game/demo-br",
+      "page": "br",
+      "probe": "#br-hud",
+      "icon": "☠️",
+      "title": "BR-lite",
+      "blurb": "毒圈收缩 · 单人生存。",
+      "tags": [
+        "br",
+        "shrink"
+      ],
+      "recipe": "br-lite",
+      "spec": {
+        "camera": "chase",
+        "create": "brLiteRecipe"
+      },
+      "cmd": "npm run new-game mybr -- --recipe br-lite --html",
+      "createCmd": "npm create keel3d@latest my-br -- --recipe br-lite",
+      "note": "毒圈内存活到最后。WASD + 射击，R 重开。",
+      "blocks": [
+        [
+          "ShrinkZone",
+          "毒圈"
+        ],
+        [
+          "Arsenal",
+          "武器"
+        ]
+      ],
+      "thumb": null,
+      "status": "playable"
+    },
+    {
+      "id": "puzzle",
+      "gameId": "puzzle",
+      "gameModule": "./game/demo-puzzle",
+      "page": "puzzle",
+      "probe": "#puzzle-hud",
+      "icon": "🧩",
+      "title": "物理益智",
+      "blurb": "推箱/触发机关。",
+      "tags": [
+        "physics",
+        "puzzle"
+      ],
+      "recipe": "puzzle",
+      "spec": {
+        "camera": "orbit",
+        "create": "puzzleRecipe"
+      },
+      "cmd": "npm run new-game mypuzzle -- --recipe puzzle --html",
+      "createCmd": "npm create keel3d@latest my-puzzle -- --recipe puzzle",
+      "note": "把箱子推到金点。WASD 推箱，R 重开。",
+      "blocks": [
+        [
+          "TriggerZone",
+          "机关"
+        ]
+      ],
+      "thumb": null,
+      "status": "playable"
+    },
+    {
+      "id": "sports",
+      "gameId": "sports",
+      "gameModule": "./game/demo-sports",
+      "page": "sports",
+      "probe": "#sports-hud",
+      "icon": "⚽",
+      "title": "体育 lite",
+      "blurb": "带球入门 · 队伍得分。",
+      "tags": [
+        "sports",
+        "ball"
+      ],
+      "recipe": "sports",
+      "spec": {
+        "camera": "chase",
+        "create": "sportsRecipe"
+      },
+      "cmd": "npm run new-game mysports -- --recipe sports --html",
+      "createCmd": "npm create keel3d@latest my-sports -- --recipe sports",
+      "note": "先到 3 球获胜。WASD 靠近球推射，R 重开。",
+      "blocks": [
+        [
+          "FactionMap",
+          "队伍"
+        ],
+        [
+          "Scoreboard",
+          "比分"
+        ]
+      ],
+      "thumb": null,
+      "status": "playable"
+    },
+    {
+      "id": "blank",
+      "gameId": "template",
+      "gameModule": "./game/demo-template",
+      "page": "template",
+      "probe": "#boot",
+      "icon": "📦",
+      "title": "空白模板",
+      "blurb": "最少代码起点。",
+      "tags": [
+        "template"
+      ],
+      "recipe": null,
+      "spec": {
+        "camera": "orbit"
+      },
+      "cmd": "npm run new-game mygame -- --title \"My Game\" --html",
+      "createCmd": "npm create keel3d@latest my-game -- --template blank",
+      "note": "最简可运行入口：一个相机 + 一张地图。从这里开始写你自己的系统，不需要的积木不会进包。",
+      "blocks": [
+        [
+          "CameraRig",
+          "视角"
+        ],
+        [
+          "MapBuilder",
+          "地图"
+        ]
+      ],
+      "thumb": null,
+      "status": "template"
+    }
+  ],
+  "recipes": [
+    {
+      "slug": "td",
+      "export": "towerDefenseRecipe",
+      "file": "tower-defense",
+      "title": "塔防",
+      "page": "tower",
+      "blurb": "固定路线放塔守基地"
+    },
+    {
+      "slug": "survival",
+      "export": "survivalRecipe",
+      "file": "survival",
+      "title": "波次生存",
+      "page": null,
+      "blurb": "撑过一波波敌人（无独立页面，走 new-game）"
+    },
+    {
+      "slug": "arpg",
+      "export": "arpgRecipe",
+      "file": "arpg",
+      "title": "俯视 ARPG",
+      "page": "arpg",
+      "blurb": "近战/弹道/掉落金币"
+    },
+    {
+      "slug": "collect",
+      "export": "collectRecipe",
+      "file": "collect",
+      "title": "收集",
+      "page": "collect",
+      "blurb": "捡满目标回圈交付"
+    },
+    {
+      "slug": "rally",
+      "export": "rallyRecipe",
+      "file": "rally",
+      "title": "拉力赛",
+      "page": "rally",
+      "blurb": "按序穿检查点比圈速"
+    },
+    {
+      "slug": "dungeon",
+      "export": "dungeonRecipe",
+      "file": "dungeon",
+      "title": "地牢",
+      "page": "dungeon",
+      "blurb": "多房间门锁 + Boss"
+    },
+    {
+      "slug": "fps-arena",
+      "export": "fpsArenaRecipe",
+      "file": "fps-arena",
+      "title": "FPS 竞技场",
+      "page": "fps-arena",
+      "blurb": "轻量第一人称靶场"
+    },
+    {
+      "slug": "tps",
+      "export": "tpsRecipe",
+      "file": "tps",
+      "title": "第三人称射击",
+      "page": "tps",
+      "blurb": "肩扛视角 + 手柄"
+    },
+    {
+      "slug": "flight-arena",
+      "export": "flightArenaRecipe",
+      "file": "flight-arena",
+      "title": "空战",
+      "page": "flight-arena",
+      "blurb": "空中缠斗与敌机波次"
+    },
+    {
+      "slug": "roguelike",
+      "export": "roguelikeRecipe",
+      "file": "roguelike",
+      "title": "Roguelike",
+      "page": "roguelike",
+      "blurb": "程序化地牢 + 战利品背包"
+    },
+    {
+      "slug": "platformer",
+      "export": "platformerRecipe",
+      "file": "platformer",
+      "title": "平台跳跃",
+      "page": "platformer",
+      "blurb": "跳跃平台登顶"
+    },
+    {
+      "slug": "tycoon",
+      "export": "tycoonRecipe",
+      "file": "tycoon",
+      "title": "城建经营",
+      "page": "tycoon",
+      "blurb": "点地建造与人口增长"
+    },
+    {
+      "slug": "rts-lite",
+      "export": "rtsLiteRecipe",
+      "file": "rts-lite",
+      "title": "RTS-lite",
+      "page": "rts",
+      "blurb": "选中下令两军交战"
+    },
+    {
+      "slug": "stealth",
+      "export": "stealthRecipe",
+      "file": "stealth",
+      "title": "潜行",
+      "page": "stealth",
+      "blurb": "躲视锥抵达出口"
+    },
+    {
+      "slug": "combat-arena",
+      "export": "combatArenaRecipe",
+      "file": "combat-arena",
+      "title": "载具对战",
+      "page": "arena",
+      "blurb": "驾驶载具主炮对轰"
+    },
+    {
+      "slug": "rhythm",
+      "export": "rhythmRecipe",
+      "file": "rhythm",
+      "title": "音游",
+      "page": "rhythm",
+      "blurb": "BPM 节拍判定"
+    },
+    {
+      "slug": "sandbox",
+      "export": "sandboxRecipe",
+      "file": "sandbox",
+      "title": "体素沙盒",
+      "page": "sandbox",
+      "blurb": "放置/破坏方块"
+    },
+    {
+      "slug": "br-lite",
+      "export": "brLiteRecipe",
+      "file": "br-lite",
+      "title": "BR-lite",
+      "page": "br",
+      "blurb": "毒圈收缩生存"
+    },
+    {
+      "slug": "puzzle",
+      "export": "puzzleRecipe",
+      "file": "puzzle",
+      "title": "物理益智",
+      "page": "puzzle",
+      "blurb": "推箱触发机关"
+    },
+    {
+      "slug": "sports",
+      "export": "sportsRecipe",
+      "file": "sports",
+      "title": "体育 lite",
+      "page": "sports",
+      "blurb": "带球入门与计分"
+    }
+  ]
+}

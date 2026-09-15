@@ -103,7 +103,10 @@ export default defineGame({
 });
 ```
 
-Do **not** hand-edit business branches in `main.ts`. The scaffold registers your game in `src/registry.ts`.
+Do **not** hand-edit business branches in `main.ts`. Use `npm run new-game <id>`: it creates the
+content package plus its HTML entry, appends an entry to `src/catalog/catalog.json`, and syncs
+everything downstream. **`src/registry.ts` and the multi-page list in `vite.config.ts` are
+generated files — never edit them by hand** (see `docs/CATALOG.md`).
 
 ---
 

@@ -32,7 +32,8 @@ blocks/     L2 积木（Pool Path Steering GridAStar CameraRig Unit
             assets/* audio/* combat/* gameplay/* ui/* interact/*
             progress/* build/* kit/*）
 content/    L3 契约（GameSpec · defineGame · mountSampleGame host）
-registry.ts 组合根：id → 动态 import 内容包（唯一可依赖 game/*）
+registry.ts 组合根：id → 动态 import 内容包（唯一可依赖 game/*）· **由 catalog 生成，勿手改**
+catalog/    单一真相源（品类/配方元数据）→ 生成 hub/probe/vite/registry/docs
 physics/    物理封装（参数注入）
 net/        联机协议（L2 可选能力）
 ui/ util/   输入辅助与小工具

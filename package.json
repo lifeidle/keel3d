@@ -20,6 +20,8 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "test": "node scripts/test.mjs",
+    "catalog:gen": "node scripts/catalog-gen.mjs",
+    "catalog:check": "node scripts/catalog-check.mjs",
     "net:dev": "vite --port 8799 --host",
     "site-audit": "node scripts/site-audit.mjs",
     "assets:webp": "node scripts/assets-webp.mjs",

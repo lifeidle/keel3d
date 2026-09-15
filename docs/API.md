@@ -78,6 +78,9 @@ type MapSpec =
 
 **Host**：`mountSampleGame(mod, { engine, scene, camera, render, sun, hemi })`  
 **Registry**：`src/registry.ts` — composition root, the only framework-side file allowed to import `game/*`.
+**Generated**: its loader table (and the multi-page `vite.config.ts` inputs, `scripts/probe-all.mjs`
+pages, `hub.html` cards) come from `src/catalog/catalog.json` — run `npm run catalog:gen`, never hand-edit.
+See `docs/CATALOG.md`.
 
 ```bash
 npm run new-game mygame -- --title "My Game" --html

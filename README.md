@@ -125,16 +125,20 @@ pm run sfx:gen）。
 src/engine/     L1 内核
 src/blocks/     L2 积木
 src/content/    L3 契约（defineGame / host）
-src/registry.ts 组合根（加载 game/*）
+src/catalog/    单一真相源（品类/配方）→ 生成 hub / probe / vite / registry
+src/registry.ts 组合根（加载 game/*）·生成文件
 src/game/*      内容包（互不 import）
 ```
+
+> 新增品类只需改 `src/catalog/catalog.json`，跑 `npm run catalog:gen`；
+> `npm run catalog:check` 在 CI 里保证零漂移。见 [Catalog](docs/CATALOG.md)。
 
 ---
 
 ## 文档
 
 - [使用指南](docs/USER_GUIDE.md) · [配方](docs/RECIPES.md) · [Quickstart](docs/QUICKSTART.md)  
-- [API](docs/API.md) · [积木](docs/BLOCKS.md) · [目录](docs/STRUCTURE.md)  
+- [Catalog 总表](docs/CATALOG.md) · [API](docs/API.md) · [积木](docs/BLOCKS.md) · [目录](docs/STRUCTURE.md)  
 - [法律与商用](docs/LEGAL.md) · [第三方版权](docs/THIRD_PARTY_NOTICES.md)  
 
 ---
