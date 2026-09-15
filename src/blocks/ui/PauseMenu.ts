@@ -64,7 +64,8 @@ export class PauseMenu {
       dispose: () => this.dispose(),
     };
 
-    if (typeof window !== 'undefined') {
+    // Both hooks need the DOM; guard on document (present iff window is).
+    if (typeof document !== 'undefined') {
       window.addEventListener('keydown', this.onKeydown);
       document.addEventListener('pointerlockchange', this.onLockChange);
     }
@@ -175,7 +176,7 @@ export class PauseMenu {
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
-    if (typeof window !== 'undefined') {
+    if (typeof document !== 'undefined') {
       window.removeEventListener('keydown', this.onKeydown);
       document.removeEventListener('pointerlockchange', this.onLockChange);
     }

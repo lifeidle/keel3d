@@ -505,11 +505,12 @@
       "page": "roguelike",
       "probe": "#rogue-hud",
       "icon": "🗡️",
-      "title": "Roguelike · 旗舰可通关",
-      "blurb": "程序化房间 · 战利品背包 · Boss。",
+      "title": "Roguelike · 无尽下潜",
+      "blurb": "清首领下潜 · 越深敌人越强 · 战利品背包。",
       "tags": [
         "roguelike",
-        "procgen"
+        "procgen",
+        "endless"
       ],
       "recipe": "roguelike",
       "spec": {
@@ -518,7 +519,7 @@
       },
       "cmd": "npm run new-game myrogue -- --recipe roguelike --html",
       "createCmd": "npm create keel3d@latest my-rogue -- --recipe roguelike",
-      "note": "清房 → 补给 → Boss。空格攻击，E 喝药，I 背包，R 重开。",
+      "note": "清房 → 补给 → Boss → 下潜一层（敌人更强，HP/背包延续）。空格攻击，E 喝药，I 背包，R 重开。",
       "blocks": [
         [
           "ProcDungeon",
@@ -531,6 +532,10 @@
         [
           "Inventory",
           "背包"
+        ],
+        [
+          "SaveSlot",
+          "最深层"
         ]
       ],
       "thumb": null,

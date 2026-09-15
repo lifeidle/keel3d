@@ -1,9 +1,14 @@
 /**
- * Roguelike — flagship playable run: rooms → loot → boss → win/lose + restart.
+ * Roguelike — flagship playable run: **endless descent**.
+ *
+ * Each floor is a seeded room graph (ProcDungeon). Clear the boss room to
+ * descend: a new floor is generated, HP/inventory/kills carry over, and
+ * enemies scale (HP · speed · melee damage · spawn count). Death ends the
+ * run; the deepest floor reached is saved (SaveSlot) and shown on the HUD.
  */
 import * as THREE from 'three';
 import { defineGame, type BaseRecipeOpts } from '../content/defineGame';
-import { generateDungeon, type RoomDef } from '../blocks/world/ProcDungeon';
+import { generateDungeon, type DungeonLayout, type RoomDef } from '../blocks/world/ProcDungeon';
 import { CameraRig } from '../blocks/CameraRig';
 import { Pool } from '../blocks/Pool';
 import { Health } from '../blocks/gameplay/Health';
@@ -49,12 +54,12 @@ export function createRoguelikeGame(
 ) {
   const { scene, camera } = deps;
   const seed = opts.seed ?? (Math.floor(Math.random() * 1e9) || 1);
-  const layout = generateDungeon(seed, { roomCount: opts.roomCount ?? 6 });
+  const roomCount = opts.roomCount ?? 6;
   const cell = 18;
   const moveSpeed = opts.moveSpeed ?? 8.5;
   const playerHpMax = opts.playerHp ?? 100;
-  const enemyHp = opts.enemyHp ?? 20;
-  const enemySpeed = opts.enemySpeed ?? 2.8;
+  const baseEnemyHp = opts.enemyHp ?? 20;
+  const baseEnemySpeed = opts.enemySpeed ?? 2.8;
   const attackDamage = opts.attackDamage ?? 22;
   const attackCd = new Cooldown(opts.attackCd ?? 0.32);
 
@@ -67,52 +72,32 @@ export function createRoguelikeGame(
   const wallMat = new THREE.MeshStandardMaterial({ color: 0x5a5a52 });
   const goalMat = new THREE.MeshStandardMaterial({ color: 0xffd27a, emissive: 0x332200 });
 
-  const roomPos = new Map<string, THREE.Vector3>();
-  for (const r of layout.rooms) {
-    const c = layout.roomCenter(r, cell);
-    const pos = new THREE.Vector3(c.x, 0, c.z);
-    roomPos.set(r.id, pos);
-    const mat = r.kind === 'boss' ? bossMat : r.kind === 'loot' ? lootMat : floorMat;
-    const floor = new THREE.Mesh(new THREE.BoxGeometry(r.w, 0.2, r.h), mat);
-    floor.position.set(c.x, -0.1, c.z);
-    floor.receiveShadow = true;
-    root.add(floor);
-    for (const [dx, dz, sw, sd] of [
-      [0, r.h / 2, r.w, 0.4],
-      [0, -r.h / 2, r.w, 0.4],
-      [r.w / 2, 0, 0.4, r.h],
-      [-r.w / 2, 0, 0.4, r.h],
-    ] as const) {
-      const wall = new THREE.Mesh(new THREE.BoxGeometry(sw, 2, sd), wallMat);
-      wall.position.set(c.x + dx, 1, c.z + dz);
-      wall.castShadow = true;
-      root.add(wall);
-    }
-    if (r.kind === 'loot') {
-      const chest = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.8, 0.8), goalMat);
-      chest.position.set(c.x, 0.5, c.z);
-      chest.castShadow = true;
-      root.add(chest);
-    }
-  }
-  for (const cor of layout.corridors) {
-    const a = roomPos.get(cor.a);
-    const b = roomPos.get(cor.b);
-    if (!a || !b) continue;
-    const mid = a.clone().add(b).multiplyScalar(0.5);
-    const len = a.distanceTo(b);
-    const slab = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.2, len + 2), floorMat);
-    slab.position.set(mid.x, -0.1, mid.z);
-    slab.lookAt(b.x, -0.1, b.z);
-    root.add(slab);
-  }
+  // ---- per-floor state (rebuilt on descent) ----
+  let depth = 1;
+  let layout: DungeonLayout = generateDungeon(seed, { roomCount });
+  let roomPos = new Map<string, THREE.Vector3>();
+  let floorGroup: THREE.Group | null = null;
+  let cleared = new Set<string>();
+  let roomIdx = 0;
+  let status: 'playing' | 'lose' = 'playing';
+  let bossRef: E | null = null;
+  const bounds = { minX: -80, maxX: 80, minZ: -80, maxZ: 80 };
+
+  // ---- per-depth scaling (endless descent) ----
+  const scaled = {
+    enemyHp: (d: number) => baseEnemyHp + (d - 1) * 6,
+    bossHp: (d: number) => baseEnemyHp + 30 + (d - 1) * 12,
+    enemySpeed: (d: number) => baseEnemySpeed + Math.min(1.2, (d - 1) * 0.2),
+    meleeDmg: (d: number) => 4 + (d - 1),
+    bossDmg: (d: number) => 8 + (d - 1) * 2,
+    combatSpawns: (d: number) => 2 + Math.min(2, Math.floor((d - 1) / 2)),
+    lootRolls: (d: number) => (d >= 3 ? 3 : 2),
+  };
 
   const player = new THREE.Mesh(
     new THREE.CapsuleGeometry(0.4, 1, 4, 8),
     new THREE.MeshStandardMaterial({ color: 0x6ec8ff }),
   );
-  const start = layout.roomCenter(layout.rooms[0], cell);
-  player.position.set(start.x, 1, start.z);
   root.add(player);
 
   const ph = new Health({ max: playerHpMax });
@@ -126,6 +111,7 @@ export function createRoguelikeGame(
     { id: '遗物', weight: 10, qty: 1 },
   ]);
   const meta = new SaveSlot({ key: 'keel3d-rogue-meta', version: 1 });
+  let best = (meta.load<{ depth?: number }>()?.depth ?? 0) as number;
   const hud = new HudPanel({ id: 'rogue-hud', position: 'tl' });
   const hpBar = new HealthBar({ width: 140, height: 8 });
   if (hpBar.el) {
@@ -176,32 +162,90 @@ export function createRoguelikeGame(
       e.boss = false;
       e.flash = 0;
     },
-    20,
+    24,
   );
 
-  const cleared = new Set<string>();
-  let roomIdx = 0;
-  let status: 'playing' | 'win' | 'lose' = 'playing';
-  let depth = 1;
-  let bossRef: E | null = null;
   const keys = new Set<string>();
+
+  function clearFloorGroup() {
+    if (!floorGroup) return;
+    floorGroup.traverse((o) => {
+      const m = o as THREE.Mesh;
+      if (m.isMesh) m.geometry.dispose();
+    });
+    root.remove(floorGroup);
+    floorGroup = null;
+  }
+
+  /** Build the world for floor `d`: fresh layout, floors/walls/corridors/loot. */
+  function buildFloor(d: number) {
+    clearFloorGroup();
+    layout = generateDungeon(seed + (d - 1) * 7919, { roomCount });
+    roomPos = new Map();
+    const g = new THREE.Group();
+    floorGroup = g;
+    root.add(g);
+    for (const r of layout.rooms) {
+      const c = layout.roomCenter(r, cell);
+      const pos = new THREE.Vector3(c.x, 0, c.z);
+      roomPos.set(r.id, pos);
+      const mat = r.kind === 'boss' ? bossMat : r.kind === 'loot' ? lootMat : floorMat;
+      const floor = new THREE.Mesh(new THREE.BoxGeometry(r.w, 0.2, r.h), mat);
+      floor.position.set(c.x, -0.1, c.z);
+      floor.receiveShadow = true;
+      g.add(floor);
+      for (const [dx, dz, sw, sd] of [
+        [0, r.h / 2, r.w, 0.4],
+        [0, -r.h / 2, r.w, 0.4],
+        [r.w / 2, 0, 0.4, r.h],
+        [-r.w / 2, 0, 0.4, r.h],
+      ] as const) {
+        const wall = new THREE.Mesh(new THREE.BoxGeometry(sw, 2, sd), wallMat);
+        wall.position.set(c.x + dx, 1, c.z + dz);
+        wall.castShadow = true;
+        g.add(wall);
+      }
+      if (r.kind === 'loot') {
+        const chest = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.8, 0.8), goalMat);
+        chest.position.set(c.x, 0.5, c.z);
+        chest.castShadow = true;
+        g.add(chest);
+      }
+    }
+    for (const cor of layout.corridors) {
+      const a = roomPos.get(cor.a);
+      const b = roomPos.get(cor.b);
+      if (!a || !b) continue;
+      const mid = a.clone().add(b).multiplyScalar(0.5);
+      const len = a.distanceTo(b);
+      const slab = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.2, len + 2), floorMat);
+      slab.position.set(mid.x, -0.1, mid.z);
+      slab.lookAt(b.x, -0.1, b.z);
+      g.add(slab);
+    }
+    const start = layout.roomCenter(layout.rooms[0], cell);
+    bounds.minX = start.x - 80;
+    bounds.maxX = start.x + 80;
+    bounds.minZ = start.z - 80;
+    bounds.maxZ = start.z + 80;
+  }
 
   function spawnRoom(r: RoomDef) {
     const c = roomPos.get(r.id)!;
-    const n = r.kind === 'boss' ? 3 : r.kind === 'loot' ? 0 : 2;
+    const n = r.kind === 'boss' ? 3 : r.kind === 'loot' ? 0 : scaled.combatSpawns(depth);
     for (let i = 0; i < n; i++) {
       const e = enemyPool.acquire();
       e.alive = true;
       e.boss = r.kind === 'boss';
-      e.maxHp = enemyHp + (r.kind === 'boss' ? 30 : 0);
+      e.maxHp = r.kind === 'boss' ? scaled.bossHp(depth) : scaled.enemyHp(depth);
       e.hp = e.maxHp;
       e.mat.color.setHex(r.kind === 'boss' ? 0x8b1a1a : 0xc44);
       e.mesh.scale.setScalar(r.kind === 'boss' ? 1.4 : 1);
-      e.mesh.position.set(c.x + (i - 1) * 2.4, 0.5, c.z + (i % 2) * 2);
+      e.mesh.position.set(c.x + (i - (n - 1) / 2) * 2.4, 0.5, c.z + (i % 2) * 2);
       e.mesh.visible = true;
       if (r.kind === 'boss') {
         bossRef = e;
-        bossBar.show('地牢首领');
+        bossBar.show(`地牢首领 · 层 ${depth}`);
         bossBar.setHp(e.hp, e.maxHp);
       }
     }
@@ -211,24 +255,41 @@ export function createRoguelikeGame(
     if (cleared.has(r.id)) return;
     cleared.add(r.id);
     if (r.kind === 'loot') {
-      for (const s of loot.roll(2)) inv.add(s);
+      for (const s of loot.roll(scaled.lootRolls(depth))) inv.add(s);
       toast.show('打开补给箱');
       sfx.play('pickup');
     } else if (r.kind === 'boss') {
-      status = 'win';
+      toast.show('首领倒下了 · 向更深处去');
       sfx.play('win');
-      bossBar.hide();
-      const prev = (meta.load<{ depth?: number }>()?.depth ?? 0) as number;
-      if (depth > prev) meta.save({ depth });
-      const best = (meta.load<{ depth?: number }>()?.depth ?? depth) as number;
-      endOverlay.show(
-        `通关！层 ${depth} · 击杀 ${score.kills} · ${score.time.toFixed(0)}s · 最深 ${best} — 按 R 再来`,
-        true,
-      );
+      descend();
     } else if (r.kind === 'combat') {
       toast.show('房间肃清 · 前往下一处');
       sfx.play('click');
     }
+  }
+
+  /** Boss cleared → next floor: new layout, heal a bit, keep everything else. */
+  function descend() {
+    depth += 1;
+    if (depth > best) {
+      best = depth;
+      meta.save({ depth: best });
+    }
+    enemyPool.forEachLive((e) => {
+      if (e.alive) enemyPool.release(e);
+    });
+    bossRef = null;
+    bossBar.hide();
+    cleared = new Set();
+    roomIdx = 0;
+    buildFloor(depth);
+    const s = layout.roomCenter(layout.rooms[0], cell);
+    player.position.set(s.x, 1, s.z);
+    const heal = Math.round(playerHpMax * 0.25);
+    ph.heal(heal);
+    feel.shake(0.15, 0.4);
+    toast.show(`层 ${depth} · 回复 ${heal} 生命 · 敌人更强了`);
+    spawnRoom(layout.rooms[0]);
   }
 
   function usePotion() {
@@ -306,12 +367,13 @@ export function createRoguelikeGame(
       { keys: ['I'], label: '背包' },
       { keys: ['Esc'], label: '暂停' },
     ],
-    footer: '桌面设备体验更佳',
+    footer: '清首领下潜 · 桌面设备体验更佳',
     duration: 6,
   });
 
+  buildFloor(1);
   spawnRoom(layout.rooms[0]);
-  toast.show('清空房间前进 · 空格攻击 · E 喝药 · I 背包');
+  toast.show('清空房间前进 · 空格攻击 · E 喝药 · I 背包 · 清首领向更深');
 
   const systems: System[] = [
     {
@@ -334,25 +396,25 @@ export function createRoguelikeGame(
         if (len > 0) {
           mx /= len;
           mz /= len;
-          player.position.x = THREE.MathUtils.clamp(player.position.x + mx * moveSpeed * ft, start.x - 80, start.x + 80);
-          player.position.z = THREE.MathUtils.clamp(player.position.z + mz * moveSpeed * ft, start.z - 80, start.z + 80);
+          player.position.x = THREE.MathUtils.clamp(player.position.x + mx * moveSpeed * ft, bounds.minX, bounds.maxX);
+          player.position.z = THREE.MathUtils.clamp(player.position.z + mz * moveSpeed * ft, bounds.minZ, bounds.maxZ);
         }
         if (keys.has('Space')) tryAttack();
         rig.update(ft, player.position, Math.atan2(mx, mz) || 0);
         feel.applyToCamera(camera, feelOff);
 
-        let best = 0;
-        let bestD = Infinity;
+        let nearIdx = 0;
+        let nearD = Infinity;
         layout.rooms.forEach((r, i) => {
           const p = roomPos.get(r.id)!;
           const d = player.position.distanceTo(p);
-          if (d < bestD) {
-            bestD = d;
-            best = i;
+          if (d < nearD) {
+            nearD = d;
+            nearIdx = i;
           }
         });
-        if (best !== roomIdx && bestD < 6) {
-          roomIdx = best;
+        if (nearIdx !== roomIdx && nearD < 6) {
+          roomIdx = nearIdx;
           const r = layout.rooms[roomIdx];
           if (!cleared.has(r.id)) {
             spawnRoom(r);
@@ -360,6 +422,7 @@ export function createRoguelikeGame(
           }
         }
 
+        const espeed = scaled.enemySpeed(depth);
         let living = 0;
         enemyPool.forEachLive((e) => {
           if (!e.alive) return;
@@ -373,11 +436,11 @@ export function createRoguelikeGame(
           const d = Math.hypot(dx, dz);
           if (d > 1.2) {
             const dir = Steering.normalizeXZ(dx, dz);
-            const sp = e.boss ? enemySpeed * 0.8 : enemySpeed;
+            const sp = e.boss ? espeed * 0.8 : espeed;
             e.mesh.position.x += dir.x * sp * ft;
             e.mesh.position.z += dir.z * sp * ft;
           } else if (Math.random() < ft * 0.6) {
-            ph.damage(e.boss ? 8 : 4);
+            ph.damage(e.boss ? scaled.bossDmg(depth) : scaled.meleeDmg(depth));
             feel.flashOnce('rgba(255,60,60,0.3)', 160);
             feel.shake(0.08, 0.2);
             sfx.play('hit');
@@ -385,7 +448,10 @@ export function createRoguelikeGame(
               status = 'lose';
               sfx.play('lose');
               bossBar.hide();
-              endOverlay.show(`阵亡 · 击杀 ${score.kills} · ${score.time.toFixed(0)}s — 按 R 再来`, false);
+              endOverlay.show(
+                `阵亡于层 ${depth} · 击杀 ${score.kills} · ${score.time.toFixed(0)}s · 最深 ${best} — 按 R 再来`,
+                false,
+              );
             }
           }
         });
@@ -397,7 +463,7 @@ export function createRoguelikeGame(
         const potions = inv.count('药水');
         hud.setText(
           `层 ${depth} · ${ROOM_LABEL[cur?.kind ?? 'start']} ${roomIdx + 1}/${layout.rooms.length} · 击杀 ${score.kills}\n` +
-            `HP ${ph.hp}/${playerHpMax} · 药水 ${potions}` +
+            `HP ${ph.hp}/${playerHpMax} · 药水 ${potions} · 最深 ${best}` +
             (bossRef ? ' · ⚠ 首领' : '') +
             `\nWASD 移动 · 空格攻击 · E 喝药 · I 背包`,
         );
@@ -414,6 +480,7 @@ export function createRoguelikeGame(
         window.removeEventListener('keydown', onDn);
         window.removeEventListener('keyup', onUp);
       }
+      clearFloorGroup();
       scene.remove(root);
       hud.dispose();
       hpBar.dispose();
@@ -432,6 +499,7 @@ export function createRoguelikeGame(
       kills: score.kills,
       status,
       depth,
+      best,
       cleared: cleared.size,
       hp: ph.hp,
     }),

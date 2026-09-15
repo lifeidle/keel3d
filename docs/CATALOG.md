@@ -19,7 +19,7 @@
 | `flight-arena` | [`flight-arena.html`](../flight-arena.html) | 🛩️ 空战骨架 | skeleton | `flight-arena` | `#boot` |
 | `race` | [`race.html`](../race.html) | 🏎️ 赛车骨架 | skeleton | — | `#race-hud` |
 | `tps` | [`tps.html`](../tps.html) | 🧍 第三人称 TPS | playable | `tps` | `#tps-hud` |
-| `rogue` | [`roguelike.html`](../roguelike.html) | 🗡️ Roguelike · 旗舰可通关 | playable | `roguelike` | `#rogue-hud` |
+| `rogue` | [`roguelike.html`](../roguelike.html) | 🗡️ Roguelike · 无尽下潜 | playable | `roguelike` | `#rogue-hud` |
 | `plat` | [`platformer.html`](../platformer.html) | 🪜 平台跳跃 | playable | `platformer` | `#plat-hud` |
 | `tycoon` | [`tycoon.html`](../tycoon.html) | 🏗️ 城建经营 | playable | `tycoon` | `#tycoon-hud` |
 | `rts` | [`rts.html`](../rts.html) | 🗺️ RTS-lite | playable | `rts-lite` | `#rts-hud` |

@@ -14,7 +14,7 @@
 | `fps-arena` | fps-arena.html | WASD + 鼠标/方向键，空格/J 射击 | pickTarget · Pool · kit |
 | `tps` | tps.html | WASD + 肩扛视角，Shift 跳，空格射击，手柄可用 | CharacterController · Gamepad · shoulder · Arsenal |
 | `flight-arena` | flight-arena.html | WASD 飞行，空格/J 射击 | Projectile · pickTarget |
-| `roguelike` | roguelike.html | 程序化地牢 | ProcDungeon · LootTable · Inventory |
+| `roguelike` | roguelike.html | 清房下潜，清首领进下一层 | ProcDungeon · LootTable · Inventory · SaveSlot |
 | `platformer` | platformer.html | 跳平台登顶 | CharacterController · TriggerZone |
 | `tycoon` | tycoon.html | 点地建造 | PlaceGrid · BuildSystem · Economy |
 | `rts-lite` | rts.html | 选中下令 | FactionMap · Steering |
@@ -139,7 +139,7 @@ flightArenaRecipe({ id: 'myfa', spawnEvery: 2.2, droneHp: 20 })
 
 | 配方 | 操作 | 胜 | 负 |
 |---|---|---|---|
-| roguelike | WASD · 空格攻击 · E 喝药 · I 背包 | 击杀 Boss | HP 归零 |
+| roguelike | WASD · 空格攻击 · E 喝药 · I 背包 | 无尽：清首领下潜（记录最深层） | HP 归零 |
 | arpg | WASD · 空格/J · K 旋风斩 · I 背包 | 击杀 12 | HP 归零 |
 | td | 1/2/3 选塔 · 左键放/升 · 右键卖 | 清完波次 | 基地被毁或超时 |
 | collect | WASD | 限时收满回金圈 | 时间到 |
