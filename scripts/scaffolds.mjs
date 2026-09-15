@@ -50,6 +50,28 @@ export default survivalRecipe({
   // waves / enemyHp / enemySpeed 省略则用默认表
 });
 `,
+
+  race: (id, title) => `/**
+ * \`${id}\` — 赛车（环线自动巡航 · 圈速/最佳圈）。
+ * 生成命令：npm run new-game ${id} -- --recipe race
+ */
+import { raceRecipe } from '../../recipes/race';
+
+export default raceRecipe({
+  id: '${id}',
+  title: '${title}',
+  // 环线折线（首尾相接）；省略则用默认 ~137m 矩形环
+  track: [
+    { x: -20, y: 0, z: -12 },
+    { x: 20, y: 0, z: -12 },
+    { x: 24, y: 0, z: 12 },
+    { x: -24, y: 0, z: 12 },
+    { x: -20, y: 0, z: -12 },
+  ],
+  speed: 12,
+  // lapsToWin: 0 = 无尽计时；saveKey 省略则存 keel3d-race-best
+});
+`,
 };
 
 /**

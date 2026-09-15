@@ -153,20 +153,20 @@
       "page": "openworld",
       "probe": "#cultivation-hud",
       "icon": "🌄",
-      "title": "开放世界骨架",
+      "title": "开放世界",
       "blurb": "chunk 流式 · 目标链（灵珠·突破·妖兽）· 视角 1/2/3。",
       "tags": [
         "stream",
         "ChunkWorld",
         "goal-chain"
       ],
-      "recipe": null,
+      "recipe": "openworld",
       "spec": {
         "camera": "chase/orbit/fps",
         "map": "stream"
       },
-      "cmd": "npm run new-game myworld -- --html",
-      "createCmd": "npm create keel3d@latest my-world -- --template blank",
+      "cmd": "npm run new-game myworld -- --recipe openworld --html",
+      "createCmd": "npm create keel3d@latest my-world -- --recipe openworld",
       "note": "8 字巡行目标链：拾灵珠×3 → 中央台修炼突破筑基 → 妖兽×3 齐至，全部达成即完成（修炼×2）。1/2/3 切视角。",
       "blocks": [
         [
@@ -187,7 +187,7 @@
         ]
       ],
       "thumb": null,
-      "status": "skeleton"
+      "status": "playable"
     },
     {
       "id": "arpg",
@@ -365,20 +365,20 @@
       "page": "flight",
       "probe": "#flight-hud",
       "icon": "✈️",
-      "title": "飞行骨架",
-      "blurb": "chase · gravity 0 · 可扩展空战。",
+      "title": "飞行",
+      "blurb": "零重力探索飞行 · 可扩展空战。",
       "tags": [
         "air",
         "chase"
       ],
-      "recipe": null,
+      "recipe": "flight",
       "spec": {
         "camera": "chase",
         "player": "air"
       },
-      "cmd": "npm run new-game myflight -- --html",
-      "createCmd": "npm create keel3d@latest my-flight -- --template blank",
-      "note": "探索飞行；空战见 flight-arena。",
+      "cmd": "npm run new-game myflight -- --recipe flight --html",
+      "createCmd": "npm create keel3d@latest my-flight -- --recipe flight",
+      "note": "探索飞行（8 字/圆周自动航线）；空战见 flight-arena。",
       "blocks": [
         [
           "CameraRig",
@@ -390,7 +390,7 @@
         ]
       ],
       "thumb": null,
-      "status": "skeleton"
+      "status": "playable"
     },
     {
       "id": "flight-arena",
@@ -439,20 +439,20 @@
       "page": "race",
       "probe": "#race-hud",
       "icon": "🏎️",
-      "title": "赛车骨架",
-      "blurb": "环线赛道 · 最佳圈速。",
+      "title": "赛车",
+      "blurb": "环线赛道 · 圈速与最佳圈。",
       "tags": [
         "vehicle",
         "fixed"
       ],
-      "recipe": null,
+      "recipe": "race",
       "spec": {
         "camera": "chase",
         "player": "vehicle"
       },
-      "cmd": "npm run new-game myrace -- --recipe rally --html",
-      "createCmd": "npm create keel3d@latest my-race -- --recipe rally",
-      "note": "也可拉力赛配方。",
+      "cmd": "npm run new-game myrace -- --recipe race --html",
+      "createCmd": "npm create keel3d@latest my-race -- --recipe race",
+      "note": "环线自动巡航记圈速；按序检查点见 rally 配方。",
       "blocks": [
         [
           "Path",
@@ -464,7 +464,7 @@
         ]
       ],
       "thumb": null,
-      "status": "skeleton"
+      "status": "playable"
     },
     {
       "id": "tps",
@@ -1082,6 +1082,30 @@
       "title": "体育 lite",
       "page": "sports",
       "blurb": "带球入门与计分"
+    },
+    {
+      "slug": "race",
+      "export": "raceRecipe",
+      "file": "race",
+      "title": "赛车",
+      "page": "race",
+      "blurb": "环线赛道 · 圈速与最佳圈"
+    },
+    {
+      "slug": "flight",
+      "export": "flightRecipe",
+      "file": "flight",
+      "title": "飞行",
+      "page": "flight",
+      "blurb": "零重力探索飞行"
+    },
+    {
+      "slug": "openworld",
+      "export": "openworldRecipe",
+      "file": "open",
+      "title": "开放世界",
+      "page": "openworld",
+      "blurb": "chunk 流式 · 目标链（灵珠·突破·妖兽）"
     }
   ]
 }

@@ -65,3 +65,6 @@ export { sandboxRecipe, createSandboxGame, type SandboxRecipeOpts } from './sand
 export { brLiteRecipe, createBrLiteGame, type BrLiteRecipeOpts } from './br-lite';
 export { puzzleRecipe, createPuzzleGame, type PuzzleRecipeOpts } from './puzzle';
 export { sportsRecipe, createSportsGame, type SportsRecipeOpts } from './sports';
+export { raceRecipe, createRaceGame, type RaceRecipeOpts } from './race';
+export { flightRecipe, createFlightGame, type FlightRecipeOpts } from './flight';
+export { openworldRecipe, createOpenWorldGame, type OpenWorldRecipeOpts } from './open';

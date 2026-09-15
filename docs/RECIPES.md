@@ -25,6 +25,9 @@
 | `br-lite` | br.html | 毒圈生存 | ShrinkZone · Arsenal |
 | `puzzle` | puzzle.html | 推箱解谜 | TriggerZone |
 | `sports` | sports.html | 带球得分 | FactionMap · Scoreboard |
+| `race` | race.html | 自动巡航记圈速（最佳圈存档） | Path · BestScoreSlot · CameraRig |
+| `flight` | flight.html | 零重力探索飞行 | CameraRig · ChunkWorld |
+| `openworld` | openworld.html | 8 字巡行目标链（灵珠·突破·妖兽） | ChunkWorld · Pickup · QuestTracker |
 
 **全品类统一体验壳**：每个配方都接了 `blocks/ui/PauseMenu`（Esc / 手柄 Start 暂停，可继续 / 重开 / 回 hub）与
 `blocks/ui/ControlsOverlay`（开局操作浮层，6 秒后自动隐藏）。fps-arena / tps 另外接了

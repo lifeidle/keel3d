@@ -1,10 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
-import { createCultivationGame } from '../src/game/demo-cultivation';
+import { createOpenWorldGame } from '../src/recipes/open';
 
 /**
- * Openworld goal-chain test — headless (node) drive of the real demo.
+ * Openworld goal-chain test — headless (node) drive of the openworld recipe
+ * (the demo-cultivation content package is a thin wrapper over it).
  *
  * The demo auto-walks a figure-8 patrol, so every objective is guaranteed
  * on a fixed timeline (no input needed, no window shim needed — the demo
@@ -23,7 +24,7 @@ const FT = 1 / 60;
 test('openworld goal chain: orbs + 筑基 breakthrough + beast swarm → win', () => {
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 400);
-  const game = createCultivationGame({ scene, camera });
+  const game = createOpenWorldGame({ id: 't-cultivation' }, { scene, camera });
   const sim = game.systems[0];
   const world = { playing: true } as never;
   const stats = () =>
