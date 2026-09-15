@@ -216,41 +216,41 @@ img, svg { max-width: 100%; }
 .btn.pri:hover { filter: brightness(1.06); background: var(--grad); }
 .btn.sm { padding: 8px 15px; font-size: 13px; }
 
-/* 底部 ------------------------------------------------------------------- */
+/* 底部 -------------------------------------------------------------------
+   单行布局：[© 版权] … [首页·导航·龙骨·GitHub] … [法律条款·免责·隐私·致谢]
+   窄屏自然换行；宽屏三段式，法律组左侧加细分隔线。 */
 .site-footer {
   border-top: 1px solid var(--line);
-  padding: 26px 0 42px;
+  padding: 18px 0 26px;
   color: var(--dim); font-size: 12px;
 }
 .foot-row {
-  display: flex; flex-wrap: wrap; gap: 12px 24px;
+  display: flex; flex-wrap: wrap; gap: 8px 20px;
   justify-content: space-between; align-items: center;
 }
-.foot-brand { display: flex; align-items: center; gap: 9px; }
+.foot-brand { display: inline-flex; align-items: center; gap: 9px; white-space: nowrap; }
 .foot-brand .brand-dot { width: 9px; height: 9px; border-radius: 3px; box-shadow: none; }
 .foot-copy { color: var(--dim); }
 
-.foot-links { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
-.foot-links a { color: var(--dim); padding: 5px 10px; border-radius: 8px; }
+.foot-links { display: inline-flex; flex-wrap: wrap; gap: 2px; align-items: center; }
+.foot-links a { color: var(--dim); padding: 5px 9px; border-radius: 8px; white-space: nowrap; }
 .foot-links a:hover { color: var(--ink); background: rgba(148, 163, 184, .1); }
 
-/* 法律链接行：直接可点，不用折叠面板 */
+/* 法律链接行：与导航同行，宽屏用左侧竖线分组 */
 .foot-legal-links {
-  display: flex; flex-wrap: wrap; align-items: center; gap: 7px;
-  margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line);
+  display: inline-flex; flex-wrap: wrap; align-items: center; gap: 2px;
 }
-.foot-legal-label {
-  font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase;
-  color: var(--dim); opacity: .75; margin-right: 3px;
+@media (min-width: 900px) {
+  .foot-legal-links { border-left: 1px solid var(--line); padding-left: 18px; }
 }
 .foot-legal-links a {
-  color: var(--dim); font-size: 12px; padding: 4px 11px;
-  border: 1px solid var(--line); border-radius: 999px;
-  transition: color .15s var(--ease), border-color .15s var(--ease), background .15s var(--ease);
+  color: var(--dim); opacity: .85; font-size: 12px; padding: 5px 9px;
+  border-radius: 8px; white-space: nowrap;
+  transition: color .15s var(--ease), background .15s var(--ease), opacity .15s var(--ease);
 }
 .foot-legal-links a:hover {
-  color: var(--ink); border-color: var(--line-strong);
-  background: rgba(148, 163, 184, .08);
+  color: var(--ink); opacity: 1;
+  background: rgba(148, 163, 184, .1);
 }
 
 /* 语言切换：默认显示中文，html[lang="en"] 时切到英文 --------------------- */
