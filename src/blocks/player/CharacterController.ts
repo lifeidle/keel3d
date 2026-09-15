@@ -155,13 +155,30 @@ export class CharacterController {
     const feetY = t.y - (half + this.radius);
     this._grounded = false;
     if (this.vy <= 0.01) {
+      // The ray origin (capsule center) is INSIDE the unit's own collider, and
+      // Rapier reports a toi=0 hit for origins inside a solid — without
+      // excluding it, the "grounded" check is a self-hit that is ALWAYS true
+      // (even in mid-air), and any surface-snap keyed to that hit would push
+      // the unit up every frame. Exclude the own collider.
       const hit = this.physics.raycast(
         { x: t.x, y: t.y, z: t.z },
         { x: 0, y: -1, z: 0 },
         half + this.radius + 0.25,
+        this.unit.collider,
       );
       this._grounded = !!hit;
       if (this._grounded && this.vy < 0) this.vy = 0;
+      if (hit && feetY < hit.point.y - 1e-4) {
+        // Kinematic bodies are placed, never resolved: the solver does not
+        // extrude the capsule out of the floor. Per-frame gravity therefore
+        // ratchets the feet ~extraGravity*dt*dt below the surface every frame
+        // (the grounded check resets vy but not position) → silent 0.2/s sink
+        // through visible terrain. Snap the feet bookkeeping onto the surface
+        // on penetration; the next update() re-places the body there.
+        this._pos.set(t.x, hit.point.y, t.z);
+        this.syncMesh();
+        return;
+      }
     }
     this._pos.set(t.x, feetY, t.z);
     this.syncMesh();
