@@ -3,8 +3,7 @@ dist/
 dist_old*/
 _snapshots/
 shots/
-qa-pixels/
-qa-shots/
+qa-*/
 .tmp/
 .wrangler/
 .workbuddy/
