@@ -1,0 +1,1 @@
+var e=class{amount;onChange;constructor(e={}){this.amount=Math.max(0,e.start??0),this.onChange=e.onChange}get balance(){return this.amount}add(e){return e<=0?this.amount:(this.amount+=e,this.onChange?.(this.amount,e),this.amount)}canAfford(e){return this.amount>=e}spend(e){return e<=0?!0:this.amount<e?!1:(this.amount-=e,this.onChange?.(this.amount,-e),!0)}};export{e as t};

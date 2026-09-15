@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><link rel="icon" href="data:,"><title>士兵模型预览（含步枪）</title>
+<style>body{margin:0;background:#0a0e16;overflow:hidden}#info{position:fixed;top:10px;left:10px;color:#9fb4c8;font:13px monospace;z-index:5}</style>
+</head>
+<body><div id="info">加载中…</div>
+<script type="importmap">
+{ "imports": { "three": "./vendor/three.module.js", "three/addons/": "./vendor/addons/" } }
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0a0e16);
+const cam = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, 0.1, 200);
+const ren = new THREE.WebGLRenderer({ antialias: true });
+ren.setSize(innerWidth, innerHeight);
+document.body.appendChild(ren.domElement);
+scene.add(new THREE.HemisphereLight(0x9db8d8, 0x1a2230, 1.1));
+const key = new THREE.DirectionalLight(0xfff2d8, 2.0);
+key.position.set(4, 8, 4);
+scene.add(key);
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(60, 60),
+  new THREE.MeshStandardMaterial({ color: 0x2a3038, roughness: 1 }));
+ground.rotation.x = -Math.PI / 2;
+ground.receiveShadow = true;
+scene.add(ground);
+
+const loader = new GLTFLoader();
+const info = document.getElementById('info');
+let checks = [];
+
+const soldier = await loader.loadAsync('./models/soldier.glb');
+const root = soldier.scene;
+const bb = new THREE.Box3().setFromObject(root);
+const h = bb.max.y - bb.min.y;
+const sc = h > 0 ? 1.7 / h : 1;
+root.scale.setScalar(sc);
+scene.add(root);
+
+const rifleRes = await loader.loadAsync('./models/rifle.glb');
+const src = rifleRes.scene.children[0] || rifleRes.scene;
+const rifle = src.clone(true);
+const rbb = new THREE.Box3().setFromObject(rifle);
+const rl = Math.max(rbb.max.x - rbb.min.x, rbb.max.z - rbb.min.z, 0.01);
+// same math as the game: the rifle lives inside the scaled root — divide out
+const rs = 0.9 / Math.max(rl * sc, 1e-4);
+rifle.scale.setScalar(rs);
+rifle.position.set(0, -0.02, 0);
+const hand = root.getObjectByName('MiddleHandR');
+if (hand) {
+  hand.add(rifle);
+  checks.push('hand-ok');
+} else {
+  checks.push('hand-MISSING');
+}
+// orient barrel along the soldier facing, grip down (game parity)
+function orientRifle() {
+  if (!hand) return;
+  hand.updateWorldMatrix(true, false);
+  const qh = new THREE.Quaternion(); hand.getWorldQuaternion(qh);
+  const qr = new THREE.Quaternion(); root.getWorldQuaternion(qr);
+  const fwd = new THREE.Vector3(0, 0, 1).applyQuaternion(qr);
+  const vy = new THREE.Vector3(0, 1, 0).addScaledVector(fwd, -fwd.y).normalize();
+  const vz = new THREE.Vector3().crossVectors(fwd, vy).normalize();
+  const mb = new THREE.Matrix4().makeBasis(fwd, vy, vz);
+  const qd = new THREE.Quaternion().setFromRotationMatrix(mb);
+  rifle.quaternion.copy(qh.invert().multiply(qd));
+}
+
+let vcount = 0, vmin = [1e9, 1e9, 1e9], vmax = [-1e9, -1e9, -1e9];
+root.updateMatrixWorld(true);
+rifle.traverse((o) => {
+  if (!o.isMesh || !o.geometry || !o.geometry.attributes.position) return;
+  const p = o.geometry.attributes.position;
+  vcount += p.count;
+  for (let i = 0; i < p.count; i++) {
+    const w = new THREE.Vector3(p.getX(i), p.getY(i), p.getZ(i)).applyMatrix4(o.matrixWorld);
+    for (let d = 0; d < 3; d++) {
+      vmin[d] = Math.min(vmin[d], w.getComponent(d));
+      vmax[d] = Math.max(vmax[d], w.getComponent(d));
+    }
+  }
+});
+checks.push('verts=' + vcount);
+checks.push('extent=' + (vmax[0] - vmin[0]).toFixed(2) + 'm');
+
+const mixer = new THREE.AnimationMixer(root);
+const walk = THREE.AnimationClip.findByName(soldier.animations,
+  'HumanArmature|HumanArmature|Man_Walk');
+if (walk) mixer.clipAction(walk).play();
+checks.push('walk-anim=' + (walk ? 'on' : 'MISSING'));
+
+info.textContent = '士兵 + 步枪 — ' + checks.join(' | ');
+
+// ---- tactical aim pose: lock the arms on the rifle (tunable via __aim)
+window.__aim = { u: 0.6, l: 1.4, ul: 0.6, ll: 1.4 };
+function applyAimPose() {
+  const map = { UpperArmR: 'u', LowerArmR: 'l', UpperArmL: 'ul', LowerArmL: 'll' };
+  for (const name in map) {
+    const b = root.getObjectByName(name);
+    if (b) b.rotation.set(window.__aim[map[name]], 0, 0);
+  }
+}
+window.__gearcheck = () => {
+  const out = {};
+  root.updateMatrixWorld(true);
+  for (const n of ['Helmet', 'HelmetRim', 'Belt', 'PouchL', 'PouchR', 'BootL', 'BootR']) {
+    const o = root.getObjectByName(n);
+    if (o) {
+      const p2 = new THREE.Vector3().setFromMatrixPosition(o.matrixWorld);
+      out[n] = { y: +p2.y.toFixed(2), x: +p2.x.toFixed(2), z: +p2.z.toFixed(2) };
+    } else out[n] = null;
+  }
+  const head = root.getObjectByName('Head');
+  if (head) out.HeadY = +new THREE.Vector3().setFromMatrixPosition(head.matrixWorld).y.toFixed(2);
+  return out;
+};
+window.__aimcheck = () => {
+  const hp = (n) => {
+    const o = root.getObjectByName(n);
+    return o ? new THREE.Vector3().setFromMatrixPosition(o.matrixWorld) : null;
+  };
+  const hr = hp('MiddleHandR'), hl = hp('MiddleHandL');
+  const hp2 = (o) => o ? { y: +o.y.toFixed(2), z: +o.z.toFixed(2), x: +o.x.toFixed(2) } : null;
+  window.__hands = { R: hp2(hr), L: hp2(hl) };
+  const rifleObj = hand ? hand.children[0] : null;
+  const dir = new THREE.Vector3();
+  if (rifleObj) rifleObj.getWorldDirection(dir);
+  const fwd = new THREE.Vector3(0, 0, 1).applyQuaternion(root.quaternion);
+  const yawErr = Math.atan2(dir.x * fwd.z - dir.z * fwd.x, dir.x * fwd.x + dir.z * fwd.z);
+  const h = rifleObj ? new THREE.Vector3().setFromMatrixPosition(rifleObj.matrixWorld).y : -1;
+  return { muzzleYawErrDeg: +(yawErr * 180 / Math.PI).toFixed(1), muzzleHeight: +h.toFixed(2),
+           muzzleDir: dir.toArray().map((v) => +v.toFixed(2)) };
+};
+
+let t = 0;
+const clock = new THREE.Clock();
+(function loop() {
+  requestAnimationFrame(loop);
+  const dt = clock.getDelta();
+  t += dt;
+  mixer.update(dt);
+  applyAimPose();
+  orientRifle();
+  root.rotation.y = Math.sin(t * 0.3) * 0.4;
+  cam.position.set(2.6, 1.1, 0.4);
+  cam.lookAt(0, 0.9, 0);
+  ren.render(scene, cam);
+})();
+</script>
+</body>
+</html>

@@ -63,6 +63,7 @@ export class CharacterController {
   private mesh: THREE.Object3D | null = null;
   private _pos = new THREE.Vector3();
   private _vel = new THREE.Vector3();
+  private _nonPlatform: Set<RAPIER.Collider> | null = null;
 
   constructor(
     private physics: PhysicsWorld,
@@ -107,6 +108,17 @@ export class CharacterController {
 
   get eyeHeight(): number {
     return this.height * 0.9;
+  }
+
+  /**
+   * Mark colliders as NOT platforms for the grounded check — typically other
+   * characters, which a character should not stand on (their bodies are
+   * moving kinematic bodies, and the grounded ray + surface snap would make
+   * this character ride on top of them). The ray still reports them for
+   * everything else (shooting, LOS); only the grounded detection skips them.
+   */
+  setNonPlatformColliders(colliders: RAPIER.Collider[]): void {
+    this._nonPlatform = new Set(colliders);
   }
 
   setMesh(obj: THREE.Object3D): void {
@@ -166,9 +178,13 @@ export class CharacterController {
         half + this.radius + 0.25,
         this.unit.collider,
       );
-      this._grounded = !!hit;
+      // Non-platform colliders (other characters) are NOT ground: a hit on
+      // them means "no ground under me", so both the grounded flag and the
+      // surface snap skip them (the character does not ride on them).
+      const isPlatform = hit && !(this._nonPlatform?.has(hit.collider) ?? false);
+      this._grounded = !!isPlatform;
       if (this._grounded && this.vy < 0) this.vy = 0;
-      if (hit && feetY < hit.point.y - 1e-4) {
+      if (isPlatform && feetY < hit.point.y - 1e-4) {
         // Kinematic bodies are placed, never resolved: the solver does not
         // extrude the capsule out of the floor. Per-frame gravity therefore
         // ratchets the feet ~extraGravity*dt*dt below the surface every frame

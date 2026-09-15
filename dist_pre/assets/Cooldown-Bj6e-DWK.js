@@ -1,0 +1,1 @@
+var e=class{t=0;duration;constructor(e){this.duration=Math.max(0,e)}get ready(){return this.t<=0}get ratio(){return this.duration<=0?0:Math.min(1,this.t/this.duration)}tryFire(){return this.ready?(this.t=this.duration,!0):!1}update(e){this.t>0&&(this.t=Math.max(0,this.t-e))}reset(){this.t=0}};export{e as t};

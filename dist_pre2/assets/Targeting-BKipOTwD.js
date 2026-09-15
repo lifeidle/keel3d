@@ -1,0 +1,1 @@
+function e(e,t,n,r,i={}){let a=i.range??1/0,o=null,s=1/0;for(let c of n){if(c.alive===!1)continue;let n=c.x-e,l=c.z-t,u=Math.hypot(n,l);if(u>a||i.minDot!=null&&i.facingX!=null&&i.facingZ!=null&&u>1e-4&&n/u*i.facingX+l/u*i.facingZ<i.minDot)continue;let d=(i.mode??`nearest`)===`lowestHp`?(r?r(c):0)+u*.001:u;d<s&&(s=d,o=c)}return o}export{e as t};

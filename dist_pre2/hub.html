@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KeeL 3D — 选品类 · 配基底 · 做游戏</title>
+  <meta name="description" content="KeeL 3D（Specul）：WebGPU 三维游戏基座。选择 FPS / 塔防 / 开放世界 / 飞行 / 赛车等形式，查看开发基底与可玩样例。keel.specul.com" />
+  <meta name="theme-color" content="#05080f" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b1220'/%3E%3Cpath d='M18 40 L32 16 L46 40 Z' fill='none' stroke='%236ec8ff' stroke-width='3'/%3E%3Ccircle cx='32' cy='36' r='4' fill='%23ffd27a'/%3E%3C/svg%3E" />
+  <!-- 全站统一品牌外壳。用站点根绝对路径引用：dev 下由 public/brand.css 提供，
+       构建后 Vite 会按 base('./') 重写成 ./brand.css，两种情况下都能命中。 -->
+  <link rel="stylesheet" href="./brand.css" />
+  <style>:root{--bg:#05080f;--bg2:#0a101c;--card:#0d1524;--card2:#121b2c;--line:#94a3b824;--ink:#f4f7fb;--muted:#94a3b8;--accent:#22d3c5;--accent2:#f5c542;--ok:#5dcea0;--warn:#f0a86a;--danger:#e07070;--radius:14px;--font:"Segoe UI", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;--mono:ui-monospace, "Cascadia Code", Consolas, monospace}*{box-sizing:border-box;margin:0;padding:0}html,body{height:100%}body{font-family:var(--font);background:var(--bg);color:var(--ink);min-height:100%;line-height:1.55}a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}[data-theme=light]{--bg:#f4f7fb;--bg2:#eef3fa;--card:#fff;--card2:#f7fafc;--line:#0f172a1f;--ink:#0f172a;--muted:#5b6b82;--accent:#0f766e;--accent2:#a16207;--ok:#15803d;--warn:#b45309;--danger:#b91c1c}.wrap{z-index:1;width:var(--container);margin:0 auto;padding:40px 0 76px;position:relative}header.hero{margin-bottom:28px}.eyebrow{letter-spacing:.08em;text-transform:uppercase;color:var(--accent);border:1px solid var(--line);border-radius:999px;margin-bottom:14px;padding:4px 10px;font-size:12px;display:inline-block}h1{letter-spacing:-.02em;background:var(--grad-text);color:#0000;-webkit-background-clip:text;background-clip:text;margin-bottom:10px;font-size:clamp(26px,4vw,38px);font-weight:650;line-height:1.2}.lede{color:var(--muted);max-width:52em;font-size:15px}.lede strong{color:var(--ink);font-weight:600}.flow{flex-wrap:wrap;gap:10px;margin:18px 0 8px;display:flex}.flow-step{background:var(--bg2);border:1px solid var(--line);color:var(--muted);border-radius:10px;padding:8px 12px;font-size:13px}.flow-step b{color:var(--accent2);margin-right:6px;font-weight:600}.doclinks{color:var(--muted);flex-wrap:wrap;align-items:center;gap:14px;margin-top:12px;font-size:12.5px;display:flex}.doclinks a{color:var(--muted);border-bottom:1px solid var(--line)}.doclinks a:hover{color:var(--accent);border-bottom-color:var(--accent);text-decoration:none}h2.section{letter-spacing:-.01em;align-items:center;gap:10px;margin:36px 0 16px;font-size:19px;font-weight:700;display:flex}h2.section:before{content:"";background:var(--accent);border-radius:3px;flex-shrink:0;width:3px;height:17px}h2.section:after{content:"";background:var(--line);flex:1;height:1px}.grid{grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;display:grid}.card{background:linear-gradient(180deg, var(--card) 0%, var(--card2) 100%);border:1px solid var(--line);border-radius:var(--radius);cursor:pointer;text-align:left;color:inherit;font:inherit;width:100%;padding:16px 16px 14px;transition:border-color .15s,transform .15s,box-shadow .15s}.card:hover,.card:focus-visible{border-color:var(--accent);outline:none;transform:translateY(-1px);box-shadow:0 8px 24px #00000040}.card.active{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent), 0 10px 28px #22d3c51f}.card .icon{border:1px solid var(--line);background:#22d3c51a;border-radius:10px;place-items:center;width:42px;height:42px;margin-bottom:12px;font-size:20px;display:grid}.card h3{margin-bottom:4px;font-size:16px;font-weight:600}.card p{color:var(--muted);min-height:2.6em;margin-bottom:10px;font-size:13px}.tags{flex-wrap:wrap;gap:6px;display:flex}.tag{color:var(--muted);border:1px solid var(--line);background:#00000026;border-radius:999px;padding:2px 8px;font-size:11px}.detail{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);margin-top:18px;overflow:hidden}.detail-head{border-bottom:1px solid var(--line);flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:12px;padding:18px 20px 12px;display:flex}.detail-head h3{margin-bottom:4px;font-size:20px}.detail-head .sub{color:var(--muted);font-size:13px}.actions{flex-wrap:wrap;gap:8px;display:flex}.btn{border:1px solid var(--line);background:var(--bg2);color:var(--ink);cursor:pointer;border-radius:10px;align-items:center;gap:6px;padding:9px 14px;font-size:13px;font-weight:600;text-decoration:none;display:inline-flex}.btn:hover{border-color:var(--accent);text-decoration:none}.btn.primary{color:#fff;background:linear-gradient(135deg,#a78bfa,#22d3c5);border-color:#0000}.btn.primary:hover{filter:brightness(1.08)}.btn code{font-family:var(--mono);font-size:12px;font-weight:500}.detail-body{grid-template-columns:1.1fr 1fr;gap:0;display:grid}@media (width<=800px){.detail-body{grid-template-columns:1fr}}.panel{padding:16px 20px 20px}.panel+.panel{border-left:1px solid var(--line)}@media (width<=800px){.panel+.panel{border-left:none;border-top:1px solid var(--line)}}.panel h4{text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:12px;font-size:12px}.kv{gap:8px;display:grid}.kv-row{border-bottom:1px dashed #94a3b82e;grid-template-columns:88px 1fr;gap:10px;padding:8px 0;font-size:13px;display:grid}.kv-row:last-child{border-bottom:none}.kv-row dt{color:var(--muted)}.kv-row dd{color:var(--ink)}.block-list{gap:8px;list-style:none;display:grid}.block-list li{border:1px solid var(--line);background:#0000002e;border-radius:10px;align-items:flex-start;gap:10px;padding:10px 12px;font-size:13px;display:flex}.block-list li b{font-family:var(--mono);color:var(--accent);min-width:7.5em;font-size:12px}.block-list li span{color:var(--muted);flex:1}.cmd{border:1px solid var(--line);font-family:var(--mono);color:#b8e0a8;white-space:pre-wrap;word-break:break-all;background:#0a101c;border-radius:10px;margin-top:12px;padding:10px 12px;font-size:12px;line-height:1.6}.cmd .copy-hint{float:right;color:var(--muted);font-family:var(--font);margin-left:12px;font-size:11px}.note{color:var(--muted);border-left:3px solid var(--line);margin-top:16px;padding-left:12px;font-size:12px}.note strong{color:var(--warn);font-weight:600}footer{border-top:1px solid var(--line);color:var(--muted);flex-wrap:wrap;justify-content:space-between;gap:12px 20px;margin-top:40px;padding-top:18px;font-size:12px;display:flex}.toast{border:1px solid var(--accent);color:var(--ink);opacity:0;pointer-events:none;z-index:50;background:#1a283f;border-radius:999px;padding:10px 18px;font-size:13px;transition:opacity .2s,transform .2s;position:fixed;bottom:24px;left:50%;transform:translate(-50%)translateY(20px)}.toast.show{opacity:1;transform:translate(-50%)translateY(0)}[data-theme=light] .tag,[data-theme=light] .block-list li{background:#0f172a0a}[data-theme=light] .card .icon{background:#0f766e14}[data-theme=light] .card{background:var(--card)}[data-theme=light] .flow-step,[data-theme=light] .btn:not(.primary){background:#fff}[data-theme=light] .btn:not(.primary):hover{background:var(--bg2)}[data-theme=light] .kv-row{border-bottom-color:#0f172a1a}[data-theme=light] .card:hover,[data-theme=light] .card:focus-visible{box-shadow:0 10px 26px -14px #0f172a47}[data-theme=light] .card.active{box-shadow:0 0 0 1px var(--accent), 0 10px 26px -16px #0f766e80}[data-theme=light] .eyebrow{border-color:#0f766e52}[data-theme=light] .cmd .copy-hint{color:#e2e8f0b3}[data-theme=light] .toast{border-color:var(--line-strong);background:#fff;box-shadow:0 12px 30px -14px #0f172a59}[data-theme=light] .detail{box-shadow:var(--shadow)}</style>
+</head>
+<body class="brand-ambient">
+  <header class="site-header">
+    <div class="container site-bar">
+      <a class="brand" href="https://keel.specul.com/" title="龙骨 Keel">
+        <span class="brand-dot" aria-hidden="true"></span>
+        <span class="brand-text">
+          <span class="brand-name">KEEL</span>
+          <span class="brand-sub" id="markSub"
+                data-zh-sub="3D · 游戏基座" data-en-sub="3D · game framework">3D · 游戏基座</span>
+        </span>
+      </a>
+      <nav class="nav-links" aria-label="站点导航">
+        <a href="https://specul.com/">首页</a>
+        <a href="https://specul.com/nav.html">导航</a>
+        <a href="https://keel.specul.com/">龙骨 Keel</a>
+        <span class="nav-tools">
+          <button class="icon-btn" id="themeBtn" type="button" aria-label="切换明暗主题">☾</button>
+          <button class="icon-btn" id="langBtn" type="button" aria-label="Switch language">EN</button>
+        </span>
+      </nav>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <header class="hero">
+      <div class="eyebrow">KeeL 3D · Specul · WebGPU · <a href="https://github.com/lifeidle/keel3d" target="_blank" rel="noopener">GitHub</a></div>
+      <h1>选骨架 → 看开发基底 → 做出你的游戏</h1>
+      <p class="lede">
+        框架提供<strong>循环 / 物理 / 渲染 / 输入 / 地图 / 相机 / 积木</strong>；
+        你只需要选一种<strong>骨架类型</strong>，下面会列出该形式的<strong>基底配置</strong>（视角、地图、可拼积木），
+        以及可玩样例与脚手架命令。不用的功能不会进入你的包。
+      </p>
+      <div class="flow">
+        <div class="flow-step"><b>15 分钟</b>见 docs/GETTING_STARTED.md · 先玩 <a href="./roguelike.html">Roguelike 旗舰</a></div>
+        <div class="flow-step"><b>1</b>选择形式</div>
+        <div class="flow-step"><b>2</b>查看基底与积木</div>
+        <div class="flow-step"><b>3</b>npm run new-game -- --recipe</div>
+        <div class="flow-step"><b>4</b>只 import 你需要的模块</div>
+      </div>
+      <div class="doclinks">
+        <span>文档：</span>
+        <a href="https://github.com/lifeidle/keel3d#readme">README</a>
+        <a href="https://github.com/lifeidle/keel3d/blob/master/docs/QUICKSTART.md">Quickstart</a>
+        <a href="https://github.com/lifeidle/keel3d/blob/master/docs/BLOCKS.md">积木手册</a>
+        <a href="https://github.com/lifeidle/keel3d/blob/master/docs/RECIPES.md">配方说明</a>
+      </div>
+    </header>
+
+    <h2 class="section">游戏形式</h2>
+    <div class="grid" id="genre-grid" role="listbox" aria-label="游戏形式"></div>
+
+    <div class="detail" id="detail" aria-live="polite">
+      <div class="detail-head">
+        <div>
+          <h3 id="d-title">—</h3>
+          <div class="sub" id="d-sub"></div>
+        </div>
+        <div class="actions" id="d-actions"></div>
+      </div>
+      <div class="detail-body">
+        <div class="panel">
+          <h4>开发基底（GameSpec）</h4>
+          <dl class="kv" id="d-spec"></dl>
+          <div class="cmd" id="d-cmd" title="点击复制"></div>
+          <p class="note" id="d-note"></p>
+        </div>
+        <div class="panel">
+          <h4>建议拼装的积木（按需 import）</h4>
+          <ul class="block-list" id="d-blocks"></ul>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="section">通用基底（所有形式都带）</h2>
+    <div class="grid">
+      <div class="card" style="cursor:default">
+        <div class="icon">⚙️</div>
+        <h3>L1 内核</h3>
+        <p>WebGPU 渲染 · 固定步长物理 · 输入 · 画质动态分辨率 · 资产/音频</p>
+        <div class="tags"><span class="tag">Engine</span><span class="tag">Rapier</span><span class="tag">Quality</span></div>
+      </div>
+      <div class="card" style="cursor:default">
+        <div class="icon">🧱</div>
+        <h3>L2 积木</h3>
+        <p>Pool · Path · Steering · GridAStar · CameraRig · Unit · ChunkWorld · MapBuilder</p>
+        <div class="tags"><span class="tag">按需 import</span><span class="tag">零自动注册</span></div>
+      </div>
+      <div class="card" style="cursor:default">
+        <div class="icon">🚀</div>
+        <h3>脚手架</h3>
+        <p><code style="font-family:var(--mono);font-size:12px">npm run new-game &lt;id&gt;</code> 生成目录并注册路由</p>
+        <div class="tags"><span class="tag">registry</span><span class="tag">defineGame</span></div>
+      </div>
+    </div>
+
+    <footer class="site-footer">
+      <div class="container foot-row">
+          <div class="foot-brand">
+            <span class="brand-dot" aria-hidden="true"></span>
+            <span class="foot-copy">© 2026 Specul · 投机 · 推演</span>
+          </div>
+          <nav class="foot-links" aria-label="页脚导航">
+            <a href="https://specul.com/">首页</a>
+            <a href="https://specul.com/nav.html">导航</a>
+            <a href="https://keel.specul.com/">龙骨 Keel</a>
+            <a href="https://github.com/lifeidle/keel3d" target="_blank" rel="noopener">GitHub</a>
+          </nav>
+        <nav class="foot-legal-links" aria-label="法律">
+
+          <a href="https://specul.com/legal.html">法律条款</a>
+          <a href="https://specul.com/legal.html#s6">免责声明</a>
+          <a href="https://specul.com/legal.html#s8">隐私与本地存储</a>
+          <a href="https://keel.specul.com/credits.html">素材与致谢</a>
+        </nav>
+      </div>
+    </footer>
+  </div>
+
+  <div class="toast" id="toast">已复制</div>
+
+  <script src="./brand.js" defer></script>
+
+  <script>
+    /** @type {Array<any>} */
+    const GENRES = [
+    /* CATALOG:BEGIN hub-genres — generated by node scripts/catalog-gen.mjs; edit src/catalog/catalog.json instead */
+      {
+        id: 'nightraid', icon: '🎖️', title: 'FPS 完整战役 · Night Raid',
+        blurb: '旗舰样例：完整第一人称战役，多武器/敌人 AI/载具/天气/昼夜。',
+        tags: ['fps', 'campaign', 'flagship'],
+        demo: './fps.html',
+        spec: { camera: 'fps', map: 'seeded', boot: '特殊启动路径' },
+        cmd: 'npm run new-game myfps -- --recipe fps-arena --html',
+        createCmd: 'npm create keel3d@latest my-fps -- --recipe fps-arena',
+        note: '完整战役见 fps.html（nightraid 专属启动路径，不走 defineGame 内容包）。想从零做 FPS 请用 fps-arena 配方。',
+        blocks: [['EnemyAI', '敌军 AI'], ['Arsenal', '武器库'], ['TrackedVehicle', '载具'], ['Weather', '天气'], ['TimeOfDay', '昼夜']],
+        thumb: null,
+        status: 'playable',
+      },
+      {
+        id: 'fps', icon: '🎯', title: 'FPS 骨架',
+        blurb: '轻量第一人称靶场 · 目标会反击 · 血条/飘字/结算。',
+        tags: ['fps', 'hitscan', 'recipe'],
+        demo: './fps-arena.html',
+        spec: { camera: 'fps', create: 'fpsArenaRecipe' },
+        cmd: 'npm run new-game myfps -- --recipe fps-arena --html',
+        createCmd: 'npm create keel3d@latest my-fps -- --recipe fps-arena',
+        note: '完整战役见 fps.html。竞技场：击杀 15 得胜；空格/J 射击，R 换弹，受击有红闪。',
+        blocks: [['pickTarget', '选敌'], ['Cooldown', '射速'], ['HealthBar', '血条'], ['DamageNumber', '飘字'], ['EndOverlay', '结算']],
+        thumb: null,
+        status: 'playable',
+      },
+      {
+        id: 'td', icon: '🏰', title: '塔防骨架',
+        blurb: '3 图连关 · 放塔可升级/售卖 · 波次经济。',
+        tags: ['fixed', 'orbit', 'Path', 'campaign'],
+        demo: './tower.html',
+        spec: { camera: 'orbit', map: 'fixed + Path' },
+        cmd: 'npm run new-game mytd -- --recipe td --html',
+        createCmd: 'npm create keel3d@latest my-td -- --recipe td',
+        note: '3 图连关（S 弯→双 S→蛇形），清全部波次进下一图：塔按 50% 退款、金钱保留、敌 HP 每图 +15；基地 180 秒内被毁则负。1/2/3 选塔，左键放置/升级，右键售卖，R 重开。',
+        blocks: [['Path', '车道'], ['WaveDirector', '波次'], ['Economy', '金币'], ['BuildSystem', '升级/卖'], ['PlaceGrid', '格子']],
+        thumb: null,
+        status: 'playable',
+      },
+      {
+        id: 'open', icon: '🌄', title: '开放世界',
+        blurb: 'chunk 流式 · 目标链（灵珠·突破·妖兽）· 视角 1/2/3。',
+        tags: ['stream', 'ChunkWorld', 'goal-chain'],
+        demo: './openworld.html',
+        spec: { camera: 'chase/orbit/fps', map: 'stream' },
+        cmd: 'npm run new-game myworld -- --recipe openworld --html',
+        createCmd: 'npm create keel3d@latest my-world -- --recipe openworld',
+        note: '8 字巡行目标链：拾灵珠×3 → 中央台修炼突破筑基 → 妖兽×3 齐至，全部达成即完成（修炼×2）。1/2/3 切视角。',
+        blocks: [['ChunkWorld', '环加载'], ['Pickup', '拾取'], ['TriggerZone', '触发'], ['QuestTracker', '目标链']],
+        thumb: null,
+        status: 'playable',
+      },
+      {
+        id: 'arpg', icon: '⚔️', title: '俯视 ARPG 骨架',
+        blurb: 'WASD · 近战/弹道/旋风斩 · 掉落金币与装备 · 任务追踪。',
+        tags: ['orbit', 'combat', 'gear'],
+        demo: './arpg.html',
+        spec: { camera: 'orbit' },
+        cmd: 'npm run new-game myarpg -- --recipe arpg --html',
+        createCmd: 'npm create keel3d@latest my-arpg -- --recipe arpg',
+        note: '击杀 12 得胜。空格/J 攻击，K 旋风斩，I 背包；敌人掉落武器/护甲，拾取自动比较穿戴（更强则换、否则卖 5 金）；受伤有闪屏。',
+        blocks: [['Cooldown', 'CD'], ['pickTarget', '选敌'], ['Projectile', '弹道'], ['areaHits', '旋风斩'], ['WorldBar', '敌血条'], ['Pickup', '装备掉落']],
+        thumb: null,
+        status: 'playable',
+      },
+      {
+        id: 'collect', icon: '✨', title: '收集骨架',
+        blurb: '捡满目标后回金圈交付。',
+        tags: ['Pickup', 'TriggerZone'],
+        demo: './collect.html',
+        spec: { camera: 'chase' },
+        cmd: 'npm run new-game mycol -- --recipe collect --html',
+        createCmd: 'npm create keel3d@latest my-collect -- --recipe collect',
+        note: '60 秒内收满灵珠回金圈。WASD 移动，R 重开。',
+        blocks: [['PickupField', '自动拾取'], ['TriggerZone', '交付'], ['RunState', '局内统计'], ['EndOverlay', '结算']],
+        thumb: null,
+        status: 'playable',
+      },
+      {
+        id: 'rally', icon: '🏁', title: '拉力赛骨架',
+        blurb: '检查点顺序 · 最佳圈速存档。',
+        tags: ['Path', 'SaveSlot'],
+        demo: './rally.html',
+        spec: { camera: 'chase' },
+        cmd: 'npm run new-game myrally -- --recipe rally --html',
+        createCmd: 'npm create keel3d@latest my-rally -- --recipe rally',
+        note: '按序穿光圈冲线才算完整圈；比最佳圈速。',
+        blocks: [['BestScoreSlot', '最佳成绩'], ['TriggerZone', '检查点'], ['Toast', '圈速提示']],
+        thumb: null,
+        status: 'playable',
+      },
+      {
+        id: 'dungeon', icon: '🗝️', title: '地牢骨架',
+        blurb: '多房间门锁 · 简易 Boss。',
+        tags: ['Interactable', 'rooms'],
+        demo: './dungeon.html',
+        spec: { camera: 'chase' },
+        cmd: 'npm run new-game mydgn -- --recipe dungeon --html',
+        createCmd: 'npm create keel3d@latest my-dungeon -- --recipe dungeon',
+        note: '清怪开门到 Boss 房，击杀 Boss 后去出口。E/F 开门，J/空格 打 Boss，R 重开。',
+        blocks: [['Interactable', '开门'], ['TriggerZone', '出口'], ['LevelTable', '房间链'], ['MinimapDots', '小地图']],
+        thumb: null,
+        status: 'playable',
+      },
+      {
+        id: 'flight', icon: '✈️', title: '飞行',
+        blurb: '零重力探索飞行 · 可扩展空战。',
+        tags: ['air', 'chase'],
+        demo: './flight.html',
+        spec: { camera: 'chase', player: 'air' },
+        cmd: 'npm run new-game myflight -- --recipe flight --html',
+        createCmd: 'npm create keel3d@latest my-flight -- --recipe flight',
+        note: '探索飞行（8 字/圆周自动航线）；空战见 flight-arena。',
+        blocks: [['CameraRig', '跟机'], ['Path', '航线']],
+        thumb: null,
+        status: 'playable',
+      },
+      {
+        id: 'flight-arena', icon: '🛩️', title: '空战骨架',
+        blurb: '空中缠斗 · 敌机波次 · 弹道射击。',
+        tags: ['air', 'combat', 'recipe'],
+        demo: './flight-arena.html',
+        spec: { camera: 'chase', player: 'air', create: 'flightArenaRecipe' },
+        cmd: 'npm run new-game myfa -- --recipe flight-arena --html',
+        createCmd: 'npm create keel3d@latest my-flight-arena -- --recipe flight-arena',
+        note: 'WASD 飞行，空格/J 射击。原为未在 hub 列出的页面，本版补齐。',
+        blocks: [['Projectile', '弹道'], ['pickTarget', '选敌'], ['CameraRig', '跟机']],
+        thumb: null,
+        status: 'skeleton',
+      },
+      {
+        id: 'race', icon: '🏎️', title: '赛车',
+        blurb: '环线赛道 · 圈速与最佳圈。',
+        tags: ['vehicle', 'fixed'],
+        demo: './race.html',
+        spec: { camera: 'chase', player: 'vehicle' },
+        cmd: 'npm run new-game myrace -- --recipe race --html',
+        createCmd: 'npm create keel3d@latest my-race -- --recipe race',
+        note: '环线自动巡航记圈速；按序检查点见 rally 配方。',
+        blocks: [['Path', '中心线'], ['BestScoreSlot', '圈速']],
+        thumb: null,
+        status: 'playable',
+      },
+      {
+        id: 'tps', icon: '🧍', title: '第三人称 TPS',
+        blurb: '肩扛视角 · CharacterController · 手柄 · 射击。',
+        tags: ['tps', 'shoulder', 'gamepad'],
+        demo: './tps.html',
+        spec: { camera: 'shoulder', create: 'tpsRecipe' },
+        cmd: 'npm run new-game mytps -- --recipe tps --html',
+        createCmd: 'npm create keel3d@latest my-tps -- --recipe tps',
+        note: '肩扛第三人称。击杀 12 得胜；Shift 跳，空格/J 射击，R 换弹/重开。',
+        blocks: [['CharacterController', '移动'], ['Gamepad', '手柄'], ['Arsenal', '弹匣'], ['shoulder', '肩扛相']],
+        thumb: null,
+        status: 'playable',
+      },
+      {
+        id: 'rogue', icon: '🗡️', title: 'Roguelike · 无尽下潜',
+        blurb: '清首领下潜 · 越深敌人越强 · 战利品背包。',
+        tags: ['roguelike', 'procgen', 'endless'],
+        demo: './roguelike.html',
+        spec: { camera: 'orbit', create: 'roguelikeRecipe' },
+        cmd: 'npm run new-game myrogue -- --recipe roguelike --html',
+        createCmd: 'npm create keel3d@latest my-rogue -- --recipe roguelike',
+        note: '清房 → 补给 → Boss → 下潜一层（敌人更强，HP/背包延续）。空格攻击，E 喝药，I 背包，R 重开。',
+        blocks: [['ProcDungeon', '地牢'], ['LootTable', '掉落'], ['Inventory', '背包'], ['SaveSlot', '最深层']],
+        thumb: null,
+        status: 'playable',
+      },
+      {
+        id: 'plat', icon: '🪜', title: '平台跳跃',
+        blurb: '跳跃平台 · 登顶旗。',
+        tags: ['platformer', 'jump'],
+        demo: './platformer.html',
+        spec: { camera: 'chase', create: 'platformerRecipe' },
+        cmd: 'npm run new-game myplat -- --recipe platformer --html',
+        createCmd: 'npm create keel3d@latest my-platformer -- --recipe platformer',
+        note: '3 条命登顶。WASD + 空格/Shift 跳，坠落回出生点，R 重开。',
+        blocks: [['CharacterController', '跳跃'], ['TriggerZone', '终点']],
+        thumb: null,
+        status: 'playable',
+      },
+      {
+        id: 'tycoon', icon: '🏗️', title: '城建经营',
+        blurb: '点地建造 · 产出金币 · 人口。',
+        tags: ['tycoon', 'build'],
+        demo: './tycoon.html',
+        spec: { camera: 'orbit', create: 'tycoonRecipe' },
+        cmd: 'npm run new-game mytycoon -- --recipe tycoon --html',
+        createCmd: 'npm create keel3d@latest my-tycoon -- --recipe tycoon',
+        note: '人口达到 50 获胜。1/2/3 选建筑，点空地建造，R 重开。',
+        blocks: [['PlaceGrid', '地块'], ['BuildSystem', '建造'], ['Economy', '经济']],
+        thumb: null,
+        status: 'playable',
+      },
+      {
+        id: 'rts', icon: '🗺️', title: 'RTS-lite',
+        blurb: '选中 · 下令 · 两军交战。',
+        tags: ['rts', 'faction'],
+        demo: './rts.html',
+        spec: { camera: 'orbit', create: 'rtsLiteRecipe' },
+        cmd: 'npm run new-game myrts -- --recipe rts-lite --html',
+        createCmd: 'npm create keel3d@latest my-rts -- --recipe rts-lite',
+        note: '消灭红方全部单位。左键选中，右键下令，R 重开。',
+        blocks: [['FactionMap', '阵营'], ['Steering', '移动']],
+        thumb: null,
+        status: 'playable',
+      },
+      {
+        id: 'stealth', icon: '🥷', title: '潜行',
+        blurb: '躲开视锥守卫 · 抵达出口。',
+        tags: ['stealth', 'vision'],
+        demo: './stealth.html',
+        spec: { camera: 'chase', create: 'stealthRecipe' },
+        cmd: 'npm run new-game mystealth -- --recipe stealth --html',
+        createCmd: 'npm create keel3d@latest my-stealth -- --recipe stealth',
+        note: '不被发现抵达出口。WASD 移动，空格会发出噪声，R 重开。',
+        blocks: [['VisionCone', '视锥'], ['NoiseEmitter', '噪声']],
+        thumb: null,
+        status: 'playable',
+      },
+      {
+        id: 'arena', icon: '💥', title: '载具对战',
+        blurb: '驾驶载具 · 主炮 + 范围冲击。',
+        tags: ['vehicle', 'combat'],
+        demo: './arena.html',
+        spec: { camera: 'chase', player: 'vehicle', create: 'combatArenaRecipe' },
+        cmd: 'npm run new-game myarena -- --recipe combat-arena --html',
+        createCmd: 'npm create keel3d@latest my-arena -- --recipe combat-arena',
+        note: '驾驶击落 10 架无人机。WASD 驾驶，空格/J 主炮，K 冲击，R 重开。',
+        blocks: [['Arsenal', '弹药'], ['areaHits', 'AOE'], ['Gamepad', '手柄']],
+        thumb: null,
+        status: 'playable',
+      },
+      {
+        id: 'rhythm', icon: '🎵', title: '音游',
+        blurb: 'BPM 网格 · 节拍判定。',
+        tags: ['rhythm', 'beat'],
+        demo: './rhythm.html',
+        spec: { camera: 'orbit', create: 'rhythmRecipe' },
+        cmd: 'npm run new-game myrhythm -- --recipe rhythm --html',
+        createCmd: 'npm create keel3d@latest my-rhythm -- --recipe rhythm',
+        note: '空格/J 卡拍，连击 20 获胜；失误断连击，R 重开。',
+        blocks: [['BeatClock', '节拍']],
+        thumb: null,
+        status: 'playable',
+      },
+      {
+        id: 'sandbox', icon: '🧊', title: '体素沙盒',
+        blurb: '点击放置/破坏方块。',
+        tags: ['voxel', 'sandbox'],
+        demo: './sandbox.html',
+        spec: { camera: 'orbit', create: 'sandboxRecipe' },
+        cmd: 'npm run new-game mysandbox -- --recipe sandbox --html',
+        createCmd: 'npm create keel3d@latest my-sandbox -- --recipe sandbox',
+        note: '放置 10 块达成；点击放/挖，X 切换，1-5 选色，R 重开。',
+        blocks: [['VoxelChunk', '体素']],
+        thumb: null,
+        status: 'playable',
+      },
+      {
+        id: 'br', icon: '☠️', title: 'BR-lite',
+        blurb: '毒圈收缩 · 单人生存。',
+        tags: ['br', 'shrink'],
+        demo: './br.html',
+        spec: { camera: 'chase', create: 'brLiteRecipe' },
+        cmd: 'npm run new-game mybr -- --recipe br-lite --html',
+        createCmd: 'npm create keel3d@latest my-br -- --recipe br-lite',
+        note: '毒圈内存活到最后。WASD + 射击，R 重开。',
+        blocks: [['ShrinkZone', '毒圈'], ['Arsenal', '武器']],
+        thumb: null,
+        status: 'playable',
+      },
+      {
+        id: 'puzzle', icon: '🧩', title: '物理益智',
+        blurb: '推箱/触发机关。',
+        tags: ['physics', 'puzzle'],
+        demo: './puzzle.html',
+        spec: { camera: 'orbit', create: 'puzzleRecipe' },
+        cmd: 'npm run new-game mypuzzle -- --recipe puzzle --html',
+        createCmd: 'npm create keel3d@latest my-puzzle -- --recipe puzzle',
+        note: '把箱子推到金点。WASD 推箱，R 重开。',
+        blocks: [['TriggerZone', '机关']],
+        thumb: null,
+        status: 'playable',
+      },
+      {
+        id: 'sports', icon: '⚽', title: '体育 lite',
+        blurb: '带球入门 · 队伍得分。',
+        tags: ['sports', 'ball'],
+        demo: './sports.html',
+        spec: { camera: 'chase', create: 'sportsRecipe' },
+        cmd: 'npm run new-game mysports -- --recipe sports --html',
+        createCmd: 'npm create keel3d@latest my-sports -- --recipe sports',
+        note: '先到 3 球获胜。WASD 靠近球推射，R 重开。',
+        blocks: [['FactionMap', '队伍'], ['Scoreboard', '比分']],
+        thumb: null,
+        status: 'playable',
+      },
+      {
+        id: 'blank', icon: '📦', title: '空白模板',
+        blurb: '最少代码起点。',
+        tags: ['template'],
+        demo: './template.html',
+        spec: { camera: 'orbit' },
+        cmd: 'npm run new-game mygame -- --title "My Game" --html',
+        createCmd: 'npm create keel3d@latest my-game -- --template blank',
+        note: '最简可运行入口：一个相机 + 一张地图。从这里开始写你自己的系统，不需要的积木不会进包。',
+        blocks: [['CameraRig', '视角'], ['MapBuilder', '地图']],
+        thumb: null,
+        status: 'template',
+      }
+    /* CATALOG:END hub-genres */
+    ];
+
+    const grid = document.getElementById('genre-grid');
+    const toast = document.getElementById('toast');
+    let current = 0;
+
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.classList.add('show');
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => toast.classList.remove('show'), 1600);
+    }
+
+    async function copyCmd(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+        showToast('命令已复制');
+      } catch {
+        showToast(text);
+      }
+    }
+
+    function renderCards() {
+      grid.innerHTML = '';
+      GENRES.forEach((g, i) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'card' + (i === current ? ' active' : '');
+        btn.setAttribute('role', 'option');
+        btn.setAttribute('aria-selected', i === current ? 'true' : 'false');
+        btn.innerHTML =
+          `<div class="icon">${g.icon}</div>` +
+          `<h3>${g.title}</h3><p>${g.blurb}</p>` +
+          `<div class="tags">${g.tags.map((t) => `<span class="tag">${t}</span>`).join('')}</div>`;
+        btn.addEventListener('click', () => {
+          current = i;
+          renderCards();
+          renderDetail();
+          document.getElementById('detail').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        });
+        grid.appendChild(btn);
+      });
+    }
+
+    function renderDetail() {
+      const g = GENRES[current];
+      document.getElementById('d-title').textContent = `${g.icon} ${g.title}`;
+      document.getElementById('d-sub').textContent = g.blurb;
+
+      const actions = document.getElementById('d-actions');
+      actions.innerHTML = '';
+      const play = document.createElement('a');
+      play.className = 'btn primary';
+      play.href = g.demo;
+      play.textContent = '试玩样例 →';
+      actions.appendChild(play);
+      const copy = document.createElement('button');
+      copy.type = 'button';
+      copy.className = 'btn';
+      copy.innerHTML = '复制脚手架命令';
+      copy.addEventListener('click', () => copyCmd(g.cmd));
+      actions.appendChild(copy);
+
+      const spec = document.getElementById('d-spec');
+      spec.innerHTML = Object.entries(g.spec)
+        .map(
+          ([k, v]) =>
+            `<div class="kv-row"><dt>${k}</dt><dd><code style="font-family:var(--mono);font-size:12px">${v}</code></dd></div>`,
+        )
+        .join('');
+
+      const cmd = document.getElementById('d-cmd');
+      cmd.innerHTML = `${g.cmd}<span class="copy-hint">点击复制</span>`;
+      cmd.onclick = () => copyCmd(g.cmd);
+
+      document.getElementById('d-note').innerHTML = `<strong>注意</strong> · ${g.note}`;
+
+      const blocks = document.getElementById('d-blocks');
+      blocks.innerHTML = g.blocks
+        .map(
+          ([n, d]) =>
+            `<li><b>${n}</b><span>${d}</span></li>`,
+        )
+        .join('');
+    }
+
+    renderCards();
+    renderDetail();
+  </script>
+</body>
+</html>

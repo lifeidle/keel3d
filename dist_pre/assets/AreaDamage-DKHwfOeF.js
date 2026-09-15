@@ -1,0 +1,1 @@
+function e(e,t,n,r,i=0,a){let o=[];for(let i of r){if(i.alive===!1||a&&a(i))continue;let r=Math.hypot(i.x-e,i.z-t);r<=n&&o.push({target:i,distance:r})}return o}export{e as t};

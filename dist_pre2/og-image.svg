@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0a0e16"/>
+      <stop offset="1" stop-color="#11161f"/>
+    </linearGradient>
+    <radialGradient id="moonGlow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#bfd4ff" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#bfd4ff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- moon -->
+  <circle cx="980" cy="150" r="150" fill="url(#moonGlow)"/>
+  <circle cx="980" cy="150" r="74" fill="#bfd4ff"/>
+  <circle cx="1012" cy="132" r="68" fill="#0a0e16"/>
+
+  <!-- faint ground grid -->
+  <g stroke="#1d2735" stroke-width="2" opacity="0.6">
+    <line x1="0" y1="500" x2="1200" y2="500"/>
+    <line x1="0" y1="540" x2="1200" y2="540"/>
+    <line x1="0" y1="585" x2="1200" y2="585"/>
+    <line x1="150" y1="500" x2="40" y2="630"/>
+    <line x1="450" y1="500" x2="380" y2="630"/>
+    <line x1="750" y1="500" x2="790" y2="630"/>
+    <line x1="1050" y1="500" x2="1160" y2="630"/>
+  </g>
+
+  <!-- title -->
+  <text x="90" y="300" font-family="'Noto Serif SC','Songti SC',serif" font-size="150" font-weight="700" fill="#eef2e8" letter-spacing="14">夜 袭</text>
+  <text x="96" y="360" font-family="Arial,Helvetica,sans-serif" font-size="40" letter-spacing="10" fill="#8a9bb5">NIGHT RAID · 夜战行动</text>
+
+  <!-- accent rule + tagline -->
+  <rect x="96" y="392" width="120" height="6" rx="3" fill="#c0463a"/>
+  <text x="96" y="448" font-family="Arial,Helvetica,sans-serif" font-size="30" fill="#aeb6c4">离线可玩的 Three.js 夜战 FPS · 种子化随机战场</text>
+  <text x="96" y="488" font-family="Arial,Helvetica,sans-serif" font-size="26" fill="#7e8794">An offline, seeded night-raid FPS built with Three.js</text>
+</svg>

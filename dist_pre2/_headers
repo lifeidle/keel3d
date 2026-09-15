@@ -1,0 +1,15 @@
+# Cloudflare Pages headers (copied from /public into the build output).
+#
+# NOTE: This project uses @dimforge/rapier3d-COMPAT, whose WASM is inlined as
+# base64 and therefore runs WITHOUT cross-origin isolation (no SharedArrayBuffer).
+# That means it works on Cloudflare Pages AND plain static hosting.
+#
+# Uncomment the COOP/COEP pair only when switching to a SharedArrayBuffer-capable
+# Rapier build. Keep compat until a preview-domain full regression passes.
+
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: no-referrer
+  # Cross-Origin-Opener-Policy: same-origin
+  # Cross-Origin-Embedder-Policy: require-corp

@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://keel.specul.com/3d/sitemap.xml

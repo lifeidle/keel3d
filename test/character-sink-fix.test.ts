@@ -55,8 +55,23 @@ test('grounded raycast excludes the unit own collider (no toi=0 self-hit)', () =
     'own collider not excluded — grounded check hits the own capsule (toi=0, always true)',
   );
   assert.ok(
-    src.includes('this._grounded = !!hit'),
-    'grounded flag wiring removed',
+    src.includes('this._grounded = !!isPlatform'),
+    'grounded flag wiring removed (must derive from the platform-filtered hit)',
+  );
+});
+
+test('non-platform colliders (other characters) are skipped by the grounded check', () => {
+  // characters must not stand on other characters: the API + the filter must
+  // both exist, or the character rides on moving bodies (yexi slice 3
+  // regression: the grounded ray hit an enemy capsule and the surface snap
+  // lifted the player onto the enemy, camY 3.2).
+  assert.ok(
+    src.includes('setNonPlatformColliders'),
+    'setNonPlatformColliders API missing',
+  );
+  assert.ok(
+    src.includes('this._nonPlatform?.has(hit.collider)'),
+    'non-platform filter missing from the grounded raycast',
   );
 });
 

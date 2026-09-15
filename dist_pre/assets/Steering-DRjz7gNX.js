@@ -1,0 +1,1 @@
+function e(e,t){let n=Math.hypot(e,t);return n<1e-6?{x:0,z:0}:{x:e/n,z:t/n}}function t(t,n,r,i=.45){let a=-n*r*i,o=t*r*i;return e(t+a,n+o)}function n(e,t,n,r,i=1.1,a=2.2){let o=n-e,s=r-t,c=Math.hypot(o,s);if(c>=i||c<.001)return null;let l=(i-c)/i*a,u=o/c,d=s/c;return{ax:-u*l,az:-d*l,bx:u*l,bz:d*l}}export{e as n,n as r,t};
