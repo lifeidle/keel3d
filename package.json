@@ -19,7 +19,7 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "test": "node scripts/test.mjs",
+    "test": "node scripts/catalog-check.mjs && node scripts/test.mjs",
     "catalog:gen": "node scripts/catalog-gen.mjs",
     "catalog:check": "node scripts/catalog-check.mjs",
     "net:dev": "vite --port 8799 --host",
