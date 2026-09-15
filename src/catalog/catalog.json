@@ -154,10 +154,11 @@
       "probe": "#cultivation-hud",
       "icon": "🌄",
       "title": "开放世界骨架",
-      "blurb": "chunk 流式 · 视角 1/2/3 · 拾取与触发区。",
+      "blurb": "chunk 流式 · 目标链（灵珠·突破·妖兽）· 视角 1/2/3。",
       "tags": [
         "stream",
-        "ChunkWorld"
+        "ChunkWorld",
+        "goal-chain"
       ],
       "recipe": null,
       "spec": {
@@ -166,7 +167,7 @@
       },
       "cmd": "npm run new-game myworld -- --html",
       "createCmd": "npm create keel3d@latest my-world -- --template blank",
-      "note": "探索：捡灵珠、上中央台。1/2/3 切视角。",
+      "note": "8 字巡行目标链：拾灵珠×3 → 中央台修炼突破筑基 → 妖兽×3 齐至，全部达成即完成（修炼×2）。1/2/3 切视角。",
       "blocks": [
         [
           "ChunkWorld",
@@ -179,6 +180,10 @@
         [
           "TriggerZone",
           "触发"
+        ],
+        [
+          "QuestTracker",
+          "目标链"
         ]
       ],
       "thumb": null,

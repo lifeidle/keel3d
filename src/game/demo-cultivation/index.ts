@@ -14,6 +14,7 @@ import { buildMap } from '../../blocks/MapBuilder';
 import { HealthBar } from '../../blocks/ui/HealthBar';
 import { Pickup, PickupField } from '../../blocks/interact/Pickup';
 import { TriggerZone } from '../../blocks/interact/TriggerZone';
+import { QuestTracker } from '../../blocks/ui/QuestTracker';
 import type { System, EngineWorld } from '../../engine/types';
 
 export interface CultivationDeps {
@@ -96,6 +97,14 @@ export function createCultivationGame(deps: CultivationDeps) {
   dais.castShadow = true;
   dais.receiveShadow = true;
   root.add(dais);
+  // cultivation aura — the figure-8 patrol crosses this zone twice per cycle
+  const aura = new THREE.Mesh(
+    new THREE.CircleGeometry(5.5, 40),
+    new THREE.MeshStandardMaterial({ color: 0x8ab4ff, emissive: 0x1a2a4a, transparent: true, opacity: 0.35 }),
+  );
+  aura.rotation.x = -Math.PI / 2;
+  aura.position.y = 0.06;
+  root.add(aura);
 
   const player = new THREE.Mesh(
     new THREE.CapsuleGeometry(0.4, 1.0, 4, 8),
@@ -137,12 +146,14 @@ export function createCultivationGame(deps: CultivationDeps) {
     color: 0xffd27a,
     emissive: 0x664400,
   });
+  // Orbs placed ON the figure-8 patrol (x=14cos θ, z=10sin 2θ) so the
+  // auto-walk is guaranteed to sweep every one (pickup radius 1.6).
   const orbSpots: Array<[number, number]> = [
-    [10, 6],
-    [-8, 12],
-    [14, -10],
-    [-14, -8],
-    [4, -16],
+    [12.1, 8.7], // θ=30°
+    [3.6, 5.0], // θ=75°
+    [-12.1, -8.7], // θ=150°
+    [-9.9, 10.0], // θ=225°
+    [7.0, -8.7], // θ=300°
   ];
   let collected = 0;
   const orbs = new PickupField(
@@ -166,12 +177,48 @@ export function createCultivationGame(deps: CultivationDeps) {
   );
   const daisZone = new TriggerZone({
     id: 'dais',
-    shape: { kind: 'sphere', x: 0, z: 0, radius: 3.2 },
+    shape: { kind: 'sphere', x: 0, z: 0, radius: 5.5 },
     onEnter: () => {
       /* hint handled in HUD */
     },
   });
   let onDais = false;
+
+  // ---- Goal chain (goal chain): three auto-progressing objectives → win.
+  // 1) 3 spirit orbs (auto-pickup along the patrol), 2) breakthrough to
+  // 筑基 (cultivate on the dais — reachable because the patrol is a figure-8
+  // that crosses the dais), 3) a swarm of 3 beasts alive at once.
+  const quest = new QuestTracker({ title: '目标链' });
+  quest.setItems([
+    { id: 'orbs3', title: '拾取灵珠 ×3' },
+    { id: 'realm', title: '修炼突破 · 筑基' },
+    { id: 'beast3', title: '妖兽齐至（×3）' },
+  ]);
+  let beastMax = 0;
+  let chainDone = false;
+  let status: 'playing' | 'win' = 'playing';
+  const chainDoneFlags = { orbs3: false, realm: false, beast3: false };
+
+  function checkChain() {
+    if (chainDone) return;
+    const flags = chainDoneFlags;
+    if (!flags.orbs3 && collected >= 3) {
+      flags.orbs3 = true;
+      quest.complete('orbs3');
+    }
+    if (!flags.realm && realmIdx >= 1) {
+      flags.realm = true;
+      quest.complete('realm');
+    }
+    if (!flags.beast3 && beastMax >= 3) {
+      flags.beast3 = true;
+      quest.complete('beast3');
+    }
+    if (flags.orbs3 && flags.realm && flags.beast3) {
+      chainDone = true;
+      status = 'win';
+    }
+  }
 
   function setMode(m: CameraMode) {
     mode = m;
@@ -203,9 +250,10 @@ export function createCultivationGame(deps: CultivationDeps) {
       name: 'cultivation.sim',
       update(ft: number, world: EngineWorld) {
         t += ft;
-        // slow walk in a circle
-        player.position.x = Math.cos(t * 0.3) * 8;
-        player.position.z = Math.sin(t * 0.3) * 8;
+        // figure-8 (Lissajous) patrol: crosses the central dais twice per
+        // cycle, so the cultivation objective is actually reachable.
+        player.position.x = Math.cos(t * 0.3) * 14;
+        player.position.z = Math.sin(t * 0.6) * 10;
         const yaw = t * 0.3 + Math.PI / 2;
         chunkWorld.update(player.position.x, player.position.z);
         rig.update(ft, player.position, yaw);
@@ -214,9 +262,9 @@ export function createCultivationGame(deps: CultivationDeps) {
           orbs.update(player.position.x, player.position.z, player.position.y);
           daisZone.update([{ tag: 'player', x: player.position.x, z: player.position.z, y: player.position.y }]);
           onDais = daisZone.has('player');
-          // near dais → cultivate
+          // in the dais aura → cultivate (chain done → reward: cultivation ×2)
           if (onDais) {
-            progress += ft * 0.08;
+            progress += ft * (chainDone ? 0.32 : 0.16);
             if (progress >= 1) {
               progress = 0;
               realmIdx = Math.min(REALMS.length - 1, realmIdx + 1);
@@ -251,15 +299,23 @@ export function createCultivationGame(deps: CultivationDeps) {
             }
             b.mesh.lookAt(player.position.x, 0.5, player.position.z);
           });
+          beastMax = Math.max(beastMax, beasts.activeCount);
+          checkChain();
         }
 
         ensureHud();
         xpBar?.setRatio(progress);
         if (hudEl) {
+          const c = chainDoneFlags;
           hudEl.textContent =
             `修为 ${(progress * 100) | 0}% · 境界 ${REALMS[realmIdx]} · 灵珠 ${collected}/${orbSpots.length}\n` +
+            `目标链 ${c.orbs3 ? '☑' : '☐'}灵珠×3 ${c.realm ? '☑' : '☐'}突破筑基 ${c.beast3 ? '☑' : '☐'}妖兽×3${chainDone ? ' · ★全部完成（修炼×2）' : ''}\n` +
             `视角 ${mode} (1/2/3) · 妖兽 ${beasts.activeCount} · chunk ${chunkWorld.loadedCount}\n` +
-            (onDais ? '【修炼中】站上中央台涨修为' : '靠近中央台修炼 · 走近金色灵珠自动拾取');
+            (chainDone
+              ? '★ 目标链完成 · 8 字巡行持续修炼'
+              : onDais
+                ? '【修炼中】站上中央台涨修为'
+                : '8 字巡行：拾灵珠 · 中央台修炼 · 妖兽环伺');
         }
       },
     },
@@ -273,6 +329,7 @@ export function createCultivationGame(deps: CultivationDeps) {
       if (typeof window !== 'undefined') window.removeEventListener('keydown', onKey);
       scene.remove(root);
       chunkWorld.dispose();
+      quest.dispose();
       hudEl?.remove();
       hudEl = null;
       xpBar?.dispose();
@@ -284,6 +341,9 @@ export function createCultivationGame(deps: CultivationDeps) {
       mode,
       beasts: beasts.activeCount,
       orbs: collected,
+      status,
+      chainDone,
+      beastMax,
     }),
   };
 }
