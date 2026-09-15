@@ -7,7 +7,7 @@
 |---|---|---|---|
 | `td` | tower.html | 1/2/3 选塔，点空台放置，U 升级 | Path · Wave · Economy · Health |
 | `survival` | （new-game） | WASD 移动，撑过波次 | Wave · Health · Steering |
-| `arpg` | arpg.html | WASD，空格/J 攻击，捡掉落 | Cooldown · pickTarget · Projectile · Pickup |
+| `arpg` | arpg.html | WASD，空格/J 攻击，捡掉落与装备 | Cooldown · pickTarget · Projectile · Pickup |
 | `collect` | collect.html | WASD 捡满后回金圈 | PickupField · TriggerZone |
 | `rally` | rally.html | 自动行驶，按序穿检查点 | Path · BestScoreSlot · TriggerZone |
 | `dungeon` | dungeon.html | E/F 开门，Boss 房 J/空格 | Interactable · TriggerZone |
@@ -140,7 +140,7 @@ flightArenaRecipe({ id: 'myfa', spawnEvery: 2.2, droneHp: 20 })
 | 配方 | 操作 | 胜 | 负 |
 |---|---|---|---|
 | roguelike | WASD · 空格攻击 · E 喝药 · I 背包 | 无尽：清首领下潜（记录最深层） | HP 归零 |
-| arpg | WASD · 空格/J · K 旋风斩 · I 背包 | 击杀 12 | HP 归零 |
+| arpg | WASD · 空格/J · K 旋风斩 · I 背包 | 击杀 12 | HP 归零（掉落装备可强化：武器加攻击、护甲减受伤） |
 | td | 1/2/3 选塔 · 左键放/升 · 右键卖 | 清完波次 | 基地被毁或超时 |
 | collect | WASD | 限时收满回金圈 | 时间到 |
 | platformer | WASD · 空格/Shift 跳 | 登顶 | 3 命用尽 |

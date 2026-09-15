@@ -191,10 +191,11 @@
       "probe": "#arpg-hud",
       "icon": "⚔️",
       "title": "俯视 ARPG 骨架",
-      "blurb": "WASD · 近战/弹道/旋风斩 · 掉落金币 · 任务追踪。",
+      "blurb": "WASD · 近战/弹道/旋风斩 · 掉落金币与装备 · 任务追踪。",
       "tags": [
         "orbit",
-        "combat"
+        "combat",
+        "gear"
       ],
       "recipe": "arpg",
       "spec": {
@@ -202,7 +203,7 @@
       },
       "cmd": "npm run new-game myarpg -- --recipe arpg --html",
       "createCmd": "npm create keel3d@latest my-arpg -- --recipe arpg",
-      "note": "击杀 12 得胜。空格/J 攻击，K 旋风斩，I 背包，E 无；受伤有闪屏。",
+      "note": "击杀 12 得胜。空格/J 攻击，K 旋风斩，I 背包；敌人掉落武器/护甲，拾取自动比较穿戴（更强则换、否则卖 5 金）；受伤有闪屏。",
       "blocks": [
         [
           "Cooldown",
@@ -223,6 +224,10 @@
         [
           "WorldBar",
           "敌血条"
+        ],
+        [
+          "Pickup",
+          "装备掉落"
         ]
       ],
       "thumb": null,

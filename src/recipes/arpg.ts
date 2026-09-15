@@ -50,6 +50,8 @@ export interface ArpgRecipeOpts extends BaseRecipeOpts {
   spawnEvery?: number;
   enemyHp?: number;
   enemySpeed?: number;
+  /** Chance per kill to also drop an equipment piece (weapon/armor). */
+  equipDropChance?: number;
 }
 
 export function createArpgGame(
@@ -143,7 +145,58 @@ export function createArpgGame(
       /* silent */
     }
   }
-  quest.setItems([{ id: 'k10', title: `击杀 ${KILL_GOAL} 个目标`, done: false }]);
+  quest.setItems([
+    { id: 'k10', title: `击杀 ${KILL_GOAL} 个目标`, done: false },
+    { id: 'equip', title: '获取任意装备', done: false },
+  ]);
+
+  // ---- Equipment: drops → compare → auto-equip (weapon: attack+, armor: damage-) ----
+  const equipChance = opts.equipDropChance ?? 0.22;
+  const WEAPON_NAMES = ['', '短剑', '战剑', '圣剑'];
+  const ARMOR_NAMES = ['', '皮甲', '铁甲', '龙鳞甲'];
+  const ROMAN = ['', 'Ⅰ', 'Ⅱ', 'Ⅲ'];
+  const WEAPON_ATK = [0, 6, 12, 20];
+  const ARMOR_DEF = [0, 2, 4, 7];
+  const EQUIP_COLORS: Record<'weapon' | 'armor', number[]> = {
+    weapon: [0, 0x9aa7b8, 0x5b8fd4, 0x8b5cf6],
+    armor: [0, 0xc9a06a, 0x9aa7b8, 0x8b5cf6],
+  };
+  const equipMats: Record<'weapon' | 'armor', THREE.MeshStandardMaterial[]> = {
+    weapon: EQUIP_COLORS.weapon.map(
+      (c, t) => new THREE.MeshStandardMaterial({ color: c, emissive: t === 3 ? 0x2a1a4a : 0x000000 }),
+    ),
+    armor: EQUIP_COLORS.armor.map(
+      (c, t) => new THREE.MeshStandardMaterial({ color: c, emissive: t === 3 ? 0x2a1a4a : 0x000000 }),
+    ),
+  };
+  const equipGeo = new THREE.OctahedronGeometry(0.32);
+  let weaponTier = 0;
+  let armorTier = 0;
+  let equippedAny = false;
+
+  function rollEquipTier(): number {
+    const r = Math.random();
+    return r < 0.5 ? 1 : r < 0.85 ? 2 : 3;
+  }
+
+  function equipItem(kind: 'weapon' | 'armor', tier: number): void {
+    const cur = kind === 'weapon' ? weaponTier : armorTier;
+    const name = (kind === 'weapon' ? WEAPON_NAMES : ARMOR_NAMES)[tier] + ROMAN[tier];
+    if (tier > cur) {
+      if (kind === 'weapon') weaponTier = tier;
+      else armorTier = tier;
+      if (!equippedAny) {
+        equippedAny = true;
+        quest.complete('equip');
+      }
+      const bonus = kind === 'weapon' ? `攻击 +${WEAPON_ATK[tier]}` : `减伤 +${ARMOR_DEF[tier]}`;
+      toastLike(`装备 ${name} · ${bonus}`);
+    } else {
+      gold.add(5);
+      toastLike(`${name} 非升级 → 卖出 +5 金`);
+    }
+    sfx.play('pickup');
+  }
 
   // UI blocks
   const hud = new HudPanel({ id: 'arpg-hud', position: 'tl' });
@@ -253,6 +306,26 @@ export function createArpgGame(
             },
           }),
         );
+        if (Math.random() < equipChance) {
+          const kind: 'weapon' | 'armor' = Math.random() < 0.55 ? 'weapon' : 'armor';
+          const tier = rollEquipTier();
+          const em = new THREE.Mesh(equipGeo, equipMats[kind][tier]);
+          em.position.set(e.mesh.position.x + 0.7, 0.4, e.mesh.position.z);
+          root.add(em);
+          drops.add(
+            new Pickup({
+              id: `equip-${kind}-${score.kills}`,
+              x: em.position.x,
+              z: em.position.z,
+              y: 0.4,
+              radius: 1.4,
+              onCollect: () => {
+                em.visible = false;
+                equipItem(kind, tier);
+              },
+            }),
+          );
+        }
       },
     });
   }
@@ -290,7 +363,7 @@ export function createArpgGame(
       { range: attackRange },
     );
     if (target) {
-      hitEnemy(target.ref, attackDamage);
+      hitEnemy(target.ref, attackDamage + WEAPON_ATK[weaponTier]);
       return;
     }
     const p = new Projectile({
@@ -299,7 +372,7 @@ export function createArpgGame(
       dx: facingX,
       dz: facingZ,
       speed: 18,
-      damage: attackDamage * 0.6,
+      damage: (attackDamage + WEAPON_ATK[weaponTier]) * 0.6,
       life: 1.2,
       owner: 'player',
     });
@@ -322,7 +395,7 @@ export function createArpgGame(
     const hits = areaHits(player.position.x, player.position.z, aoeRadius, list);
     for (const h of hits) {
       const e = h.target.ref as E;
-      if (e.alive) hitEnemy(e, aoeDamage, true);
+      if (e.alive) hitEnemy(e, aoeDamage + WEAPON_ATK[weaponTier], true);
     }
   }
 
@@ -374,7 +447,7 @@ export function createArpgGame(
       { keys: ['I'], label: '背包' },
       { keys: ['Esc'], label: '暂停' },
     ],
-    footer: '桌面设备体验更佳',
+    footer: '击杀 12 敌获胜 · 掉落装备自动比较穿戴 · 桌面体验更佳',
     duration: 6,
   });
 
@@ -452,7 +525,7 @@ export function createArpgGame(
             e.mesh.position.x += dir.x * enemySpeed * ft;
             e.mesh.position.z += dir.z * enemySpeed * ft;
           } else if (Math.random() < ft * 0.8) {
-            playerHealth.damage(6);
+            playerHealth.damage(Math.max(1, 6 - ARMOR_DEF[armorTier]));
             feel.flashOnce('rgba(255,60,60,0.28)', 150);
             feel.shake(0.08, 0.18);
             if (!playerHealth.alive) showEnd(false);
@@ -505,9 +578,13 @@ export function createArpgGame(
 
         playerBar.setHp(playerHealth.hp, playerHpMax);
         const aoeReady = aoeCd.ready ? '就绪' : `${(aoeCd.ratio * aoeCd.duration).toFixed(1)}s`;
+        const weaponTag = weaponTier ? WEAPON_NAMES[weaponTier] + ROMAN[weaponTier] : '';
+        const armorTag = armorTier ? ARMOR_NAMES[armorTier] + ROMAN[armorTier] : '';
+        const equipTag = [weaponTag, armorTag].filter(Boolean).join(' · ');
         hud.setText(
-          `HP ${playerHealth.hp}/${playerHpMax} · 击杀 ${score.kills} · 金 ${gold.balance}\n` +
-            `目标击杀 12 · WASD 移动 · 空格/J 攻击 · K 旋风斩(${aoeReady}) · I 背包`,
+          `HP ${playerHealth.hp}/${playerHpMax} · 击杀 ${score.kills} · 金 ${gold.balance}` +
+            (equipTag ? ` · ${equipTag}` : '') +
+            `\n目标击杀 12 · WASD 移动 · 空格/J 攻击 · K 旋风斩(${aoeReady}) · I 背包`,
         );
       },
     },
@@ -543,6 +620,9 @@ export function createArpgGame(
       gold: gold.balance,
       status,
       time: run.time,
+      weapon: weaponTier,
+      armor: armorTier,
+      equipped: equippedAny,
     }),
   };
 }
