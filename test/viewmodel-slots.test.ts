@@ -115,6 +115,54 @@ test('walk bob: idle stays still, moving oscillates, stop settles', () => {
   assert.ok(Math.abs(vm.position.y - base.y) < 0.001, `settled (${vm.position.y})`);
 });
 
+test('aim pose: aim=1 slides the slot toward aimPose (damped, kick composes)', () => {
+  const camera = new THREE.Object3D();
+  const vm = new THREE.Object3D();
+  const vs = new ViewmodelSlots(camera);
+  const base = new THREE.Vector3(0.2, -0.19, -0.42);
+  const aimPose = new THREE.Vector3(0, -0.14, -0.46);
+  vs.addSlot(vm, base, aimPose);
+
+  // aim=0 → rest pose
+  vs.update(0.01);
+  assert.ok(Math.abs(vm.position.x - base.x) < 1e-6);
+
+  // aim=1 → position converges toward the aim pose
+  vs.aim = 1;
+  for (let i = 0; i < 300; i++) vs.update(0.01);
+  assert.ok(Math.abs(vm.position.x - aimPose.x) < 0.005, `x → aim (${vm.position.x})`);
+  assert.ok(Math.abs(vm.position.y - aimPose.y) < 0.005, `y → aim (${vm.position.y})`);
+  assert.ok(Math.abs(vm.position.z - aimPose.z) < 0.005, `z → aim (${vm.position.z})`);
+
+  // kick composes on top of the aim pose (pushes back +z, lifts +y)
+  vs.kick(0.06);
+  vs.update(0.016);
+  assert.ok(vm.position.z > aimPose.z, `kick pushes back (${vm.position.z})`);
+  assert.ok(vm.position.y > aimPose.y, `kick lifts (${vm.position.y})`);
+});
+
+test('aim pose: missing aimPose stays at base; aim=0 eases back', () => {
+  const camera = new THREE.Object3D();
+  const vmA = new THREE.Object3D();
+  const vmB = new THREE.Object3D();
+  const vsA = new ViewmodelSlots(camera);
+  const vsB = new ViewmodelSlots(camera);
+  const base = new THREE.Vector3(0.2, -0.19, -0.42);
+  vsA.addSlot(vmA, base); // no aimPose
+  const aimPose = new THREE.Vector3(0, -0.14, -0.46);
+  vsB.addSlot(vmB, base.clone(), aimPose);
+
+  vsA.aim = 1;
+  for (let i = 0; i < 60; i++) vsA.update(0.01);
+  assert.ok(Math.abs(vmA.position.x - base.x) < 1e-6, 'no aimPose → stays at base');
+
+  vsB.aim = 1;
+  for (let i = 0; i < 300; i++) vsB.update(0.01);
+  vsB.aim = 0;
+  for (let i = 0; i < 300; i++) vsB.update(0.01);
+  assert.ok(Math.abs(vmB.position.x - base.x) < 0.005, 'aim=0 eases back to base');
+});
+
 test('bob phase persists across stop and sprint advances faster', () => {
   const camera = new THREE.Object3D();
   const vmA = new THREE.Object3D();

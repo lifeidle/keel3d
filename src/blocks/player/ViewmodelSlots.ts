@@ -26,12 +26,15 @@ export interface ViewmodelSlotDef {
   object: THREE.Object3D;
   /** Rest pose relative to the camera. */
   basePos: THREE.Vector3;
+  /** Aim pose (ADS) — the slot slides here while `aim` is 1. */
+  aimPose?: THREE.Vector3;
 }
 
 const KICK_DECAY = 8; // 1/s — settles in ~0.4s
 const KICK_Z = 0.45; // how much of the kick pushes the gun back
 const KICK_Y = 0.18; // and lifts it
 const AMP_SMOOTH = 10; // amplitude ease-in/out rate (1/s)
+const AIM_SMOOTH = 12; // aim-pose transition rate (1/s)
 
 /** Walk-bob tuning (data-in; defaults match the sample FPS feel). */
 export interface BobConfig {
@@ -69,6 +72,9 @@ export class ViewmodelSlots {
   private bobPhase = 0;
   private ampCur = 0;
   bob: BobConfig = { ...DEFAULT_BOB };
+  /** Aim (ADS) target 0..1 — update() eases aimCur toward it. */
+  aim = 0;
+  private aimCur = 0;
 
   constructor(camera: THREE.Object3D) {
     this.camera = camera;
@@ -85,11 +91,16 @@ export class ViewmodelSlots {
   /**
    * Register a viewmodel slot: attached to the camera. The FIRST slot is
    * activated automatically (visible); later slots stay hidden until
-   * `setSlot`. Returns the slot index.
+   * `setSlot`. `aimPose` (optional) is where the slot slides while the
+   * player aims (ADS). Returns the slot index.
    */
-  addSlot(object: THREE.Object3D, basePos: THREE.Vector3 = new THREE.Vector3(0.2, -0.19, -0.42)): number {
+  addSlot(
+    object: THREE.Object3D,
+    basePos: THREE.Vector3 = new THREE.Vector3(0.2, -0.19, -0.42),
+    aimPose?: THREE.Vector3,
+  ): number {
     const idx = this.slots.length;
-    const slot = { object, basePos: basePos.clone(), kick: 0 };
+    const slot = { object, basePos: basePos.clone(), aimPose: aimPose?.clone(), kick: 0 };
     this.slots.push(slot);
     cameraAdd(this.camera, object);
     object.visible = false;
@@ -119,15 +130,18 @@ export class ViewmodelSlots {
   }
 
   /**
-   * Advance the kick decay and walk bob, apply to the active slot
-   * (call every frame). `moving`/`sprint` drive the gait phase; the
-   * amplitude eases in/out (damped) so start/stop don't pop.
+   * Advance the kick decay, walk bob and aim transition, apply to the
+   * active slot (call every frame). `moving`/`sprint` drive the gait
+   * phase; amplitudes ease in/out (damped) so start/stop don't pop.
+   * `this.aim` (0..1) slides the slot between basePos and aimPose.
    */
   update(dt: number, moving = false, sprint = false): void {
     const slot = this.slots[this.cur];
     if (!slot) return;
     slot.kick = damp(slot.kick, 0, KICK_DECAY, dt);
     if (slot.kick < 0.001) slot.kick = 0;
+    this.aimCur = damp(this.aimCur, this.aim, AIM_SMOOTH, dt);
+    if (this.aimCur < 0.001 && this.aim === 0) this.aimCur = 0;
 
     // gait: phase only advances while moving (stop → gun settles still)
     if (moving) this.bobPhase += dt * (sprint ? this.bob.freqSprint : this.bob.freqWalk);
@@ -135,12 +149,14 @@ export class ViewmodelSlots {
     this.ampCur = damp(this.ampCur, target, AMP_SMOOTH, dt);
     if (this.ampCur < 0.001) this.ampCur = 0;
 
+    // aim: slide between base pose and aim pose (no aimPose → stay put)
+    const aim = slot.aimPose ?? slot.basePos;
     const sway = Math.cos(this.bobPhase) * this.bob.ampX * this.ampCur;
     const bounce = Math.abs(Math.sin(this.bobPhase)) * this.bob.ampY * this.ampCur;
     slot.object.position.set(
-      slot.basePos.x + sway,
-      slot.basePos.y + bounce + slot.kick * KICK_Y,
-      slot.basePos.z + slot.kick * KICK_Z,
+      slot.basePos.x + (aim.x - slot.basePos.x) * this.aimCur + sway,
+      slot.basePos.y + (aim.y - slot.basePos.y) * this.aimCur + bounce + slot.kick * KICK_Y,
+      slot.basePos.z + (aim.z - slot.basePos.z) * this.aimCur + slot.kick * KICK_Z,
     );
     slot.object.rotation.z = Math.cos(this.bobPhase) * this.bob.tiltZ * this.ampCur;
   }
