@@ -148,6 +148,25 @@ export { BeatClock } from './blocks/audio/BeatClock';
 // World / scene / fx
 export { generateDungeon, isDungeonConnected, type DungeonLayout } from './blocks/world/ProcDungeon';
 export { VoxelChunk } from './blocks/world/VoxelChunk';
+export {
+  placeTankHulk,
+  placeScoutWreck,
+  placePlaneWreck,
+  placeFenceRow,
+  placeMgNest,
+  placeTruck,
+  placeOilTanker,
+  placeBunker,
+  placeConcertina,
+  placeHedgehog,
+  placeRuinWall,
+  placeUtilityPole,
+  placeAmmoDump,
+  placeSignpost,
+  type HulkPhysics,
+  type HulkTerrain,
+  type PropHandles,
+} from './blocks/props/VehicleHulk';
 export { ShrinkZone } from './blocks/gameplay/ShrinkZone';
 export { createSeededTerrain } from './blocks/scene/TerrainBuilder';
 export { applyDaylight, addSunDisc } from './blocks/scene/Daylight';

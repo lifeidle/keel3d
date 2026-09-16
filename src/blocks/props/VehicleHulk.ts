@@ -142,7 +142,7 @@ function hitBox(
 // ---------------------------------------------------------------------------
 export function placeTankHulk(
   g: THREE.Group, physics: HulkPhysics, terrain: HulkTerrain, rand: () => number,
-  plumes: SmokeColumns, cx: number, cz: number, burnt = false
+  plumes: SmokeColumns | null, cx: number, cz: number, burnt = false
 ): PropHandles {
   const b = makeBase(g, physics, terrain, rand, cx, cz);
   const camo = burnt ? 0x33322c : 0x4e5a42;
@@ -191,7 +191,7 @@ export function placeTankHulk(
     // muzzle-black deck patch + a lazy smoke column
     box(b, 0x0d0d0e, 1, 0, 2.7, 0.02, 4.9, 0, 1.02, 0, { collider: false });
     const [px, pz] = yawOf(1.1, 1.4, b.yaw);
-    plumes.addColumn(b.cx + px, b.gy0 + 0.4, b.cz + pz, 0.55);
+    plumes?.addColumn(b.cx + px, b.gy0 + 0.4, b.cz + pz, 0.55);
   }
 
   // ONE low hull box ???everything above (turret, gun) is soft cover
@@ -230,7 +230,7 @@ export function placeScoutWreck(
 // ---------------------------------------------------------------------------
 export function placePlaneWreck(
   g: THREE.Group, physics: HulkPhysics, terrain: HulkTerrain, rand: () => number,
-  plumes: SmokeColumns, cx: number, cz: number
+  plumes: SmokeColumns | null, cx: number, cz: number
 ): PropHandles {
   const b = makeBase(g, physics, terrain, rand, cx, cz);
   const skin = 0x3d4044;
@@ -252,7 +252,7 @@ export function placePlaneWreck(
   }
   // ground scar + smoke at the impact point
   const [sx, sz] = yawOf(0, -2.0, b.yaw);
-  plumes.addColumn(b.cx + sx, b.gy0 + 0.2, b.cz + sz, 0.75);
+  plumes?.addColumn(b.cx + sx, b.gy0 + 0.2, b.cz + sz, 0.75);
   hitBox(b, 0, 0.4, 0.4, 1.0, 0.4, 2.6);
   return { colliders: b.colliders };
 }
