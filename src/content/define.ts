@@ -4,6 +4,8 @@
  */
 import type * as THREE from 'three';
 import type { System } from '../engine/types';
+import type { Engine } from '../engine/Engine';
+import type { Engine as RendererEngine } from '../engine/renderer';
 
 export type CameraMode = 'fps' | 'chase' | 'orbit' | 'free' | 'shoulder';
 
@@ -82,6 +84,14 @@ export interface GameCreateContext {
   parent?: HTMLElement;
   /** Engine services when available — prefer these over private instances. */
   services?: GameServices;
+  /** The Engine instance — for engine-level services (TimeOfDay, renderer, diag). */
+  engine: Engine;
+  /**
+   * The full three.js engine handle (renderer + scene + camera + moon/hemi +
+   * sky groups) — for TimeOfDay and renderer-level access. Optional: headless
+   * engines have no GPU canvas.
+   */
+  three?: RendererEngine;
 }
 
 /** What a content package returns from create(). */

@@ -124,6 +124,7 @@ export async function bootGame(game: DefinedGame, host: Host, delayMs = 150): Pr
     hemi: three.hemi,
     parent: host.dom.app,
     quality,
+    three: host.three,
     render: (scene: THREE.Scene, camera: THREE.Camera) => three.renderer.render(scene, camera),
     // headless engine skips GPU canvas; still offer a shared physics world
     services: {

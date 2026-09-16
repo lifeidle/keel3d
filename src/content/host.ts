@@ -21,6 +21,8 @@ export interface MountSampleOptions {
   quality?: unknown;
   /** Optional physics/audio/input for GameCreateContext.services. */
   services?: import('./define').GameServices;
+  /** Full renderer.Engine handle (three.js + lights + sky) — TimeOfDay & co. */
+  three?: import('../engine/renderer').Engine;
 }
 
 export interface MountedSample {
@@ -74,6 +76,8 @@ export function mountSampleGame(
       audio: engine.services.audio ?? undefined,
       input: engine.services.input ?? undefined,
     },
+    engine,
+    three: opts.three,
   };
 
   const instance = mod.instantiate!(ctx);
