@@ -133,6 +133,13 @@ export { ControlsOverlay, type ControlHint } from './blocks/ui/ControlsOverlay';
 
 // Audio
 export { KitSfx } from './blocks/audio/KitSfx';
+export {
+  duckGain,
+  distanceGain,
+  eventGain,
+  DEFAULT_AUDIO_DUCK,
+  type AudioDuckCfg,
+} from './blocks/audio/AudioDuck';
 export { BgmLayers } from './blocks/audio/BgmLayers';
 export { SfxPlayer } from './blocks/audio/SfxPlayer';
 export { BeatClock } from './blocks/audio/BeatClock';
