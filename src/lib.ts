@@ -80,7 +80,13 @@ export {
 } from './blocks/combat/Blast';
 
 // Progress
-export { SaveSlot, BestScoreSlot } from './blocks/progress/SaveSlot';
+export {
+  SaveSlot,
+  BestScoreSlot,
+  memoryStore,
+  type SaveStore,
+  type SaveSlotOpts,
+} from './blocks/progress/SaveSlot';
 export { LevelTable } from './blocks/progress/LevelTable';
 export { RunState } from './blocks/progress/RunState';
 export { XpProgress } from './blocks/progress/XpProgress';

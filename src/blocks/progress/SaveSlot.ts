@@ -1,37 +1,77 @@
 /**
- * SaveSlot — versioned JSON blob in localStorage (browser only).
- * Opt-in; no I/O until you call save/load.
+ * SaveSlot — versioned JSON blob persistence.
+ *
+ * Opt-in; no I/O until you call save/load. The storage backend is injected
+ * (a `SaveStore`); by default it uses `localStorage` when available and
+ * degrades to a no-op otherwise (SSR / headless). Passing an in-memory
+ * store makes the slot fully testable without a browser.
  */
 
+export interface SaveStore {
+  load(key: string): string | null;
+  save(key: string, data: string): void;
+  remove?(key: string): void;
+}
+
+/** In-memory store — headless tests and SSR fallbacks. */
+export function memoryStore(): SaveStore {
+  const map = new Map<string, string>();
+  return {
+    load: (key) => (map.has(key) ? map.get(key)! : null),
+    save: (key, data) => {
+      map.set(key, data);
+    },
+    remove: (key) => {
+      map.delete(key);
+    },
+  };
+}
+
+/** localStorage adapter (browser only). */
+function localStore(): SaveStore | null {
+  if (typeof localStorage === 'undefined') return null;
+  return {
+    load: (key) => localStorage.getItem(key),
+    save: (key, data) => {
+      localStorage.setItem(key, data);
+    },
+    remove: (key) => {
+      localStorage.removeItem(key);
+    },
+  };
+}
+
 export interface SaveSlotOpts {
-  /** localStorage key. */
+  /** Storage key. */
   key: string;
   /** Bump when schema changes; load() runs migrate if provided. */
   version?: number;
   migrate?: (data: Record<string, unknown>, fromVersion: number) => Record<string, unknown>;
+  /** Storage backend. Defaults to localStorage (or no-op when unavailable). */
+  store?: SaveStore;
 }
-
-const hasLs = () => typeof localStorage !== 'undefined';
 
 export class SaveSlot {
   readonly key: string;
   private version: number;
   private migrate?: SaveSlotOpts['migrate'];
+  private store: SaveStore | null;
 
   constructor(opts: SaveSlotOpts) {
     this.key = opts.key;
     this.version = opts.version ?? 1;
     this.migrate = opts.migrate;
+    this.store = opts.store ?? localStore();
   }
 
   exists(): boolean {
-    return hasLs() && localStorage.getItem(this.key) != null;
+    return this.store != null && this.store.load(this.key) != null;
   }
 
   save(payload: Record<string, unknown>): boolean {
-    if (!hasLs()) return false;
+    if (!this.store) return false;
     try {
-      localStorage.setItem(
+      this.store.save(
         this.key,
         JSON.stringify({ v: this.version, t: Date.now(), d: payload }),
       );
@@ -42,9 +82,9 @@ export class SaveSlot {
   }
 
   load<T extends Record<string, unknown> = Record<string, unknown>>(): T | null {
-    if (!hasLs()) return null;
+    if (!this.store) return null;
     try {
-      const raw = localStorage.getItem(this.key);
+      const raw = this.store.load(this.key);
       if (!raw) return null;
       const parsed = JSON.parse(raw) as { v?: number; d?: T };
       let data = (parsed.d ?? {}) as Record<string, unknown>;
@@ -57,8 +97,7 @@ export class SaveSlot {
   }
 
   clear(): void {
-    if (!hasLs()) return;
-    localStorage.removeItem(this.key);
+    if (this.store && this.store.remove) this.store.remove(this.key);
   }
 }
 
@@ -66,8 +105,8 @@ export class SaveSlot {
 export class BestScoreSlot {
   private slot: SaveSlot;
 
-  constructor(key: string) {
-    this.slot = new SaveSlot({ key, version: 1 });
+  constructor(key: string, store?: SaveStore) {
+    this.slot = new SaveSlot({ key, version: 1, store });
   }
 
   /** Lower is better when `lowerIsBetter` (lap time). */
