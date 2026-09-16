@@ -71,6 +71,13 @@ export { Arsenal, type ArsenalSlotDef, type FireOutcome } from './blocks/combat/
 export { pickTarget } from './blocks/combat/Targeting';
 export { Projectile, stepProjectiles } from './blocks/combat/Projectile';
 export { areaHits, ringHits } from './blocks/combat/AreaDamage';
+export {
+  blastHits,
+  DEFAULT_BLAST,
+  type BlastTarget,
+  type BlastConfig,
+  type BlastHit,
+} from './blocks/combat/Blast';
 
 // Progress
 export { SaveSlot, BestScoreSlot } from './blocks/progress/SaveSlot';

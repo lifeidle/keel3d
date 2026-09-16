@@ -8,6 +8,7 @@ export {
   type HitTestTarget,
 } from './Projectile';
 export { areaHits, ringHits, type AreaTarget, type AreaResult } from './AreaDamage';
+export { blastHits, DEFAULT_BLAST, type BlastTarget, type BlastConfig, type BlastHit } from './Blast';
 export { Magazine } from './Magazine';
 export {
   Arsenal,
