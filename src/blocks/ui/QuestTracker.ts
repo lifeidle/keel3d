@@ -5,6 +5,10 @@ export interface QuestItem {
   id: string;
   title: string;
   done?: boolean;
+  /** [current, target] — rendered as "title 2/3" while not done. */
+  progress?: readonly [number, number];
+  /** Highlight as the current objective (▶ marker). */
+  active?: boolean;
 }
 
 export class QuestTracker {
@@ -41,7 +45,11 @@ export class QuestTracker {
 
   private render(): void {
     if (!this.el) return;
-    const lines = this.items.map((i) => `${i.done ? '☑' : '☐'} ${i.title}`);
+    const lines = this.items.map((i) => {
+      const mark = i.done ? '☑' : i.active ? '▶' : '☐';
+      const prog = !i.done && i.progress ? ` ${i.progress[0]}/${i.progress[1]}` : '';
+      return `${mark} ${i.title}${prog}`;
+    });
     this.el.textContent = lines.length ? lines.join('\n') : '（无任务）';
   }
 

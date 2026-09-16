@@ -4,6 +4,7 @@
  * Re-exported here for convenience in samples that already bundle all of them.
  */
 export { Health, type HealthOpts } from './Health';
+export { ObjectiveTracker, type Objective, type ObjectiveSnapshot } from './Objective';
 export { Timers } from './Timers';
 export { Economy, type EconomyOpts } from './Economy';
 export { Scoreboard } from './Scoreboard';
