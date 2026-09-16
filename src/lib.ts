@@ -78,6 +78,11 @@ export {
   type BlastConfig,
   type BlastHit,
 } from './blocks/combat/Blast';
+export {
+  ArcProjectile,
+  arcVelocityToward,
+  type ArcOpts,
+} from './blocks/combat/ArcProjectile';
 
 // Progress
 export {

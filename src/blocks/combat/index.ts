@@ -9,6 +9,7 @@ export {
 } from './Projectile';
 export { areaHits, ringHits, type AreaTarget, type AreaResult } from './AreaDamage';
 export { blastHits, DEFAULT_BLAST, type BlastTarget, type BlastConfig, type BlastHit } from './Blast';
+export { ArcProjectile, arcVelocityToward, type ArcOpts } from './ArcProjectile';
 export { Magazine } from './Magazine';
 export {
   Arsenal,
