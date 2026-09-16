@@ -174,6 +174,7 @@ export { applyDaylight, addSunDisc } from './blocks/scene/Daylight';
 export { Weather, pickWeather, moonForSeed, type WeatherKind } from './blocks/scene/Weather';
 export { projectToScreen, type CamLike, type ScreenPoint, type V3Like } from './blocks/math/Projection';
 export { ViewmodelSlots, damp, DEFAULT_BOB, type BobConfig } from './blocks/player/ViewmodelSlots';
+export { kitSoldier, type SoldierRig, type SoldierPalette } from './blocks/kit/Soldier';
 
 export const VERSION = '0.3.0';
 export const BRAND = 'KeeL 3D';
