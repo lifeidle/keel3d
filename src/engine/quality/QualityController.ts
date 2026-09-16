@@ -26,6 +26,19 @@ const STEP_UP = 1.06;
 /** Seconds of sustained miss before the first scale cut. */
 const HOLD_DOWN_S = 0.45;
 const HOLD_UP_S = 1.2;
+const TIER_ORDER: Quality[] = ['low', 'med', 'high'];
+
+export interface QualityControllerOpts {
+  /**
+   * Allow the tier to drop automatically once renderScale is exhausted at
+   * the floor and frame time is still over budget. Conservative by design:
+   * automatic tier changes only go DOWN; recovery is manual (setTier) or on
+   * the next boot (detectQuality). Default true.
+   */
+  autoTier?: boolean;
+  /** Sustained over-budget seconds (at scale floor) before a tier drop. */
+  tierDownHoldSec?: number;
+}
 
 export class QualityController {
   private tier: Quality = detectQuality();
@@ -33,10 +46,13 @@ export class QualityController {
   private frameMs = 16.7;
   private badTime = 0;
   private goodTime = 0;
+  private tierDropTime = 0;
   private listeners = new Set<(s: QualitySnapshot) => void>();
+  private opts: Required<QualityControllerOpts>;
 
-  constructor(initial?: Quality) {
+  constructor(initial?: Quality, opts: QualityControllerOpts = {}) {
     if (initial) this.tier = initial;
+    this.opts = { autoTier: true, tierDownHoldSec: 2.5, ...opts };
   }
 
   get current(): Quality {
@@ -74,6 +90,7 @@ export class QualityController {
     if (this.tier === tier) return;
     this.tier = tier;
     this.scale = DEFAULT_SCALE;
+    this.tierDropTime = 0;
     this.notify();
   }
 
@@ -89,9 +106,21 @@ export class QualityController {
         this.badTime = 0;
         this.notify();
       }
+      // Tier fallback: renderScale is exhausted at the floor AND frame time
+      // is still over budget — drop a whole tier (scale resets via setTier).
+      // Only downward; the player (or next boot) can bring it back up.
+      const tierIdx = TIER_ORDER.indexOf(this.tier);
+      if (this.opts.autoTier && tierIdx > 0 && this.scale <= MIN_SCALE + 0.001) {
+        this.tierDropTime += ms / 1000;
+        if (this.tierDropTime >= this.opts.tierDownHoldSec) {
+          this.setTier(TIER_ORDER[tierIdx - 1]);
+          this.tierDropTime = 0;
+        }
+      }
     } else if (this.frameMs < RECOVER_MS) {
       this.goodTime += ms / 1000;
       this.badTime = 0;
+      this.tierDropTime = 0;
       if (this.goodTime >= HOLD_UP_S && this.scale < DEFAULT_SCALE - 0.001) {
         this.scale = Math.min(DEFAULT_SCALE, this.scale * STEP_UP);
         this.goodTime = 0;
@@ -100,6 +129,7 @@ export class QualityController {
     } else {
       this.badTime = Math.max(0, this.badTime - ms / 2000);
       this.goodTime = 0;
+      this.tierDropTime = 0;
     }
   }
 
