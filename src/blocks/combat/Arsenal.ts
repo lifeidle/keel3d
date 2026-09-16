@@ -141,6 +141,20 @@ export class Arsenal {
     }
   }
 
+  /**
+   * Add reserve rounds to a slot (ammo pickup). Clamped at the slot's
+   * configured reserve (the configured maximum), so pickups top up spent
+   * rounds without stacking past it. Returns the amount actually added.
+   */
+  addReserve(n: number, slot = this.cur): number {
+    const i = ((slot % this.slots.length) + this.slots.length) % this.slots.length;
+    const cap = this.slots[i].reserve;
+    const mag = this.mags[i];
+    const add = Math.max(0, Math.min(n, cap - mag.reserve));
+    mag.reserve += add;
+    return add;
+  }
+
   addRecoil(n: number): void {
     this.kick += n;
   }

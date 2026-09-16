@@ -88,3 +88,40 @@ test('recoil add and decay', () => {
   a.decayRecoil(1);
   assert.equal(a.recoil, 0);
 });
+
+test('addReserve tops up spent rounds, clamped at the configured max', () => {
+  const a = new Arsenal(SLOTS);
+  // firing does NOT spend reserve — reload does. Drain the mag, reload
+  // (reserve 10 → 5), then top up.
+  for (let i = 0; i < 5; i++) {
+    a.update(0, true, false);
+    a.update(0.26, false, false);
+  }
+  assert.equal(a.mag, 0);
+  a.reload();
+  a.update(1.1, false, false); // reloadTime 1
+  assert.equal(a.mag, 5);
+  assert.equal(a.reserve, 5);
+  const added = a.addReserve(3);
+  assert.equal(added, 3, 'adds the full amount below the cap');
+  assert.equal(a.reserve, 8);
+  const clamped = a.addReserve(100);
+  assert.equal(clamped, 2, 'clamped at the slot reserve (10)');
+  assert.equal(a.reserve, 10);
+  assert.equal(a.addReserve(4), 0, 'nothing to add at the cap');
+});
+
+test('addReserve targets a specific slot', () => {
+  const a = new Arsenal(SLOTS);
+  a.switchTo(1); // bolt: magSize 2, reserve 4
+  a.update(0.3, true, true); // semi fire → mag 1
+  a.reload();
+  a.update(2.1, false, false); // reloadTime 2 → mag 2, reserve 3
+  assert.equal(a.mag, 2);
+  assert.equal(a.reserve, 3);
+  assert.equal(a.addReserve(2, 1), 1, 'clamped at slot 1 cap (4): 3 + 1');
+  assert.equal(a.reserve, 4);
+  assert.equal(a.addReserve(5, 1), 0, 'nothing to add at the cap');
+  a.switchTo(0);
+  assert.equal(a.reserve, 10, 'slot 0 untouched');
+});
