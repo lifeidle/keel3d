@@ -22,6 +22,11 @@ export interface SoldierPalette {
   vest?: number;
   /** Boot colour. */
   boot?: number;
+  /**
+   * Optional fabric map for the body material (clothTexture / fabricTexture)
+   * — makes blocky uniforms read as cloth. Headless: pass a 1×1 texture.
+   */
+  bodyMap?: THREE.Texture;
 }
 
 export interface SoldierRig {
@@ -69,6 +74,7 @@ export function kitSoldier(p: SoldierPalette): SoldierRig {
     color: p.body,
     roughness: 0.85,
     metalness: 0.05,
+    map: p.bodyMap ?? null,
     emissive: p.body,
     emissiveIntensity: p.emissive ?? 0,
   });

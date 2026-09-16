@@ -176,6 +176,7 @@ export { projectToScreen, type CamLike, type ScreenPoint, type V3Like } from './
 export { ViewmodelSlots, damp, DEFAULT_BOB, type BobConfig } from './blocks/player/ViewmodelSlots';
 export { kitSoldier, type SoldierRig, type SoldierPalette } from './blocks/kit/Soldier';
 export { kitGun, type KitGun, type KitGunOpts } from './blocks/kit/Gun';
+export { fabricTexture } from './blocks/kit/textures';
 export { ClothFlags, type TerrainLike } from './blocks/props/ClothFlags';
 export { Searchlight } from './blocks/props/Searchlight';
 
