@@ -148,6 +148,7 @@ export { BeatClock } from './blocks/audio/BeatClock';
 // World / scene / fx
 export { generateDungeon, isDungeonConnected, type DungeonLayout } from './blocks/world/ProcDungeon';
 export { VoxelChunk } from './blocks/world/VoxelChunk';
+export { SCALES, setScale, opScale, loadScale, type OpScale, type ScaleKey } from './world/scale';
 export {
   placeTankHulk,
   placeScoutWreck,
