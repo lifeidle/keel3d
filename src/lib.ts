@@ -59,6 +59,7 @@ export { WaveDirector, type WaveDef } from './blocks/gameplay/WaveDirector';
 export { PlaceGrid } from './blocks/gameplay/PlaceGrid';
 export { Spawner } from './blocks/gameplay/Spawner';
 export { Timers } from './blocks/gameplay/Timers';
+export { Streak, type StreakOpts } from './blocks/gameplay/Streak';
 export { LootTable, type LootEntry, type ItemStack } from './blocks/gameplay/LootTable';
 export { Inventory, type InvItem } from './blocks/gameplay/Inventory';
 export { FactionMap } from './blocks/gameplay/Faction';
