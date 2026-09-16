@@ -31,11 +31,44 @@ export interface ViewmodelSlotDef {
 const KICK_DECAY = 8; // 1/s — settles in ~0.4s
 const KICK_Z = 0.45; // how much of the kick pushes the gun back
 const KICK_Y = 0.18; // and lifts it
+const AMP_SMOOTH = 10; // amplitude ease-in/out rate (1/s)
+
+/** Walk-bob tuning (data-in; defaults match the sample FPS feel). */
+export interface BobConfig {
+  /** Phase advance rate (rad/s) while walking. */
+  freqWalk: number;
+  /** Phase advance rate while sprinting. */
+  freqSprint: number;
+  /** Vertical bounce amplitude (|sin|, world units). */
+  ampY: number;
+  /** Lateral sway amplitude (cos, world units). */
+  ampX: number;
+  /** Lateral tilt amplitude (radians). */
+  tiltZ: number;
+  /** Intensity while walking (0..1). */
+  ampWalk: number;
+  /** Intensity while sprinting (0..1). */
+  ampSprint: number;
+}
+
+export const DEFAULT_BOB: BobConfig = {
+  freqWalk: 7.5,
+  freqSprint: 12,
+  ampY: 0.02,
+  ampX: 0.014,
+  tiltZ: 0.022,
+  ampWalk: 0.55,
+  ampSprint: 1.0,
+};
 
 export class ViewmodelSlots {
   private slots: (ViewmodelSlotDef & { kick: number })[] = [];
   private camera: THREE.Object3D;
   private cur = -1;
+  /** Walk-bob state (shared by all slots — the player's gait is one). */
+  private bobPhase = 0;
+  private ampCur = 0;
+  bob: BobConfig = { ...DEFAULT_BOB };
 
   constructor(camera: THREE.Object3D) {
     this.camera = camera;
@@ -85,17 +118,31 @@ export class ViewmodelSlots {
     this.slots[this.cur].kick = Math.min(0.5, this.slots[this.cur].kick + amount);
   }
 
-  /** Advance the kick decay and apply the offset (call every frame). */
-  update(dt: number): void {
+  /**
+   * Advance the kick decay and walk bob, apply to the active slot
+   * (call every frame). `moving`/`sprint` drive the gait phase; the
+   * amplitude eases in/out (damped) so start/stop don't pop.
+   */
+  update(dt: number, moving = false, sprint = false): void {
     const slot = this.slots[this.cur];
     if (!slot) return;
     slot.kick = damp(slot.kick, 0, KICK_DECAY, dt);
     if (slot.kick < 0.001) slot.kick = 0;
+
+    // gait: phase only advances while moving (stop → gun settles still)
+    if (moving) this.bobPhase += dt * (sprint ? this.bob.freqSprint : this.bob.freqWalk);
+    const target = moving ? (sprint ? this.bob.ampSprint : this.bob.ampWalk) : 0;
+    this.ampCur = damp(this.ampCur, target, AMP_SMOOTH, dt);
+    if (this.ampCur < 0.001) this.ampCur = 0;
+
+    const sway = Math.cos(this.bobPhase) * this.bob.ampX * this.ampCur;
+    const bounce = Math.abs(Math.sin(this.bobPhase)) * this.bob.ampY * this.ampCur;
     slot.object.position.set(
-      slot.basePos.x,
-      slot.basePos.y + slot.kick * KICK_Y,
+      slot.basePos.x + sway,
+      slot.basePos.y + bounce + slot.kick * KICK_Y,
       slot.basePos.z + slot.kick * KICK_Z,
     );
+    slot.object.rotation.z = Math.cos(this.bobPhase) * this.bob.tiltZ * this.ampCur;
   }
 
   /** Current slot's rest pose (for muzzle anchor offsets etc.). */

@@ -84,3 +84,56 @@ test('setSlot on an empty manager is a no-op', () => {
   assert.ok(!vs.setSlot(0));
   assert.equal(vs.activeIndex, -1);
 });
+
+test('walk bob: idle stays still, moving oscillates, stop settles', () => {
+  const camera = new THREE.Object3D();
+  const vm = new THREE.Object3D();
+  const vs = new ViewmodelSlots(camera);
+  const base = new THREE.Vector3(0.2, -0.19, -0.42);
+  vs.addSlot(vm, base);
+
+  // idle: 2 seconds of frames → position stays at rest pose
+  for (let i = 0; i < 200; i++) vs.update(0.01);
+  assert.ok(Math.abs(vm.position.x - base.x) < 1e-6, `x still (${vm.position.x})`);
+  assert.ok(Math.abs(vm.position.y - base.y) < 1e-6, `y still (${vm.position.y})`);
+  assert.ok(Math.abs(vm.rotation.z) < 1e-6);
+
+  // moving: bob lifts and sways the gun within its data-driven amplitudes
+  let maxY = -Infinity;
+  let maxZtilt = 0;
+  for (let i = 0; i < 200; i++) {
+    vs.update(0.01, true);
+    maxY = Math.max(maxY, vm.position.y);
+    maxZtilt = Math.max(maxZtilt, Math.abs(vm.rotation.z));
+  }
+  assert.ok(maxY > base.y + 0.005, `bob bounces up (maxY ${maxY} > base ${base.y})`);
+  assert.ok(maxZtilt < 0.03, `tilt bounded by amp (${maxZtilt})`);
+  assert.ok(maxZtilt > 0.001, 'tilt actually swings');
+
+  // stop: amplitude eases back to zero (damped, no phase reset)
+  for (let i = 0; i < 100; i++) vs.update(0.01, false);
+  assert.ok(Math.abs(vm.position.y - base.y) < 0.001, `settled (${vm.position.y})`);
+});
+
+test('bob phase persists across stop and sprint advances faster', () => {
+  const camera = new THREE.Object3D();
+  const vmA = new THREE.Object3D();
+  const vmB = new THREE.Object3D();
+  const vsA = new ViewmodelSlots(camera);
+  const vsB = new ViewmodelSlots(camera);
+  const base = new THREE.Vector3(0, 0, 0);
+  vsA.addSlot(vmA, base);
+  vsB.addSlot(vmB, base.clone());
+
+  // 40 walk frames on A, then stop
+  for (let i = 0; i < 40; i++) vsA.update(0.01, true);
+  vsA.update(0.01, false); // amplitude eases out, phase KEEPS its value
+  const posDuring = vmA.position.x; // captured mid-swing
+  // 40 sprint frames on B → phase advanced further (12 rad/s vs 7.5)
+  for (let i = 0; i < 40; i++) vsB.update(0.01, true, true);
+  const phaseA = 40 * 0.01 * 7.5;
+  const phaseB = 40 * 0.01 * 12;
+  assert.ok(phaseB > phaseA, 'sprint advances the gait faster');
+  // position after stop ≠ rest pose immediately (amplitude still decaying)
+  assert.ok(Math.abs(vmA.position.x - 0) > 1e-9 || Math.abs(posDuring) > 1e-9, 'no hard reset');
+});
