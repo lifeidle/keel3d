@@ -17,7 +17,7 @@ rmSync(out, { recursive: true, force: true });
 mkdirSync(out, { recursive: true });
 
 const files = ['ballistics', 'magazine', 'arsenal', 'extract-rest', 'char-tps', 'loot-inv', 'proc-dungeon', 'dialogue-xp', 'demo-feel', 'r8-extras', 'terrain', 'mapgen', 'combat', 'protocol', 'blocks', 'gameplay', 'interact', 'combat-blocks', 'excellence', 'controls-shell', 'roguelike-descent', 'arpg-equip', 'td-campaign', 'openworld-chain',
-    'race-recipe', 'flight-recipe', 'recipe-shell-audit', 'character-sink-fix', 'hitscan', 'objective', 'projection', 'viewmodel-slots', 'blast', 'save-slot', 'arc-projectile', 'quality-controller', 'audio-duck', 'streak', 'vehicle-hulk', 'scale', 'bgm-layers', 'weather', 'kit-soldier'];
+    'race-recipe', 'flight-recipe', 'recipe-shell-audit', 'character-sink-fix', 'hitscan', 'objective', 'projection', 'viewmodel-slots', 'blast', 'save-slot', 'arc-projectile', 'quality-controller', 'audio-duck', 'streak', 'vehicle-hulk', 'scale', 'bgm-layers', 'weather', 'kit-soldier', 'kit-gun', 'cloth-flags'];
 const outFiles = [];
 for (const f of files) {
   const outFile = path.join(out, `${f}.test.mjs`);

@@ -6,7 +6,11 @@
 // through the same materials mapgen used to expose (flagMats).
 import * as THREE from 'three';
 import { CONFIG } from '../../config';
-import { Terrain } from '../../world/terrain';
+
+/** Structural terrain surface (duck-typed — flat {heightAt: () => 0} qualifies). */
+export interface TerrainLike {
+  heightAt(x: number, z: number): number;
+}
 
 interface Cloth {
   geo: THREE.BufferGeometry;
@@ -22,7 +26,7 @@ export class ClothFlags {
   private cloths: Cloth[] = [];
   private t = Math.random() * 10;
 
-  constructor(terrain: Terrain, hostile: { x: number; z: number }, friendly: { x: number; z: number }) {
+  constructor(terrain: TerrainLike, hostile: { x: number; z: number }, friendly: { x: number; z: number }) {
     this.mats = {
       hostile: this.addFlag(terrain, hostile.x, hostile.z, 0x8f2f2f, 1.0),
       friendly: this.addFlag(terrain, friendly.x, friendly.z, 0x3f7a3a, 0.7),
@@ -30,7 +34,7 @@ export class ClothFlags {
   }
 
   /** One pole + waving cloth; returns the cloth material (capture recolor). */
-  private addFlag(terrain: Terrain, x: number, z: number, color: number, speed: number): THREE.MeshStandardMaterial {
+  private addFlag(terrain: TerrainLike, x: number, z: number, color: number, speed: number): THREE.MeshStandardMaterial {
     const gy = terrain.heightAt(x, z);
     const pole = new THREE.Mesh(
       new THREE.CylinderGeometry(0.05, 0.07, CONFIG.map.flagH, 6),
