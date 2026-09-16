@@ -126,6 +126,7 @@ export { ShrinkZone } from './blocks/gameplay/ShrinkZone';
 export { createSeededTerrain } from './blocks/scene/TerrainBuilder';
 export { applyDaylight, addSunDisc } from './blocks/scene/Daylight';
 export { projectToScreen, type CamLike, type ScreenPoint, type V3Like } from './blocks/math/Projection';
+export { ViewmodelSlots, damp } from './blocks/player/ViewmodelSlots';
 
 export const VERSION = '0.3.0';
 export const BRAND = 'KeeL 3D';
