@@ -171,6 +171,7 @@ export {
 export { ShrinkZone } from './blocks/gameplay/ShrinkZone';
 export { createSeededTerrain } from './blocks/scene/TerrainBuilder';
 export { applyDaylight, addSunDisc } from './blocks/scene/Daylight';
+export { Weather, pickWeather, moonForSeed, type WeatherKind } from './blocks/scene/Weather';
 export { projectToScreen, type CamLike, type ScreenPoint, type V3Like } from './blocks/math/Projection';
 export { ViewmodelSlots, damp, DEFAULT_BOB, type BobConfig } from './blocks/player/ViewmodelSlots';
 
