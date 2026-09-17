@@ -43,14 +43,17 @@ export class Searchlight {
     this.light.target = this.target;
     this.group.add(this.light);
 
-    // faint additive cone so the beam reads even against the night sky
+    // faint additive cone so the beam reads even against the night sky.
+    // FrontSide + low opacity + capped radius: DoubleSide additive used to
+    // blow out to a solid white sheet when the orbit/FPS camera sat inside
+    // or near the axis (menu screenshots were unreadable).
     const coneMat = new THREE.MeshBasicMaterial({
       color: 0xfff2cf,
       transparent: true,
-      opacity: 0.05,
+      opacity: 0.022,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
-      side: THREE.DoubleSide,
+      side: THREE.FrontSide,
     });
     this.cone = new THREE.Mesh(new THREE.ConeGeometry(1, 1, 16, 1, true), coneMat);
     this.group.add(this.cone);
@@ -110,7 +113,7 @@ export class Searchlight {
       new THREE.Vector3(0, 1, 0),
       new THREE.Vector3(dx / len, dy / len, dz / len)
     );
-    const r = Math.tan(0.4) * len * 0.9;
+    const r = Math.min(10, Math.tan(0.4) * len * 0.55);
     this.cone.scale.set(r, len, r);
   }
 }

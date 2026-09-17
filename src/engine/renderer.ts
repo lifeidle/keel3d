@@ -348,7 +348,9 @@ export function buildWorld(scene: THREE.Scene, physics: PhysicsWorld): SkyDressi
   // --- a faint moon disc up where the moonlight comes from ---
   // (purely cosmetic; its tint never tracks the per-seed moonlight intensity,
   //  but it anchors where the light source "is" so the sky reads coherently)
-  const moonDir = new THREE.Vector3(-50, 90, -30).normalize();
+  // Low elevation (~20°) and toward +Z so a default FPS frame (looking +Z)
+  // still catches it — original Night Raid moon sits near the skyline ahead.
+  const moonDir = new THREE.Vector3(18, 20, 70).normalize();
   const moonPos = moonDir.multiplyScalar(400);
   const moonDisc = new THREE.Mesh(
     new THREE.CircleGeometry(11, 24),
