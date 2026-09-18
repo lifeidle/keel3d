@@ -58,6 +58,23 @@ export const PALETTES: Record<TimeMode, Palette> = {
   },
 };
 
+/** Per-mode mood overrides for applyDayNight (content-tuned atmospheres). */
+export interface DayNightMood {
+  /** Night palette override (content may brighten/darken/tint its own night). */
+  night?: Partial<Palette>;
+  /** Day palette override. */
+  day?: Partial<Palette>;
+}
+
+/**
+ * Merge a per-mode override onto the base palette (pure — headless testable).
+ * `PALETTES` stays the canonical base; content never mutates it.
+ */
+export function mergePalette(mode: TimeMode, overrides?: Partial<Palette>): Palette {
+  const base = PALETTES[mode];
+  return overrides ? { ...base, ...overrides } : base;
+}
+
 /** localStorage key shared with game.ts settings persistence. */
 export const TIME_KEY = 'sf-time';
 
@@ -83,14 +100,18 @@ export function saveTimeMode(m: TimeMode) {
  * palette base at night; during the day the palette sun is used as-is.
  * `fogBase` is the weather's chosen near/far/bg; the palette scales it so a
  * clear day reaches much farther than a clear night without changing Weather.
+ * `mood` optionally overrides per-mode palette fields (a content-tuned
+ * brighter/darker/tinted mood — e.g. yexi's readable night); base PALETTES
+ * are never mutated.
  */
 export function applyDayNight(
   engine: Engine,
   mode: TimeMode,
   fogBase?: { near: number; far: number; bg: number; dayMix?: number } | null,
-  keyOverride?: { color: number; intensity: number } | null
+  keyOverride?: { color: number; intensity: number } | null,
+  mood?: DayNightMood
 ) {
-  const p = PALETTES[mode];
+  const p = mergePalette(mode, mood?.[mode]);
   const key = engine.moon; // the single directional light doubles as sun/moon
   let useKey = mode === 'night' && keyOverride ? keyOverride : { color: p.keyColor, intensity: p.keyInt };
   if (mode === 'day') {

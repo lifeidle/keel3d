@@ -181,6 +181,16 @@ export {
   type TerrainAssemblyOpts,
 } from './blocks/scene/TerrainBuilder';
 export { applyDaylight, addSunDisc } from './blocks/scene/Daylight';
+export {
+  applyDayNight,
+  mergePalette,
+  loadTimeMode,
+  saveTimeMode,
+  PALETTES,
+  type TimeMode,
+  type Palette,
+  type DayNightMood,
+} from './blocks/scene/TimeOfDay';
 export { Weather, pickWeather, moonForSeed, type WeatherKind } from './blocks/scene/Weather';
 export { projectToScreen, type CamLike, type ScreenPoint, type V3Like } from './blocks/math/Projection';
 export { ViewmodelSlots, damp, DEFAULT_BOB, type BobConfig } from './blocks/player/ViewmodelSlots';

@@ -26,3 +26,13 @@ export {
   type TerrainAssemblyOpts,
 } from './scene';
 export { applyDaylight, addSunDisc } from './scene';
+export {
+  applyDayNight,
+  mergePalette,
+  loadTimeMode,
+  saveTimeMode,
+  PALETTES,
+  type TimeMode,
+  type Palette,
+  type DayNightMood,
+} from './scene';
