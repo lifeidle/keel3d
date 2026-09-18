@@ -106,6 +106,7 @@ export { Interactable } from './blocks/interact/Interactable';
 // Player / input / AI
 export { CharacterController, computeMoveIntent, type CharInput } from './blocks/player/CharacterController';
 export { DistanceTrigger } from './blocks/player/DistanceTrigger';
+export { climbRatio, slopeFactor } from './blocks/player/Slope';
 export { Gamepad } from './blocks/input/Gamepad';
 export {
   TouchControls,
