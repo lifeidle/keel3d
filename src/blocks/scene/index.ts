@@ -8,6 +8,9 @@ export {
   type RippleSpec,
   type DomeTerrainOpts,
   type TerrainAssemblyOpts,
+  shadeHeightfield,
+  terrainShadeCanvas,
+  type ShadeFieldOpts,
 } from './TerrainBuilder';
 export {
   applyDayNight,

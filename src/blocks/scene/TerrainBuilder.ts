@@ -210,6 +210,90 @@ export function createSeededTerrain(
   });
 }
 
+export interface ShadeFieldOpts {
+  /** Pixel buffer size (px, square). */
+  size: number;
+  /** World half-extent (units) — canvas up = world −z, right = +x (north-fixed). */
+  extent: number;
+  heightAt: (x: number, z: number) => number;
+  /** Normalization height (default: max sampled height). */
+  maxH?: number;
+  /** RGB colour at h = 0. */
+  low?: [number, number, number];
+  /** RGB colour at h = maxH. */
+  high?: [number, number, number];
+  /** Slope darkening factor (0 = off). */
+  slope?: number;
+  /** Pixel alpha (0–255). */
+  alpha?: number;
+}
+
+/**
+ * Heightfield → RGBA pixel buffer (row-major, size×size). PURE — headless
+ * testable (no canvas/DOM). North-fixed mapping (canvas up = world −z,
+ * right = +x — same as yexi's minimap worldToMap). Colour lerps low→high by
+ * h/maxH, then a simple hillshade darkens south-facing shadow (down-slope).
+ */
+export function shadeHeightfield(opts: ShadeFieldOpts): Uint8ClampedArray {
+  const {
+    size,
+    extent,
+    heightAt,
+    low = [10, 14, 20],
+    high = [96, 128, 160],
+    slope = 0.6,
+    alpha = 255,
+  } = opts;
+  const hs = new Float32Array(size * size);
+  let maxH = opts.maxH ?? 0;
+  for (let py = 0; py < size; py++) {
+    const z = (((py + 0.5) / size) * 2 - 1) * extent;
+    for (let px = 0; px < size; px++) {
+      const x = (((px + 0.5) / size) * 2 - 1) * extent;
+      const h = heightAt(x, z);
+      hs[py * size + px] = h;
+      if (h > maxH) maxH = h;
+    }
+  }
+  if (maxH <= 0) maxH = 1;
+  const out = new Uint8ClampedArray(size * size * 4);
+  for (let i = 0; i < size * size; i++) {
+    const t = Math.max(0, Math.min(1, hs[i] / maxH));
+    let shade = 1;
+    if (slope > 0 && i + size < size * size) {
+      // dh toward canvas +y (world +z = south); rising south = shadowed face
+      const dh = (hs[i + size] - hs[i]) / maxH;
+      shade = Math.min(1.25, Math.max(0.25, 1 - dh * slope));
+    }
+    const o = i * 4;
+    out[o] = (low[0] + (high[0] - low[0]) * t) * shade;
+    out[o + 1] = (low[1] + (high[1] - low[1]) * t) * shade;
+    out[o + 2] = (low[2] + (high[2] - low[2]) * t) * shade;
+    out[o + 3] = alpha;
+  }
+  return out;
+}
+
+/**
+ * DOM wrapper: heightfield → offscreen canvas (e.g. a minimap terrain
+ * layer to drawImage over a background). Requires `document` — the pure
+ * core is {@link shadeHeightfield}.
+ */
+export function terrainShadeCanvas(opts: ShadeFieldOpts): HTMLCanvasElement {
+  const { size } = opts;
+  const buf = shadeHeightfield(opts);
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    const imgData = new ImageData(size, size);
+    imgData.data.set(buf);
+    ctx.putImageData(imgData, 0, 0);
+  }
+  return canvas;
+}
+
 /**
  * Data-driven dome terrain (signature-hill arenas).
  * `heightAt` wins over dome data (bring-your-own function); otherwise the

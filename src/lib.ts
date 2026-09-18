@@ -179,6 +179,9 @@ export {
   type RippleSpec,
   type DomeTerrainOpts,
   type TerrainAssemblyOpts,
+  shadeHeightfield,
+  terrainShadeCanvas,
+  type ShadeFieldOpts,
 } from './blocks/scene/TerrainBuilder';
 export { applyDaylight, addSunDisc } from './blocks/scene/Daylight';
 export {
