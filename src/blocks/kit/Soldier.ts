@@ -47,6 +47,12 @@ export interface SoldierRig {
    * phase 0 = legs together; amplitude auto-scaled by `swing` (0..1).
    */
   setWalk: (phase: number, swing?: number) => void;
+  /**
+   * R50: death pose — the soldier falls back (hip-pivot tilt) with legs
+   * kicked up and arms flung. Idempotent; call once on death and stop
+   * driving setWalk for the corpse.
+   */
+  setDead: () => void;
 }
 
 const DEFAULTS = {
@@ -144,5 +150,14 @@ export function kitSoldier(p: SoldierPalette): SoldierRig {
     armR.rotation.x = 1.05 + Math.sin(phase) * a * 0.4;
   };
 
-  return { root, pivot, armL, armR, legL, legR, torso, bodyMat, setWalk };
+  /** Death pose (R50): fall back — pivot tilt + legs kicked + arms flung. */
+  const setDead = () => {
+    pivot.rotation.x = 1.45; // torso toward +z (behind the facing -z)
+    legL.rotation.x = -0.5; // legs kick up (opposite the fall)
+    legR.rotation.x = 0.65;
+    armL.rotation.x = 0.9;
+    armR.rotation.x = 1.6;
+  };
+
+  return { root, pivot, armL, armR, legL, legR, torso, bodyMat, setWalk, setDead };
 }

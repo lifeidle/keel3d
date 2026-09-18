@@ -55,4 +55,22 @@ t('arms counter-swing with the walk (weapon arm stays forward-bent)', () => {
   assert.ok(r.armR.rotation.x > baseR, 'weapon arm pushes forward on stride');
 });
 
+t('setDead: falls back (pivot tilt) with legs kicked, idempotent', () => {
+  const r = kitSoldier({ body: 0x6f7a52, helmet: 0x3a4046 });
+  r.setDead();
+  assert.ok(r.pivot.rotation.x > 1.3, `pivot tilt ${r.pivot.rotation.x}`);
+  assert.ok(r.legL.rotation.x < 0, 'legL kicked up');
+  assert.ok(r.legR.rotation.x > 0.5, `legR ${r.legR.rotation.x}`);
+  const snap = r.pivot.rotation.x;
+  r.setDead();
+  assert.strictEqual(r.pivot.rotation.x, snap, 'idempotent');
+});
+
+t('setDead then setWalk: walk still drives legs (corpses need no setWalk)', () => {
+  const r = kitSoldier({ body: 0x6f7a52, helmet: 0x3a4046 });
+  r.setDead();
+  r.setWalk(Math.PI / 2, 1);
+  assert.ok(r.pivot.rotation.x > 1.3, 'pivot pose survives setWalk');
+});
+
 console.log('kit-soldier tests complete');
