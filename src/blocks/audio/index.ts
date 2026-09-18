@@ -2,6 +2,8 @@ export { SfxPlayer } from './SfxPlayer';
 export { BgmLayers } from './BgmLayers';
 export {
   SampleBank,
+  panFor,
+  panGain,
   type SampleBankOpts,
   type SampleBankTable,
   type SampleVariants,

@@ -31,6 +31,37 @@ export interface SampleBankOpts {
   engineGain?: number;
 }
 
+/**
+ * Listener-relative stereo pan (-1..1). PURE — headless testable.
+ * `facing` = listener look direction (x,z, ideally unit); pan +1 = fully
+ * right of the view, -1 = fully left, 0 = dead ahead or directly behind.
+ */
+export function panFor(
+  fx: number,
+  fz: number,
+  wx: number,
+  wz: number,
+  lx: number,
+  lz: number,
+): number {
+  const dx = wx - lx;
+  const dz = wz - lz;
+  const len = Math.hypot(dx, dz);
+  if (len < 1e-6) return 0;
+  // right = cross(facing, up) = (-fz, fx)
+  return (-fz * dx + fx * dz) / len;
+}
+
+/**
+ * Distance attenuation 1→0. PURE — headless testable. Full gain inside
+ * `ref`, linear fade to 0 at `max`.
+ */
+export function panGain(d: number, ref: number, max: number): number {
+  if (d <= ref) return 1;
+  if (d >= max) return 0;
+  return 1 - (d - ref) / (max - ref);
+}
+
 export class SampleBank {
   private ctx: AudioContext | null = null;
   private master: GainNode | null = null;
@@ -278,6 +309,43 @@ export class SampleBank {
   }
 
   // ---------- public play API ----------
+
+  /**
+   * Spatial one-shot (R48): random variant of `name` routed through a
+   * StereoPanner — pan from listener-relative azimuth (panFor), gain
+   * attenuated with distance (panGain, ref..max). Returns false when
+   * muted, no context, inside the key's minGap, buffer not decoded, or
+   * the source is fully attenuated.
+   */
+  playPanned(
+    name: string,
+    wx: number,
+    wz: number,
+    facing: { x: number; z: number },
+    listener: { x: number; z: number },
+    opts: { gain?: number; ref?: number; max?: number; rate?: number } = {},
+  ): boolean {
+    if (!this.ctx || !this.master || this.sfxMuted) return false;
+    const gap = this.gaps.get(name);
+    if (gap && !this.gate.tryPass(`pan:${name}`, gap)) return false;
+    this.ensureBank(name);
+    const list = this.buffers.get(name);
+    if (!list || !list.length) return false;
+    const buf = list[(Math.random() * list.length) | 0];
+    const g = (opts.gain ?? 1) * panGain(Math.hypot(wx - listener.x, wz - listener.z), opts.ref ?? 4, opts.max ?? 70);
+    if (g < 0.01) return false;
+    const ctx = this.ctx;
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.playbackRate.value = opts.rate ?? 1;
+    const pan = ctx.createStereoPanner();
+    pan.pan.value = panFor(facing.x, facing.z, wx, wz, listener.x, listener.z);
+    const gn = ctx.createGain();
+    gn.gain.value = g;
+    src.connect(pan).connect(gn).connect(this.master);
+    src.start();
+    return true;
+  }
 
   /**
    * Play a random variant of `name`. Returns false when muted, the context
