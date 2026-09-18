@@ -20,6 +20,12 @@ export interface ArcOpts {
   groundY?: number;
   /** Seconds before auto-despawn (default 6). */
   life?: number;
+  /**
+   * R53: fired exactly once at ground contact, with the clamped landing
+   * point. Consumers stop polling `landed` for one-shot effects (SFX,
+   * lights). Not called on life-expiry or kill().
+   */
+  onLand?: (p: { x: number; y: number; z: number }) => void;
 }
 
 export class ArcProjectile {
@@ -32,6 +38,7 @@ export class ArcProjectile {
   private gravity: number;
   private groundY: number;
   private life: number;
+  private onLand?: (p: { x: number; y: number; z: number }) => void;
   alive = true;
   /** True once the projectile reached groundY (position clamped there). */
   landed = false;
@@ -46,6 +53,7 @@ export class ArcProjectile {
     this.gravity = o.gravity;
     this.groundY = o.groundY ?? 0;
     this.life = o.life ?? 6;
+    this.onLand = o.onLand;
   }
 
   /** Advance one step (semi-implicit Euler — stable for game-scale arcs). */
@@ -64,6 +72,7 @@ export class ArcProjectile {
       this.y = this.groundY;
       this.landed = true;
       this.alive = false;
+      this.onLand?.({ x: this.x, y: this.y, z: this.z });
     }
   }
 

@@ -81,3 +81,38 @@ test('arcVelocityToward: zero-distance guard (no NaN)', () => {
   assert.ok(Number.isFinite(v.vx));
   assert.ok(Number.isFinite(v.vy));
 });
+
+test('onLand fires exactly once at ground contact with the clamped point', () => {
+  const hits: { x: number; y: number; z: number }[] = [];
+  const p = new ArcProjectile({
+    x: 0, y: 4, z: 2, vx: 3, vy: 0, vz: 0,
+    gravity: 20, groundY: 0, life: 30,
+    onLand: (pt) => hits.push(pt),
+  });
+  for (let i = 0; i < 400 && p.alive; i++) p.update(0.01);
+  assert.equal(hits.length, 1, `fired ${hits.length}×`);
+  assert.equal(hits[0].y, 0, 'clamped to groundY');
+  assert.ok(hits[0].x > 0, 'carries the horizontal landing x');
+  p.update(0.1); // no re-fire after landing
+  assert.equal(hits.length, 1);
+});
+
+test('onLand is NOT called on life-expiry or kill()', () => {
+  let called = 0;
+  const a = new ArcProjectile({
+    x: 0, y: 5, z: 0, vx: 0, vy: 0, vz: 0,
+    gravity: 1, life: 0.3, groundY: -100,
+    onLand: () => called++,
+  });
+  for (let i = 0; i < 50; i++) a.update(0.02);
+  assert.equal(called, 0, 'life-expiry is not a landing');
+
+  const b = new ArcProjectile({
+    x: 0, y: 5, z: 0, vx: 1, vy: 1, vz: 0,
+    gravity: 10, life: 30,
+    onLand: () => called++,
+  });
+  b.kill();
+  b.update(0.5);
+  assert.equal(called, 0, 'kill() is not a landing');
+});
