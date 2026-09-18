@@ -203,6 +203,7 @@ export {
   type Palette,
   type DayNightMood,
 } from './blocks/scene/TimeOfDay';
+export { mixHex, brighten, lift, tint, luminance } from './blocks/scene/ColorTone';
 export { Weather, pickWeather, moonForSeed, type WeatherKind } from './blocks/scene/Weather';
 export { projectToScreen, type CamLike, type ScreenPoint, type V3Like } from './blocks/math/Projection';
 export { ViewmodelSlots, damp, DEFAULT_BOB, type BobConfig } from './blocks/player/ViewmodelSlots';

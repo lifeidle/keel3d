@@ -22,4 +22,5 @@ export {
   type Palette,
   type DayNightMood,
 } from './TimeOfDay';
+export { mixHex, brighten, lift, tint, luminance } from './ColorTone';
 export { applyDaylight, addSunDisc, type DaylightDeps } from './Daylight';
