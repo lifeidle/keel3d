@@ -11,7 +11,7 @@ import { LevelTable } from '../blocks/progress/LevelTable';
 import { HudPanel } from '../blocks/ui/HudPanel';
 import { Toast } from '../blocks/ui/Toast';
 import { EndOverlay } from '../blocks/ui/EndOverlay';
-import { MinimapDots } from '../blocks/ui/MinimapDots';
+import { MiniMap } from '../blocks/ui/MiniMap';
 import { KitSfx } from '../blocks/audio/KitSfx';
 import { BossBar } from '../blocks/ui/BossBar';
 import { PauseMenu } from '../blocks/ui/PauseMenu';
@@ -79,7 +79,14 @@ export function createDungeonGame(
   const sfx = new KitSfx();
   const bossBar = new BossBar({ id: 'dungeon-boss' });
   const worldHalf = (roomCount - 1) * (roomW + gap) + roomW / 2 + 6;
-  const minimap = new MinimapDots({ size: 120, worldHalf });
+  const minimap = new MiniMap({
+    size: 120,
+    extent: worldHalf,
+    playerColor: '#6ec8ff',
+    css:
+      'position:fixed;right:12px;top:12px;z-index:20;border:1px solid rgba(255,255,255,.25);' +
+      'border-radius:8px;background:rgba(0,0,0,.45)',
+  });
 
   const rig = new CameraRig(camera, { defaultMode: 'chase', blend: 0.2, chase: { distance: 10, height: 5, lookAhead: 2 } });
   const pause = new PauseMenu({
@@ -227,7 +234,10 @@ export function createDungeonGame(
           z: 0,
           color: i === roomIdx ? '#6ec8ff' : i < roomIdx ? '#5dcea0' : '#888',
         }));
-        minimap.render(dots, player.position.x, player.position.z);
+        minimap.draw({
+          player: { x: player.position.x, z: player.position.z, yaw: 0 },
+          dots: dots.map((d) => ({ ...d, r: 3 })),
+        });
 
         const nearDoor = rooms[roomIdx]?.door;
         const doorHint = nearDoor && nearDoor.available && nearDoor.inRange(player.position.x, player.position.z)

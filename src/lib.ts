@@ -123,6 +123,13 @@ export { EndOverlay } from './blocks/ui/EndOverlay';
 export { Toast } from './blocks/ui/Toast';
 export { DamageNumbers } from './blocks/ui/DamageNumber';
 export { WorldBar } from './blocks/ui/WorldBar';
+export {
+  MiniMap,
+  worldToMap,
+  type MiniMapCfg,
+  type MiniMapMarker,
+  type MiniMapMarkers,
+} from './blocks/ui/MiniMap';
 export { MinimapDots } from './blocks/ui/MinimapDots';
 export { InventoryGrid } from './blocks/ui/InventoryGrid';
 export { DialogBox } from './blocks/ui/DialogBox';
