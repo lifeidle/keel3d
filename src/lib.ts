@@ -169,7 +169,17 @@ export {
   type PropHandles,
 } from './blocks/props/VehicleHulk';
 export { ShrinkZone } from './blocks/gameplay/ShrinkZone';
-export { createSeededTerrain } from './blocks/scene/TerrainBuilder';
+export {
+  createSeededTerrain,
+  createDomeTerrain,
+  domeHeightField,
+  type TerrainOpts,
+  type SeededTerrain,
+  type DomeSpec,
+  type RippleSpec,
+  type DomeTerrainOpts,
+  type TerrainAssemblyOpts,
+} from './blocks/scene/TerrainBuilder';
 export { applyDaylight, addSunDisc } from './blocks/scene/Daylight';
 export { Weather, pickWeather, moonForSeed, type WeatherKind } from './blocks/scene/Weather';
 export { projectToScreen, type CamLike, type ScreenPoint, type V3Like } from './blocks/math/Projection';
