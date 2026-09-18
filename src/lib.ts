@@ -84,6 +84,7 @@ export {
   arcVelocityToward,
   type ArcOpts,
 } from './blocks/combat/ArcProjectile';
+export { AmmoPool } from './blocks/combat/AmmoPool';
 
 // Progress
 export {
