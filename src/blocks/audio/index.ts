@@ -14,3 +14,4 @@ export {
 } from './ScoreDirector';
 
 export { KitSfx, type KitSfxName } from './KitSfx';
+export { CooldownGate } from './CooldownGate';

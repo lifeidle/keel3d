@@ -141,6 +141,7 @@ export { ControlsOverlay, type ControlHint } from './blocks/ui/ControlsOverlay';
 
 // Audio
 export { KitSfx } from './blocks/audio/KitSfx';
+export { CooldownGate } from './blocks/audio/CooldownGate';
 export {
   duckGain,
   distanceGain,

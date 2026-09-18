@@ -8,6 +8,7 @@
  *
  * blocks/ must not import game/ — tables and event names live with content.
  */
+import { CooldownGate } from './CooldownGate';
 
 export type SampleVariants = string[];
 export type SampleBankTable = Record<string, SampleVariants>;
@@ -40,6 +41,9 @@ export class SampleBank {
   private masterVol: number;
   private sfxMuted = false;
   private voiceLang: 'zh' | 'en' = 'zh';
+  /** Per-key minimum-interval pacing (R46 — callouts don't spam). */
+  private gaps = new Map<string, number>();
+  private gate = new CooldownGate();
   // procedural wind bed
   private windSrc: AudioBufferSourceNode | null = null;
   private windGain: GainNode | null = null;
@@ -93,6 +97,15 @@ export class SampleBank {
   /** Which language set playVoice() resolves to. */
   setVoiceLang(l: 'zh' | 'en') {
     this.voiceLang = l;
+  }
+
+  /**
+   * Per-key minimum interval (R46): `play`/`playVoice` for `key` pass at
+   * most once per `ms` (CooldownGate). Call before the first play of the
+   * key; re-calling updates the interval. Keys without a gap never block.
+   */
+  setMinGap(key: string, ms: number): void {
+    this.gaps.set(key, ms);
   }
 
   /** SFX on/off. Wind and engine fade with it; new one-shots are gated. */
@@ -273,6 +286,8 @@ export class SampleBank {
    */
   play(name: string, gain = 1, pitch = 1): boolean {
     if (!this.ctx || !this.master || this.sfxMuted) return false;
+    const gap = this.gaps.get(name);
+    if (gap && !this.gate.tryPass(name, gap)) return false;
     this.ensureBank(name);
     const list = this.buffers.get(name);
     if (!list || !list.length) return false;
@@ -297,8 +312,15 @@ export class SampleBank {
    * the shared buffer cache and gated by the SFX toggle like every other
    * effect.
    */
-  playVoice(name: string, gain = 0.85) {
-    if (!this.ctx || !this.master || this.sfxMuted) return;
+  /**
+   * Returns true when a voice line actually started (R46 — callers use the
+   * result for stats / fallback). False when muted, no context, the line is
+   * inside its minGap window, or the buffer is not decoded yet.
+   */
+  playVoice(name: string, gain = 0.85): boolean {
+    if (!this.ctx || !this.master || this.sfxMuted) return false;
+    const gap = this.gaps.get(name);
+    if (gap && !this.gate.tryPass(`voice:${name}:${this.voiceLang}`, gap)) return false;
     const pair = this.voiceBank[name];
     if (pair) {
       const key = `${name}:${this.voiceLang}`;
@@ -306,7 +328,7 @@ export class SampleBank {
     }
     const key = pair ? `${name}:${this.voiceLang}` : name;
     const list = this.buffers.get(key);
-    if (!list || !list.length) return;
+    if (!list || !list.length) return false;
     const ctx = this.ctx;
     const buf = list[(Math.random() * list.length) | 0];
     const src = ctx.createBufferSource();
@@ -319,6 +341,19 @@ export class SampleBank {
     g.gain.value = gain;
     src.connect(bp).connect(g).connect(this.master);
     src.start();
+    return true;
+  }
+
+  // ---------- lifecycle ----------
+
+  /** Tear down contexts, buffers, and procedural beds (R46). */
+  dispose(): void {
+    this.stopWind();
+    this.stopEngine();
+    this.buffers.clear();
+    void this.ctx?.close();
+    this.ctx = null;
+    this.master = null;
   }
 
   // ---------- wind bed ----------
