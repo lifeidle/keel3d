@@ -207,6 +207,7 @@ export { Weather, pickWeather, moonForSeed, type WeatherKind } from './blocks/sc
 export { projectToScreen, type CamLike, type ScreenPoint, type V3Like } from './blocks/math/Projection';
 export { ViewmodelSlots, damp, DEFAULT_BOB, type BobConfig } from './blocks/player/ViewmodelSlots';
 export { kitSoldier, type SoldierRig, type SoldierPalette } from './blocks/kit/Soldier';
+export { HitRecoil, type RecoilTarget } from './blocks/kit/HitRecoil';
 export { kitGun, type KitGun, type KitGunOpts } from './blocks/kit/Gun';
 export { fabricTexture } from './blocks/kit/textures';
 export { ClothFlags, type TerrainLike } from './blocks/props/ClothFlags';
