@@ -168,6 +168,11 @@ export class ScoreDirector<M extends string = string> {
     return !!this.menuLoop;
   }
 
+  /** Current mood ('' before the first mood has been applied). */
+  get moodName(): M | null {
+    return this.mood;
+  }
+
   /** BGM on/off — the bus gain is the single switch. */
   setMuted(on: boolean) {
     this.muted = on;
@@ -197,6 +202,23 @@ export class ScoreDirector<M extends string = string> {
   stop() {
     this.loadToken++;
     this.stopLoops(0.6);
+  }
+
+  /**
+   * Tear everything down (R47): stop loops/menu, forget buffers, drop the
+   * bus. Safe without a context and safe to call twice.
+   */
+  dispose() {
+    this.loadToken++;
+    this.stopLoops(0.15);
+    this.stopMenu(0.15);
+    this.moodBufs.clear();
+    this.oneShotBufs.clear();
+    this.menuBuf = null;
+    this.mood = null;
+    this.busGain?.disconnect();
+    this.busGain = null;
+    this.ducked = false;
   }
 
   // ---------- internals ----------
