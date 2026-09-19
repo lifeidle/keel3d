@@ -32,6 +32,15 @@ export interface HulkTerrain {
 
 export interface PropHandles {
   colliders: RAPIER.Collider[];
+  /**
+   * The prop's root group (R83). Content may reposition/reorient it after
+   * placement (e.g. a drivable vehicle's hulk follows its driver). Child
+   * meshes are authored in the group's local space at the PROP's spawn
+   * ground height, so content must compensate `group.position.y` when
+   * moving the prop to a spot with different terrain height. Colliders are
+   * static — moving the group does NOT move physics.
+   */
+  group: THREE.Group;
 }
 
 function snapYaw(rand: () => number): number {
@@ -196,7 +205,7 @@ export function placeTankHulk(
 
   // ONE low hull box ???everything above (turret, gun) is soft cover
   hitBox(b, 0, 0.85, 0, 1.5, 0.85, 2.9);
-  return { colliders: b.colliders };
+  return { colliders: b.colliders, group: b.group };
 }
 
 // ---------------------------------------------------------------------------
@@ -222,7 +231,7 @@ export function placeScoutWreck(
     cylZ(b, 0x14161a, 0.95, 0, 0.42, 0.3, wx, 0.42, wz);
   }
   hitBox(b, 0, 0.5, 0, 1.05, 0.5, 2.2);
-  return { colliders: b.colliders };
+  return { colliders: b.colliders, group: b.group };
 }
 
 // ---------------------------------------------------------------------------
@@ -254,7 +263,7 @@ export function placePlaneWreck(
   const [sx, sz] = yawOf(0, -2.0, b.yaw);
   plumes?.addColumn(b.cx + sx, b.gy0 + 0.2, b.cz + sz, 0.75);
   hitBox(b, 0, 0.4, 0.4, 1.0, 0.4, 2.6);
-  return { colliders: b.colliders };
+  return { colliders: b.colliders, group: b.group };
 }
 
 // ---------------------------------------------------------------------------
@@ -275,7 +284,7 @@ export function placeFenceRow(
   for (const h of [0.3, 0.65, 1.0]) {
     box(b, 0x555048, 0.8, 0.5, 0.03, 0.03, len, 0, h, 0, { collider: false });
   }
-  return { colliders: b.colliders };
+  return { colliders: b.colliders, group: b.group };
 }
 
 // ---------------------------------------------------------------------------
@@ -304,7 +313,7 @@ export function placeMgNest(
   box(b, 0x4a5a3a, 0.8, 0.2, 0.3, 0.22, 0.4, 0, 0.14, 0.95, { collider: false });
   // low ring collider so people can't walk through the bags
   hitBox(b, 0, 0.15, 0, R * 0.9, 0.15, R * 0.9);
-  return { colliders: b.colliders };
+  return { colliders: b.colliders, group: b.group };
 }
 
 // ---------------------------------------------------------------------------
@@ -346,7 +355,7 @@ export function placeTruck(
     cylZ(b, 0x14161a, 0.95, 0, 0.44, 0.28, wx, 0.44, wz);
   }
   hitBox(b, 0, 0.55, 0, 1.05, 0.55, 2.3);
-  return { colliders: b.colliders };
+  return { colliders: b.colliders, group: b.group };
 }
 
 // ---------------------------------------------------------------------------
@@ -391,7 +400,7 @@ export function placeOilTanker(
     cylZ(b, 0x14161a, 0.95, 0, 0.46, 0.28, wx, 0.46, wz);
   }
   hitBox(b, 0, 0.75, -0.4, 1.1, 0.75, 2.6);
-  return { colliders: b.colliders };
+  return { colliders: b.colliders, group: b.group };
 }
 
 // ---------------------------------------------------------------------------
@@ -426,7 +435,7 @@ export function placeBunker(
     box(b, 0x6b5c3c, 0.98, 0, 0.9, 0.4, 0.55, sx, 0.75, 1.55, { collider: false });
   }
   hitBox(b, 0, 0.95, 0, 1.7, 0.95, 1.8);
-  return { colliders: b.colliders };
+  return { colliders: b.colliders, group: b.group };
 }
 
 // ---------------------------------------------------------------------------
@@ -465,7 +474,7 @@ export function placeConcertina(
     }
   }
   hitBox(b, 0, 0.3, 0, 0.55, 0.3, len / 2);
-  return { colliders: b.colliders };
+  return { colliders: b.colliders, group: b.group };
 }
 
 // ---------------------------------------------------------------------------
@@ -484,7 +493,7 @@ export function placeHedgehog(
   box(b, steel, 0.55, 0.4, 0.13, 0.13, 1.9, 0, 0.4, 0, { collider: false, rotZ: -0.35 });
   // the single blocking collider (so AI and the player must walk around it)
   hitBox(b, 0, 0.55, 0, 0.75, 0.55, 0.75);
-  return { colliders: b.colliders };
+  return { colliders: b.colliders, group: b.group };
 }
 
 // ---------------------------------------------------------------------------
@@ -512,7 +521,7 @@ export function placeRuinWall(
     box(b, 0x584e42, 0.95, 0.1, rr, rr * 0.6, rr * 1.2, (rand() - 0.5) * 3.4, rr * 0.15, 0.5 + (rand() - 0.5) * 0.7, { collider: false });
   }
   hitBox(b, 0, 0.75, 0, 1.9, 0.75, 0.35);
-  return { colliders: b.colliders };
+  return { colliders: b.colliders, group: b.group };
 }
 
 // ---------------------------------------------------------------------------
@@ -542,7 +551,7 @@ export function placeUtilityPole(
   }
   // thin post collider so the player brushes against it instead of ghosting
   hitBox(b, 0, 2.7, 0, 0.12, 2.7, 0.12);
-  return { colliders: b.colliders };
+  return { colliders: b.colliders, group: b.group };
 }
 
 // ---------------------------------------------------------------------------
@@ -564,7 +573,7 @@ export function placeAmmoDump(
   box(b, belt, 0.85, 0.3, 0.55, 0.26, 0.35, -0.15, 0.2, 0.85, { collider: false });
   box(b, belt, 0.85, 0.3, 0.5, 0.24, 0.32, 0.75, 0.18, 0.9, { collider: false });
   hitBox(b, 0, 0.6, 0, 1.3, 0.6, 0.9);
-  return { colliders: b.colliders };
+  return { colliders: b.colliders, group: b.group };
 }
 
 // ---------------------------------------------------------------------------
@@ -582,5 +591,5 @@ export function placeSignpost(
   // small name plate lower down
   box(b, wood, 0.9, 0, 0.5, 0.18, 0.04, -0.08, 1.2, 0, { collider: false, rotY: -0.4 });
   hitBox(b, 0, 1.05, 0, 0.1, 1.05, 0.1);
-  return { colliders: b.colliders };
+  return { colliders: b.colliders, group: b.group };
 }
