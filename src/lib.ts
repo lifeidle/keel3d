@@ -109,6 +109,11 @@ export { Interactable } from './blocks/interact/Interactable';
 export { CharacterController, computeMoveIntent, type CharInput } from './blocks/player/CharacterController';
 export { DistanceTrigger } from './blocks/player/DistanceTrigger';
 export { climbRatio, slopeFactor } from './blocks/player/Slope';
+export {
+  steerAroundSlope,
+  type SteerOpts,
+  type SteerResult,
+} from './blocks/player/SlopeSteer';
 export { Gamepad } from './blocks/input/Gamepad';
 export {
   TouchControls,
