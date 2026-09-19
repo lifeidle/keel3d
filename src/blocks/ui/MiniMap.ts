@@ -51,6 +51,22 @@ export interface MiniMapMarker {
   z: number;
   color: string;
   r: number;
+  /** Content identity (e.g. 'ally' / 'beacon') — carried into `lastDots`. */
+  id?: string;
+}
+
+/** A dot as resolved by the last `draw` (acceptance + observability). */
+export interface LastDot {
+  x: number;
+  z: number;
+  color: string;
+  r: number;
+  id?: string;
+  /** Map-pixel position (after edge clamping when `edgeDots`). */
+  mapX: number;
+  mapY: number;
+  /** True when the dot was pinned to the edge (R57). */
+  clamped: boolean;
 }
 
 export interface MiniMapMarkers {
@@ -103,6 +119,7 @@ export class MiniMap {
   private cfg: Required<Pick<MiniMapCfg, 'size' | 'extent'>> & MiniMapCfg;
   private playerMap: { x: number; y: number } | null = null;
   private edgeDots = 0;
+  private dotsLog: LastDot[] = [];
 
   constructor(cfg: MiniMapCfg, parent: HTMLElement | null = null) {
     this.cfg = { ...DEFAULTS, ...cfg };
@@ -124,13 +141,47 @@ export class MiniMap {
     }
   }
 
-  /** Per-frame draw: background → terrain layer → frame → grid → dots → player arrow. */
+  /**
+   * Per-frame draw: background → terrain layer → frame → grid → dots →
+   * player arrow. Dot RESOLUTION (edge clamping, `lastDots`, player map
+   * position) happens before the canvas guard, so headless callers can
+   * still observe the last draw.
+   */
   draw(d: MiniMapMarkers): void {
+    const s = this.cfg.size;
+    const m = { size: s, extent: this.cfg.extent };
+
+    // dot resolution (pure — recorded headless or with a canvas)
+    this.edgeDots = 0;
+    const last: LastDot[] = [];
+    for (const dt of d.dots) {
+      let p = worldToMap(dt.x, dt.z, m);
+      let clamped = false;
+      if (p.x < 0 || p.x > s || p.y < 0 || p.y > s) {
+        if (!this.cfg.edgeDots) continue; // R57: skip (back-compat default)
+        const c = clampToWorldExtent(dt.x, dt.z, m.extent);
+        clamped = c.clamped;
+        if (clamped) this.edgeDots += 1;
+        p = worldToMap(c.x, c.z, m); // pinned to the edge
+      }
+      last.push({
+        x: dt.x,
+        z: dt.z,
+        color: dt.color,
+        r: dt.r,
+        id: dt.id,
+        mapX: p.x,
+        mapY: p.y,
+        clamped,
+      });
+    }
+    this.dotsLog = last;
+    const p = worldToMap(d.player.x, d.player.z, m);
+    this.playerMap = p;
+
     const ctx = this.ctx;
     const canvas = this.canvas;
     if (!ctx || !canvas) return;
-    const s = this.cfg.size;
-    const m = { size: s, extent: this.cfg.extent };
     ctx.clearRect(0, 0, s, s);
     ctx.fillStyle = this.cfg.bg ?? DEFAULTS.bg;
     ctx.fillRect(0, 0, s, s);
@@ -148,25 +199,14 @@ export class MiniMap {
     ctx.lineTo(s, s / 2);
     ctx.stroke();
 
-    this.edgeDots = 0;
-    const dot = (wx: number, wz: number, color: string, r: number) => {
-      let p = worldToMap(wx, wz, m);
-      if (p.x < 0 || p.x > s || p.y < 0 || p.y > s) {
-        if (!this.cfg.edgeDots) return; // R57: skip (back-compat default)
-        const c = clampToWorldExtent(wx, wz, m.extent);
-        if (c.clamped) this.edgeDots += 1;
-        p = worldToMap(c.x, c.z, m); // pinned to the edge
-      }
-      ctx.fillStyle = color;
+    for (const d2 of last) {
+      ctx.fillStyle = d2.color;
       ctx.beginPath();
-      ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+      ctx.arc(d2.mapX, d2.mapY, d2.r, 0, Math.PI * 2);
       ctx.fill();
-    };
-    for (const dt of d.dots) dot(dt.x, dt.z, dt.color, dt.r);
+    }
 
     // player arrow (yaw facing; north-fixed — canvas up = −z)
-    const p = worldToMap(d.player.x, d.player.z, m);
-    this.playerMap = p;
     ctx.save();
     ctx.translate(p.x, p.y);
     ctx.rotate(Math.PI - d.player.yaw);
@@ -188,6 +228,10 @@ export class MiniMap {
   /** R57: dots clamped to the edge on the last draw (acceptance hook). */
   get lastEdgeDots(): number {
     return this.edgeDots;
+  }
+  /** R78: dots resolved by the last draw (headless-observable). */
+  get lastDots(): readonly LastDot[] {
+    return this.dotsLog;
   }
 
   dispose(): void {

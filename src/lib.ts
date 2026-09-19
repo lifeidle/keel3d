@@ -156,6 +156,7 @@ export {
   type MiniMapCfg,
   type MiniMapMarker,
   type MiniMapMarkers,
+  type LastDot,
 } from './blocks/ui/MiniMap';
 export { MinimapDots } from './blocks/ui/MinimapDots';
 export { InventoryGrid } from './blocks/ui/InventoryGrid';

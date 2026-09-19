@@ -36,8 +36,9 @@ test('worldToMap: off-map points fall outside the canvas (draw skips them)', () 
 test('MiniMap: headless construction is a safe no-op (canvas null, no throw)', () => {
   const m = new MiniMap({ extent: 40 });
   assert.equal(m.canvas, null);
-  m.draw({ player: { x: 0, z: 0, yaw: 0 }, dots: [] }); // no-op, no throw
-  assert.equal(m.playerMapValue, null);
+  m.draw({ player: { x: 0, z: 0, yaw: 0 }, dots: [] }); // no canvas → no throw
+  // R78: headless draw still RECORDS the resolution (acceptance hooks)
+  assert.deepEqual(m.playerMapValue, { x: 75, y: 75 }, 'map position recorded headless');
   m.dispose();
 });
 
@@ -72,10 +73,13 @@ test('clampToWorldExtent: negative margin clamps to zero (no NaN/invert)', () =>
   assert.deepEqual(a, { x: 0, z: 0, clamped: true });
 });
 
-test('MiniMap: headless draw with edgeDots is a safe no-op', () => {
+test('MiniMap: headless draw with edgeDots is a safe no-op (but still records)', () => {
   const m = new MiniMap({ extent: 32, edgeDots: true });
   assert.equal(m.canvas, null);
   m.draw({ player: { x: 0, z: 0, yaw: 0 }, dots: [{ x: 50, z: 0, color: '#fff', r: 2 }] });
-  assert.equal(m.lastEdgeDots, 0, 'no draw → counter 0');
+  // R78: resolution (edge clamping + counter) is recorded even without a canvas
+  assert.equal(m.lastEdgeDots, 1, 'off-map dot pinned to the edge');
+  assert.equal(m.lastDots.length, 1);
+  assert.equal(m.lastDots[0].clamped, true);
   m.dispose();
 });
