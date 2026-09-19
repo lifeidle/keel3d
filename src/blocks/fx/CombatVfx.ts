@@ -236,23 +236,32 @@ export class CombatVfx {
     }
   }
 
-  explosion(pos: THREE.Vector3) {
+  /**
+   * Explosion at `pos`. `intensity` scales fireball growth, boom light and
+   * particle counts (1 = standard — the original behaviour, 2 =
+   * vehicle-class, e.g. a destroyed tank). Counts are deterministic at a
+   * given intensity: 1 → 24 active effects (1 fire + 5 smoke + 18 sparks),
+   * 2 → 45 (1 + 8 + 36).
+   */
+  explosion(pos: THREE.Vector3, intensity = 1) {
+    const big = intensity >= 2;
+    const scale = big ? 2 : 1;
     const fire = this.takeBoom();
     fire.position.copy(pos);
     fire.scale.setScalar(1);
     this.group.add(fire);
-    this.list.push({ obj: fire, life: 0.45, maxLife: 0.45, kind: 'boom', grow: 9, baseOpacity: 1 });
+    this.list.push({ obj: fire, life: 0.45, maxLife: 0.45, kind: 'boom', grow: 9 * scale, baseOpacity: 1 });
 
     const boom = this.acquireBoom();
     if (boom) {
       boom.light.position.set(pos.x, pos.y + 0.5, pos.z);
-      boom.peak = 60;
+      boom.peak = 60 * scale;
       boom.maxLife = 0.5;
       boom.life = 0.5;
-      boom.light.intensity = 60;
+      boom.light.intensity = 60 * scale;
     }
 
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < (big ? 8 : 5); i++) {
       const s = this.takeSmoke();
       s.position.copy(pos);
       s.position.y += 0.3;
@@ -273,7 +282,7 @@ export class CombatVfx {
       });
     }
 
-    for (let i = 0; i < 18; i++) {
+    for (let i = 0; i < (big ? 36 : 18); i++) {
       const debris = Math.random() < 0.5;
       const p = this.takeSpark(debris ? 0xffb060 : 0x555049, debris);
       p.position.copy(pos);
