@@ -1,7 +1,7 @@
 {
   "name": "keel3d",
-  "version": "0.3.0",
-  "private": true,
+  "version": "0.4.0",
+  "private": false,
   "type": "module",
   "description": "KeeL 3D — WebGPU browser game framework. Skeletons: FPS / tower defense / open world / flight / racing.",
   "license": "MIT",
