@@ -82,6 +82,12 @@ export {
 } from './blocks/combat/Blast';
 export { Fuse } from './blocks/combat/Fuse';
 export {
+  chainBlast,
+  type ChainItem,
+  type ChainResult,
+  type ChainOpts,
+} from './blocks/combat/ChainBlast';
+export {
   ArcProjectile,
   arcVelocityToward,
   type ArcOpts,
