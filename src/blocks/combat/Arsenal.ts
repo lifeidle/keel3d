@@ -60,6 +60,16 @@ export class Arsenal {
     return this.mags[this.cur].reloading;
   }
 
+  /** Seconds left in the active slot's reload (0 when not reloading). */
+  get reloadRemaining(): number {
+    return this.mags[this.cur].reloadRemaining;
+  }
+
+  /** Active slot's reload progress 0..1 (0 when not reloading). */
+  get reloadProgress(): number {
+    return this.mags[this.cur].reloadProgress;
+  }
+
   get cooldownRemaining(): number {
     return Math.max(0, this.cooldown);
   }
