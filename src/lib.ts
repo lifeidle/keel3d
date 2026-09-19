@@ -145,6 +145,8 @@ export {
   type DmgStyle,
   type ResolvedDmgStyle,
 } from './blocks/ui/DamageNumber';
+export { WindowBar, type WindowBarOpts } from './blocks/ui/WindowBar';
+
 export { WorldBar } from './blocks/ui/WorldBar';
 export {
   MiniMap,
