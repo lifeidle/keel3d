@@ -41,6 +41,15 @@ export interface ObjectiveSnapshot {
   active: boolean;
 }
 
+/**
+ * Time left on a progress objective (seconds for timer objectives).
+ * done → 0; otherwise ceil of target - progress (floor at 0). Pure.
+ */
+export function objectiveRemaining(o: ObjectiveSnapshot): number {
+  if (o.done) return 0;
+  return Math.max(0, Math.ceil(o.target - o.progress));
+}
+
 export class ObjectiveTracker {
   private list: Objective[] = [];
   /** Fired once when an objective transitions to done. */
@@ -101,6 +110,11 @@ export class ObjectiveTracker {
   /** The first active, not-done objective (null when all done or none active). */
   current(): Objective | null {
     return this.list.find((o) => o.active && !o.done) ?? null;
+  }
+
+  /** Time left on `id` (see objectiveRemaining; done → 0). */
+  remaining(id: string): number {
+    return objectiveRemaining(this.find(id));
   }
 
   allDone(): boolean {

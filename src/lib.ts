@@ -161,7 +161,13 @@ export { MinimapDots } from './blocks/ui/MinimapDots';
 export { InventoryGrid } from './blocks/ui/InventoryGrid';
 export { DialogBox } from './blocks/ui/DialogBox';
 export { ButtonBar } from './blocks/ui/ButtonBar';
-export { QuestTracker } from './blocks/ui/QuestTracker';
+export { QuestTracker, questLine } from './blocks/ui/QuestTracker';
+export {
+  ObjectiveTracker,
+  objectiveRemaining,
+  type Objective,
+  type ObjectiveSnapshot,
+} from './blocks/gameplay/Objective';
 export { TacticalMap } from './blocks/ui/TacticalMap';
 export { PauseMenu, type PauseMenuOptions } from './blocks/ui/PauseMenu';
 export { ControlsOverlay, type ControlHint } from './blocks/ui/ControlsOverlay';

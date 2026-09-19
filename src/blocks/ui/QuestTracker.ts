@@ -7,8 +7,28 @@ export interface QuestItem {
   done?: boolean;
   /** [current, target] — rendered as "title 2/3" while not done. */
   progress?: readonly [number, number];
+  /**
+   * Timer objectives: render the REMAINING amount as "title 11s" instead of
+   * "title 4/15" (holdout countdowns — what matters is time left).
+   */
+  countdown?: boolean;
   /** Highlight as the current objective (▶ marker). */
   active?: boolean;
+}
+
+/**
+ * Format one quest line (pure — headless-testable).
+ * "☑/▶/☐ title [n/m]" or, with `countdown`, "… title Xs" (time left).
+ */
+export function questLine(item: QuestItem): string {
+  const mark = item.done ? '☑' : item.active ? '▶' : '☐';
+  let prog = '';
+  if (!item.done && item.progress) {
+    prog = item.countdown
+      ? ` ${Math.max(0, item.progress[1] - item.progress[0])}s`
+      : ` ${item.progress[0]}/${item.progress[1]}`;
+  }
+  return `${mark} ${item.title}${prog}`;
 }
 
 export class QuestTracker {
@@ -45,11 +65,7 @@ export class QuestTracker {
 
   private render(): void {
     if (!this.el) return;
-    const lines = this.items.map((i) => {
-      const mark = i.done ? '☑' : i.active ? '▶' : '☐';
-      const prog = !i.done && i.progress ? ` ${i.progress[0]}/${i.progress[1]}` : '';
-      return `${mark} ${i.title}${prog}`;
-    });
+    const lines = this.items.map((i) => questLine(i));
     this.el.textContent = lines.length ? lines.join('\n') : '（无任务）';
   }
 
