@@ -173,6 +173,12 @@ export { SfxPlayer } from './blocks/audio/SfxPlayer';
 export { BeatClock } from './blocks/audio/BeatClock';
 export { Ambience, type AmbienceOpts } from './blocks/audio/Ambience';
 export { StepSequencer, type SeqStep } from './blocks/audio/StepSequencer';
+export {
+  CalloutTracker,
+  type CalloutDef,
+  type CalloutBank,
+  type CalloutCount,
+} from './blocks/audio/CalloutTracker';
 
 // World / scene / fx
 export { generateDungeon, isDungeonConnected, type DungeonLayout } from './blocks/world/ProcDungeon';
