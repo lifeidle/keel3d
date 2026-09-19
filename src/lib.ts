@@ -54,6 +54,7 @@ export { buildMap } from './blocks/MapBuilder';
 // Gameplay
 export { Health } from './blocks/gameplay/Health';
 export { Linger } from './blocks/gameplay/Linger';
+export { LossTension } from './blocks/gameplay/LossTension';
 export { Economy } from './blocks/gameplay/Economy';
 export { Scoreboard } from './blocks/gameplay/Scoreboard';
 export { WaveDirector, type WaveDef } from './blocks/gameplay/WaveDirector';
