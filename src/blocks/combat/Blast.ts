@@ -46,6 +46,40 @@ export interface BlastHit {
 }
 
 /**
+ * Presentation-layer helpers (pure) — the same math a blast RING or a
+ * "how much damage here?" HUD needs:
+ */
+
+/** True when (x,z) is inside the blast radius (boundary included). */
+export function blastContains(cx: number, cz: number, x: number, z: number, radius: number): boolean {
+  return Math.hypot(x - cx, z - cz) <= radius;
+}
+
+/**
+ * Damage at an arbitrary point (the `blastHits` curve, point mode):
+ * center = full `damage`, edge = `damage * (1 - falloff)`, outside = 0.
+ */
+export function blastDamageAt(cx: number, cz: number, x: number, z: number, cfg: BlastConfig): number {
+  const d = Math.hypot(x - cx, z - cz);
+  if (d > cfg.radius) return 0;
+  return Math.max(0, Math.round(cfg.damage * (1 - (d / cfg.radius) * cfg.falloff)));
+}
+
+/**
+ * Ground ring points for presentation (a closed loop: point 0 wraps to
+ * the last). `segments` >= 3.
+ */
+export function blastRing(cx: number, cz: number, radius: number, segments = 24): [number, number][] {
+  if (!(segments >= 3)) throw new Error('blastRing: segments must be >= 3');
+  const pts: [number, number][] = [];
+  for (let i = 0; i < segments; i++) {
+    const a = (i / segments) * Math.PI * 2;
+    pts.push([cx + Math.cos(a) * radius, cz + Math.sin(a) * radius]);
+  }
+  return pts;
+}
+
+/**
  * Compute per-target blast damage (pure).
  *
  * Geometry comes from `areaHits` (XZ planar distance, `alive === false`

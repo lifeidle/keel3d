@@ -77,6 +77,9 @@ export { Projectile, stepProjectiles } from './blocks/combat/Projectile';
 export { areaHits, ringHits } from './blocks/combat/AreaDamage';
 export {
   blastHits,
+  blastContains,
+  blastDamageAt,
+  blastRing,
   DEFAULT_BLAST,
   type BlastTarget,
   type BlastConfig,
