@@ -8,24 +8,29 @@
  * and completion counting; content supplies the step table and the fire
  * callback (clip name/gain/rate or anything else).
  */
-export interface SeqStep {
+export interface SeqStep<K extends string = string> {
   /** Offset from the run start (seconds). Must be >= 0 and non-decreasing. */
   at: number;
-  /** Clip / event name passed to the fire callback. */
-  name: string;
+  /**
+   * Clip / event name passed to the fire callback.
+   * R68: generic key — content types it against its own sample-bank key
+   * union so a typo in a data table is a COMPILE error, not a silent
+   * runtime miss (sample-bank 404 lesson: unknown clip = no sound, no log).
+   */
+  name: K;
   gain?: number;
   rate?: number;
 }
 
-export class StepSequencer {
+export class StepSequencer<K extends string = string> {
   private i: number;
   private t = 0;
   private runs = 0;
 
   constructor(
-    private steps: readonly SeqStep[],
+    private steps: readonly SeqStep<K>[],
     /** Called per step as it fires (content plays the clip). */
-    private onStep?: (s: SeqStep) => void,
+    private onStep?: (s: SeqStep<K>) => void,
   ) {
     if (!steps.length) throw new Error('StepSequencer: steps must be non-empty');
     let prev = -Infinity;
@@ -63,10 +68,10 @@ export class StepSequencer {
    * through several steps in one frame, in order. Returns the steps fired
    * this frame (idle → []).
    */
-  update(dt: number): SeqStep[] {
+  update(dt: number): SeqStep<K>[] {
     if (!this.playing) return [];
     this.t += dt;
-    const fired: SeqStep[] = [];
+    const fired: SeqStep<K>[] = [];
     while (this.i < this.steps.length && this.steps[this.i].at <= this.t) {
       const s = this.steps[this.i];
       this.onStep?.(s);

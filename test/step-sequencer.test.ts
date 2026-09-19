@@ -77,3 +77,37 @@ test('invalid tables throw (empty, negative `at`, decreasing order)', () => {
     ]),
   );
 });
+
+// R68：generic key — the step `name` flows as the content's key union, so a
+// table typo is a compile error, not a silent runtime miss.
+const JINGLE_KEYS = { win: true, pickup: true, hit: true, lose: true } as const;
+type JingleKey = (typeof JINGLE_KEYS)[keyof typeof JINGLE_KEYS];
+
+const TYPED_STEPS: readonly {
+  name: JingleKey;
+  at: number;
+  gain: number;
+  rate: number;
+}[] = [
+  { name: 'lose', at: 0, gain: 0.5, rate: 0.55 },
+  { name: 'hit', at: 0.2, gain: 0.35, rate: 0.45 },
+  { name: 'lose', at: 0.4, gain: 0.45, rate: 0.38 },
+  { name: 'hit', at: 0.6, gain: 0.5, rate: 0.3 },
+];
+
+test('generic key: typed table + callback receive the key union (runtime unchanged)', () => {
+  const seq = new StepSequencer<JingleKey>(TYPED_STEPS);
+  const seen: JingleKey[] = [];
+  const cb = (s: { name: JingleKey }) => {
+    seen.push(s.name);
+  };
+  // callback wiring: re-run through a second instance to prove the type flows
+  const seq2 = new StepSequencer<JingleKey>(TYPED_STEPS, cb);
+  seq.start();
+  seq2.start();
+  assert.deepEqual(seq.update(2.0).map((s) => s.name), ['lose', 'hit', 'lose', 'hit']);
+  assert.deepEqual(seq2.update(2.0).map((s) => s.name), ['lose', 'hit', 'lose', 'hit']);
+  assert.deepEqual(seen, ['lose', 'hit', 'lose', 'hit']);
+  assert.equal(seq.runsCompleted, 1);
+  assert.equal(seq2.runsCompleted, 1);
+});
