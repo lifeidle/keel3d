@@ -146,6 +146,7 @@ export {
   type ResolvedDmgStyle,
 } from './blocks/ui/DamageNumber';
 export { WindowBar, type WindowBarOpts } from './blocks/ui/WindowBar';
+export { PingMarker, type PingSample } from './blocks/ui/PingMarker';
 
 export { WorldBar } from './blocks/ui/WorldBar';
 export {
