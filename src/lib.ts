@@ -164,6 +164,12 @@ export { DialogBox } from './blocks/ui/DialogBox';
 export { ButtonBar } from './blocks/ui/ButtonBar';
 export { QuestTracker, questLine } from './blocks/ui/QuestTracker';
 export {
+  HotkeyHintPanel,
+  pickHints,
+  type HotkeyHint,
+  type HotkeyHintPanelOpts,
+} from './blocks/ui/HotkeyHint';
+export {
   ObjectiveTracker,
   objectiveRemaining,
   type Objective,
