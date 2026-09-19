@@ -82,6 +82,69 @@ export class ArcProjectile {
   }
 }
 
+export interface ArcLanding {
+  x: number;
+  y: number;
+  z: number;
+  /**
+   * Seconds until ground contact. null = never lands (already below
+   * ground with downward speed → contact is immediate, reported as 0;
+   * only a horizontal shot starting exactly AT ground height with no
+   * descent reports null).
+   */
+  time: number | null;
+}
+
+/**
+ * R85 — closed-form landing prediction for an ArcProjectile flight.
+ *
+ * Flat plane (`groundY`): exact solve of y0 + vy·t − ½g·t² = groundY
+ * (largest positive root). Terrain (`groundFn`): one fixed-point pass
+ * re-solves against the ground sampled at the predicted landing —
+ * converges fast on gentle terrain (≤5 iterations, 0.05u tolerance).
+ *
+ * Pass the SAME ground definition the ArcProjectile was constructed
+ * with — a clamped constant plane lands on that plane, not on terrain.
+ */
+export function arcLandingPoint(
+  from: { x: number; y: number; z: number },
+  v: { vx: number; vy: number; vz: number },
+  opts: {
+    gravity: number;
+    groundY?: number;
+    groundFn?: (x: number, z: number) => number;
+  },
+): ArcLanding {
+  const g = opts.gravity;
+  if (!(g > 0)) throw new Error('arcLandingPoint: gravity must be > 0');
+  const plane = (planeY: number): ArcLanding => {
+    const dy = from.y - planeY;
+    if (dy <= 0 && v.vy < 0) return { x: from.x, y: from.y, z: from.z, time: 0 };
+    const disc = v.vy * v.vy + 2 * g * dy;
+    if (disc < 0) return { x: from.x, y: from.y, z: from.z, time: null };
+    const t = (v.vy + Math.sqrt(disc)) / g;
+    if (!(t > 0)) return { x: from.x, y: from.y, z: from.z, time: null };
+    const x = from.x + v.vx * t;
+    const z = from.z + v.vz * t;
+    return { x, y: planeY, z, time: t };
+  };
+  if (opts.groundFn) {
+    // fixed point: plane at the current landing's ground height
+    let land = plane(opts.groundFn(from.x, from.z));
+    if (land.time === null) return land;
+    for (let i = 0; i < 5; i++) {
+      const next = plane(opts.groundFn(land.x, land.z));
+      if (next.time === null) return next;
+      if (Math.abs(next.x - land.x) < 0.05 && Math.abs(next.z - land.z) < 0.05) {
+        return next;
+      }
+      land = next;
+    }
+    return land;
+  }
+  return plane(opts.groundY ?? 0);
+}
+
 /**
  * Aim helper (pure): velocity that lands a parabolic shot near a target.
  * Solves the classic toss: given horizontal distance d and height delta,

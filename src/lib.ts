@@ -92,6 +92,10 @@ export {
   type TrailPoint,
 } from './blocks/fx/Trail';
 export {
+  arcLandingPoint,
+  type ArcLanding,
+} from './blocks/combat/ArcProjectile';
+export {
   chainBlast,
   type ChainItem,
   type ChainResult,
