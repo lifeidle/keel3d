@@ -152,6 +152,19 @@ export class Arsenal {
   }
 
   /**
+   * Set a slot's reserve directly (ammo events: crates that set the count,
+   * penalties, test hooks). Clamped to [0, slot cap]. Returns the new
+   * reserve. An in-progress reload keeps running — completion reads the
+   * reserve at that moment.
+   */
+  setReserve(n: number, slot = this.cur): number {
+    const i = ((slot % this.slots.length) + this.slots.length) % this.slots.length;
+    const mag = this.mags[i];
+    mag.setReserve(Math.min(n, this.slots[i].reserve));
+    return mag.reserve;
+  }
+
+  /**
    * Add reserve rounds to a slot (ammo pickup). Clamped at the slot's
    * configured reserve (the configured maximum), so pickups top up spent
    * rounds without stacking past it. Returns the amount actually added.

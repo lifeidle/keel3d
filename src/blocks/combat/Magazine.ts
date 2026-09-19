@@ -35,6 +35,12 @@ export class Magazine {
     this.reserve = Math.max(this.reserve, initial);
   }
 
+  /** Set the reserve directly (floored at 0). Returns the new value. */
+  setReserve(n: number): number {
+    this.reserve = Math.max(0, n);
+    return this.reserve;
+  }
+
   /** Begin a reload if there's room and spare ammo. Takes `reloadTime` seconds. */
   startReload(reloadTime: number): void {
     if (this.reloading || this.rounds >= this.magSize || this.reserve <= 0) return;
