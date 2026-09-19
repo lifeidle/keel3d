@@ -12,14 +12,43 @@ export class CooldownGate {
 
   /**
    * Passes (and records `now`) when the key has been quiet for at least
-   * `minGapMs`. A key with no recorded pass always passes.
+   * `minGap` (clock units). A key with no recorded pass always passes.
    */
-  tryPass(key: string, minGapMs: number): boolean {
+  tryPass(key: string, minGap: number): boolean {
     const now = this.clock();
     const lastAt = this.last.get(key);
-    if (lastAt !== undefined && now - lastAt < minGapMs) return false;
+    if (lastAt !== undefined && now - lastAt < minGap) return false;
     this.last.set(key, now);
     return true;
+  }
+
+  /**
+   * The last recorded pass time for `key` (clock units), or null.
+   * R66: observability + the bypass-and-restore test pattern
+   * (clear → act → setLast to undo a failed bypass).
+   */
+  lastAt(key: string): number | null {
+    const t = this.last.get(key);
+    return t === undefined ? null : t;
+  }
+
+  /**
+   * R66: set/restore a key's last-pass time (clock units). Enables
+   * "bypass the gate, and restore the previous state if the action
+   * failed" without content keeping shadow timers.
+   */
+  setLast(key: string, at: number): void {
+    this.last.set(key, at);
+  }
+
+  /**
+   * R66: time left until `key` would pass again (clock units; 0 when
+   * free or unknown). For HUDs and probes.
+   */
+  remaining(key: string, minGap: number): number {
+    const t = this.last.get(key);
+    if (t === undefined) return 0;
+    return Math.max(0, minGap - (this.clock() - t));
   }
 
   /** Reset one key (or every key when omitted). */

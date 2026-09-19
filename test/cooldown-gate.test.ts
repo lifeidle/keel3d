@@ -64,3 +64,54 @@ test('zero gap never blocks', () => {
   assert.ok(g.tryPass('x', 0));
   assert.ok(g.tryPass('x', 0));
 });
+
+test('R66: lastAt observes the recorded pass (null when unknown)', () => {
+  let t = 1000;
+  const g = new CooldownGate(() => t);
+  assert.equal(g.lastAt('a'), null, 'unknown key → null');
+  g.tryPass('a', 500);
+  assert.equal(g.lastAt('a'), 1000);
+  t = 2000;
+  g.tryPass('a', 500);
+  assert.equal(g.lastAt('a'), 2000, 'updated on the new pass');
+});
+
+test('R66: bypass-and-restore pattern (clear → act → setLast on failure)', () => {
+  let t = 1000;
+  const g = new CooldownGate(() => t);
+  g.tryPass('resupply', 300); // in cooldown until 1300
+  t = 1100;
+  const saved = g.lastAt('resupply');
+  g.clear('resupply'); // bypass
+  assert.ok(g.tryPass('resupply', 300), 'bypassed: passes');
+  // the action failed → restore the previous state
+  g.setLast('resupply', saved!);
+  assert.equal(g.tryPass('resupply', 300), false, 'restored: blocked again');
+  t = 1300;
+  assert.ok(g.tryPass('resupply', 300), 'free after the original window');
+});
+
+test('R66: setLast pre-seeds a key (no prior pass needed)', () => {
+  let t = 5000;
+  const g = new CooldownGate(() => t);
+  g.setLast('k', 4900);
+  assert.equal(g.lastAt('k'), 4900);
+  assert.ok(g.has('k'));
+  assert.equal(g.tryPass('k', 200), false, 'seeded: in gap until 5100');
+  t = 5100;
+  assert.ok(g.tryPass('k', 200), 'free at 5100');
+});
+
+test('R66: remaining() — 0 when free/unknown, countdown while in gap', () => {
+  let t = 1000;
+  const g = new CooldownGate(() => t);
+  assert.equal(g.remaining('a', 500), 0, 'unknown key → 0');
+  g.tryPass('a', 500);
+  assert.equal(g.remaining('a', 500), 500, 'full gap right after a pass');
+  t = 1300;
+  assert.equal(g.remaining('a', 500), 200, '200 left of the 500 gap');
+  t = 1500;
+  assert.equal(g.remaining('a', 500), 0, '0 at the gap boundary');
+  t = 2000;
+  assert.equal(g.remaining('a', 500), 0, '0 long after (never negative)');
+});
