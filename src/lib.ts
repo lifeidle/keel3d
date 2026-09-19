@@ -150,6 +150,11 @@ export {
 } from './blocks/ui/DamageNumber';
 export { WindowBar, type WindowBarOpts } from './blocks/ui/WindowBar';
 export { PingMarker, type PingSample, type PingOpts } from './blocks/ui/PingMarker';
+export {
+  StateGate,
+  gateStyle,
+  type StateGateOpts,
+} from './blocks/ui/StateGate';
 
 export { WorldBar } from './blocks/ui/WorldBar';
 export {
