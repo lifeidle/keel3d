@@ -87,6 +87,11 @@ export {
 } from './blocks/combat/Blast';
 export { Fuse } from './blocks/combat/Fuse';
 export {
+  Trail,
+  type TrailOpts,
+  type TrailPoint,
+} from './blocks/fx/Trail';
+export {
   chainBlast,
   type ChainItem,
   type ChainResult,
