@@ -25,6 +25,27 @@ export function worldToMap(
   };
 }
 
+/**
+ * Clamp a world point to the map extent (R57 — edge indicators).
+ *
+ * Gap: off-map entities were skipped entirely (the minimap silently loses
+ * threats just beyond the boundary). Conventional minimap behaviour is to
+ * pin such dots to the edge. `margin` keeps the dot centre inside the
+ * border line. `clamped` is false for points already inside (or on) the
+ * extent. Pure — headless testable.
+ */
+export function clampToWorldExtent(
+  x: number,
+  z: number,
+  extent: number,
+  margin = 0.5,
+): { x: number; z: number; clamped: boolean } {
+  const lim = Math.max(0, extent - margin);
+  const cx = Math.max(-lim, Math.min(lim, x));
+  const cz = Math.max(-lim, Math.min(lim, z));
+  return { x: cx, z: cz, clamped: cx !== x || cz !== z };
+}
+
 export interface MiniMapMarker {
   x: number;
   z: number;
@@ -58,6 +79,12 @@ export interface MiniMapCfg {
    * north-fixed). Drawn over the background, under the dots.
    */
   terrain?: HTMLCanvasElement | null;
+  /**
+   * R57: pin off-map dots to the edge instead of skipping them (default
+   * false — back-compat). Off-map dots are clamped to the extent (with a
+   * small margin) and drawn.
+   */
+  edgeDots?: boolean;
   /** Append to document.body when created (default true). */
   autoAppend?: boolean;
 }
@@ -75,6 +102,7 @@ export class MiniMap {
   private ctx: CanvasRenderingContext2D | null;
   private cfg: Required<Pick<MiniMapCfg, 'size' | 'extent'>> & MiniMapCfg;
   private playerMap: { x: number; y: number } | null = null;
+  private edgeDots = 0;
 
   constructor(cfg: MiniMapCfg, parent: HTMLElement | null = null) {
     this.cfg = { ...DEFAULTS, ...cfg };
@@ -120,9 +148,15 @@ export class MiniMap {
     ctx.lineTo(s, s / 2);
     ctx.stroke();
 
+    this.edgeDots = 0;
     const dot = (wx: number, wz: number, color: string, r: number) => {
-      const p = worldToMap(wx, wz, m);
-      if (p.x < 0 || p.x > s || p.y < 0 || p.y > s) return;
+      let p = worldToMap(wx, wz, m);
+      if (p.x < 0 || p.x > s || p.y < 0 || p.y > s) {
+        if (!this.cfg.edgeDots) return; // R57: skip (back-compat default)
+        const c = clampToWorldExtent(wx, wz, m.extent);
+        if (c.clamped) this.edgeDots += 1;
+        p = worldToMap(c.x, c.z, m); // pinned to the edge
+      }
       ctx.fillStyle = color;
       ctx.beginPath();
       ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
@@ -150,6 +184,10 @@ export class MiniMap {
   /** Last drawn player map position (acceptance hook). */
   get playerMapValue(): { x: number; y: number } | null {
     return this.playerMap;
+  }
+  /** R57: dots clamped to the edge on the last draw (acceptance hook). */
+  get lastEdgeDots(): number {
+    return this.edgeDots;
   }
 
   dispose(): void {

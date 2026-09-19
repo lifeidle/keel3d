@@ -130,6 +130,7 @@ export { WorldBar } from './blocks/ui/WorldBar';
 export {
   MiniMap,
   worldToMap,
+  clampToWorldExtent,
   type MiniMapCfg,
   type MiniMapMarker,
   type MiniMapMarkers,
