@@ -139,7 +139,12 @@ export { HudPanel } from './blocks/ui/HudPanel';
 export { HealthBar } from './blocks/ui/HealthBar';
 export { EndOverlay } from './blocks/ui/EndOverlay';
 export { Toast } from './blocks/ui/Toast';
-export { DamageNumbers } from './blocks/ui/DamageNumber';
+export {
+  DamageNumbers,
+  resolveDmgStyle,
+  type DmgStyle,
+  type ResolvedDmgStyle,
+} from './blocks/ui/DamageNumber';
 export { WorldBar } from './blocks/ui/WorldBar';
 export {
   MiniMap,
