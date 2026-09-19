@@ -80,6 +80,7 @@ export {
   type BlastConfig,
   type BlastHit,
 } from './blocks/combat/Blast';
+export { Fuse } from './blocks/combat/Fuse';
 export {
   ArcProjectile,
   arcVelocityToward,
