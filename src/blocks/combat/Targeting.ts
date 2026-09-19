@@ -30,7 +30,9 @@ export function pickTarget<T extends TargetCandidate>(
   let best: T | null = null;
   let bestScore = Infinity;
 
+  let i = 0;
   for (const t of list) {
+    i++;
     if (t.alive === false) continue;
     const dx = t.x - fromX;
     const dz = t.z - fromZ;
@@ -41,8 +43,14 @@ export function pickTarget<T extends TargetCandidate>(
       if (dot < opts.minDot) continue;
     }
     const mode = opts.mode ?? 'nearest';
+    // R63: 'first' used to fall through to distance (nearest behavior) —
+    // it now scores by pool order, so "first" means first entry.
     const score =
-      mode === 'lowestHp' ? (hpOf ? hpOf(t) : 0) + d * 0.001 : d;
+      mode === 'lowestHp'
+        ? (hpOf ? hpOf(t) : 0) + d * 0.001
+        : mode === 'first'
+          ? i
+          : d;
     if (score < bestScore) {
       bestScore = score;
       best = t;
