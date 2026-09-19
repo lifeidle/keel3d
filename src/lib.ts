@@ -170,6 +170,7 @@ export {
 export { BgmLayers } from './blocks/audio/BgmLayers';
 export { SfxPlayer } from './blocks/audio/SfxPlayer';
 export { BeatClock } from './blocks/audio/BeatClock';
+export { Ambience, type AmbienceOpts } from './blocks/audio/Ambience';
 
 // World / scene / fx
 export { generateDungeon, isDungeonConnected, type DungeonLayout } from './blocks/world/ProcDungeon';
