@@ -10,7 +10,7 @@ test('fraction runs 1 → 0 over the life; prunes on expiry', () => {
   const p = new PingMarker();
   p.ping(0, 0, 0, 3);
   assert.equal(p.active(-1).length, 0, 'not active before born');
-  assert.deepEqual(p.active(0), [{ x: 0, z: 0, fraction: 1 }], 'full at born');
+  assert.deepEqual(p.active(0), [{ x: 0, z: 0, fraction: 1, tag: undefined }], 'full at born');
   assert.ok(Math.abs(p.active(1.5)[0].fraction - 0.5) < 1e-9, 'half at mid-life');
   assert.equal(p.active(3).length, 0, 'pruned at expiry');
   assert.equal(p.size, 0, 'size follows the pruned list');
@@ -37,7 +37,7 @@ test('size counts unexpired pings; future-born pings wait for their born time', 
   const at1 = p.active(1);
   assert.equal(at1.length, 2, 'both born at t=1');
   assert.deepEqual(at1, p.active(1), 'same snapshot at the same time');
-  assert.deepEqual(at1[0], { x: 0, z: 0, fraction: 0.6666666666666667 }, 'first at 2/3');
+  assert.deepEqual(at1[0], { x: 0, z: 0, fraction: 0.6666666666666667, tag: undefined }, 'first at 2/3');
 });
 
 test('invalid life throws', () => {

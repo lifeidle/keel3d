@@ -13,17 +13,31 @@ export interface PingSample {
   z: number;
   /** Remaining fraction of the ping's life (1 just after a ping → 0 at expiry). */
   fraction: number;
+  /** Content identity ('wave' / 'ally' …) — set via `PingOpts.tag`. */
+  tag?: string;
+}
+
+export interface PingOpts {
+  /** Seconds the ping lives. Default 3. */
+  life?: number;
+  /** Content identity carried into `active()` samples (render dispatch). */
+  tag?: string;
 }
 
 export class PingMarker {
-  private pings: { x: number; z: number; born: number; life: number }[] = [];
+  private pings: { x: number; z: number; born: number; life: number; tag?: string }[] = [];
 
-  /** Add a ping at (x, z) at clock time `t` lasting `life` seconds. */
-  ping(x: number, z: number, t: number, life = 3): void {
+  /**
+   * Add a ping at (x, z) at clock time `t`. `lifeOrOpts` is a number of
+   * seconds (back-compat) or `PingOpts` ({life?, tag?}).
+   */
+  ping(x: number, z: number, t: number, lifeOrOpts: number | PingOpts = 3): void {
+    const life = typeof lifeOrOpts === 'number' ? lifeOrOpts : lifeOrOpts.life ?? 3;
+    const tag = typeof lifeOrOpts === 'number' ? undefined : lifeOrOpts.tag;
     if (!Number.isFinite(life) || life <= 0) {
       throw new Error('PingMarker: life must be finite and > 0');
     }
-    this.pings.push({ x, z, born: t, life });
+    this.pings.push({ x, z, born: t, life, tag });
   }
 
   /**
@@ -37,7 +51,7 @@ export class PingMarker {
       .filter((p) => t >= p.born)
       .map((p) => {
         const f = 1 - (t - p.born) / p.life;
-        return { x: p.x, z: p.z, fraction: Math.max(0, Math.min(1, f)) };
+        return { x: p.x, z: p.z, fraction: Math.max(0, Math.min(1, f)), tag: p.tag };
       })
       .sort((a, b) => a.fraction - b.fraction);
   }
