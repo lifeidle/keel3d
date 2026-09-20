@@ -112,6 +112,10 @@ export {
   type DustTrailOpts,
 } from './blocks/fx/DustTrail';
 export {
+  nearestPoint,
+  type XZ,
+} from './blocks/combat/Nearest';
+export {
   chainBlast,
   type ChainItem,
   type ChainResult,
