@@ -120,6 +120,7 @@ export {
   sweptCircle,
   type SweepHit,
 } from './blocks/combat/SweptCircle';
+export { ProgressGate } from './blocks/gameplay/ProgressGate';
 export {
   chainBlast,
   type ChainItem,
