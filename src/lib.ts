@@ -122,6 +122,10 @@ export {
 } from './blocks/combat/SweptCircle';
 export { ProgressGate } from './blocks/gameplay/ProgressGate';
 export {
+  pickBest,
+  type TargetCandidate,
+} from './blocks/combat/TargetPriority';
+export {
   chainBlast,
   type ChainItem,
   type ChainResult,
