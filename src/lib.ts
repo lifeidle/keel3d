@@ -100,6 +100,10 @@ export {
   type HitKind,
 } from './blocks/ui/HitConfirm';
 export {
+  dimGroup,
+  type TintHandle,
+} from './blocks/props/GroupTint';
+export {
   chainBlast,
   type ChainItem,
   type ChainResult,
