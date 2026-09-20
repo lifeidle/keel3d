@@ -107,6 +107,11 @@ export { pulse, bobY } from './blocks/fx/Motion';
 export { AimNode } from './blocks/props/AimNode';
 export { PropFollower } from './blocks/props/PropFollower';
 export {
+  DustTrail,
+  type DustPuff,
+  type DustTrailOpts,
+} from './blocks/fx/DustTrail';
+export {
   chainBlast,
   type ChainItem,
   type ChainResult,
