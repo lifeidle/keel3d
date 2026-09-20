@@ -117,6 +117,10 @@ export {
 } from './blocks/combat/Nearest';
 export type { SmokeHandle } from './blocks/fx/SmokeColumns';
 export {
+  sweptCircle,
+  type SweepHit,
+} from './blocks/combat/SweptCircle';
+export {
   chainBlast,
   type ChainItem,
   type ChainResult,
