@@ -126,6 +126,10 @@ export {
   type TargetCandidate,
 } from './blocks/combat/TargetPriority';
 export {
+  zoneMultiplier,
+  type DamageZone,
+} from './blocks/combat/HitZone';
+export {
   chainBlast,
   type ChainItem,
   type ChainResult,
