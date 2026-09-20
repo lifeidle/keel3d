@@ -105,6 +105,7 @@ export {
 } from './blocks/props/GroupTint';
 export { pulse, bobY } from './blocks/fx/Motion';
 export { AimNode } from './blocks/props/AimNode';
+export { PropFollower } from './blocks/props/PropFollower';
 export {
   chainBlast,
   type ChainItem,
