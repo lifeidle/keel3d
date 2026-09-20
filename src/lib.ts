@@ -135,6 +135,11 @@ export {
   type FormationOpts,
 } from './blocks/ai/Formation';
 export {
+  rollDrops,
+  type DropEntry,
+  type DropResult,
+} from './blocks/loot/DropTable';
+export {
   chainBlast,
   type ChainItem,
   type ChainResult,
