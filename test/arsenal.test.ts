@@ -125,3 +125,30 @@ test('addReserve targets a specific slot', () => {
   a.switchTo(0);
   assert.equal(a.reserve, 10, 'slot 0 untouched');
 });
+
+test('exhausted: true only when EVERY slot has no rounds left (R93)', () => {
+  const a = new Arsenal(SLOTS); // rifle 5/10, bolt 2/4
+  assert.equal(a.exhausted, false, 'fresh arsenal can fire');
+
+  // drain the active (rifle) magazine — reserve still full
+  for (let i = 0; i < 5; i++) a.update(0.3, true, false);
+  assert.equal(a.mag, 0, 'rifle mag drained');
+  assert.equal(a.exhausted, false, 'rifle reserve 10 — not exhausted');
+
+  // spend rifle reserve by reload-cycling, then the bolt slot
+  a.setReserve(0); // rifle reserve → 0
+  a.update(0.6, true, false); // empty + no reserve → 'empty', 0.5s cooldown
+  assert.equal(a.exhausted, false, 'bolt slot still has 2+4');
+
+  a.switchTo(1); // bolt 2/4
+  a.update(0.3, true, true); // fire → mag 1 (fireRate 1 → 1.0s cooldown)
+  a.setReserve(0, 1); // bolt reserve → 0
+  a.update(1.1, true, true); // clear the 1.0s cooldown → fire → mag 0
+  a.update(0.6, true, true); // empty, no reserve
+  assert.equal(a.mag, 0, 'bolt drained');
+  assert.equal(a.exhausted, true, 'every slot dry → exhausted');
+
+  // one round anywhere un-exhausts
+  a.addReserve(1, 0);
+  assert.equal(a.exhausted, false, 'rifle 1 reserve round — not exhausted');
+});

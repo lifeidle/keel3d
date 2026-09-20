@@ -82,6 +82,15 @@ export class Arsenal {
     return this.slots.length;
   }
 
+  /**
+   * R93 — true when NO slot can fire (every slot's magazine AND reserve
+   * are at 0). Content aggregates: out-of-ammo presentation (dimmed HUD,
+   * radio callout, "go get a dump" hint) without walking slots itself.
+   */
+  get exhausted(): boolean {
+    return this.mags.every((m) => m.rounds === 0 && m.reserve === 0);
+  }
+
   slotDef(i: number): ArsenalSlotDef {
     return this.slots[i];
   }
