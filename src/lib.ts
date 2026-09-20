@@ -130,6 +130,11 @@ export {
   type DamageZone,
 } from './blocks/combat/HitZone';
 export {
+  vFormation,
+  type FormationSlot,
+  type FormationOpts,
+} from './blocks/ai/Formation';
+export {
   chainBlast,
   type ChainItem,
   type ChainResult,
