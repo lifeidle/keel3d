@@ -96,6 +96,10 @@ export {
   type ArcLanding,
 } from './blocks/combat/ArcProjectile';
 export {
+  HitConfirm,
+  type HitKind,
+} from './blocks/ui/HitConfirm';
+export {
   chainBlast,
   type ChainItem,
   type ChainResult,
