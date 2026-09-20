@@ -103,6 +103,7 @@ export {
   dimGroup,
   type TintHandle,
 } from './blocks/props/GroupTint';
+export { pulse, bobY } from './blocks/fx/Motion';
 export {
   chainBlast,
   type ChainItem,
