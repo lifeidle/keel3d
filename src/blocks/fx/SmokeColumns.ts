@@ -19,11 +19,27 @@ interface Puff {
   baseY: number;
   height: number; // rise distance
   baseScale: number;
+  // R94: fixed per-puff coefficients (set ONCE at creation) — setStrength
+  // rescales these, so the column's character doesn't re-randomize.
+  fSpeed: number; // 0.09..0.16
+  fHeight: number; // 5..9
+  fScale: number; // 1.1..1.9
 }
 
 interface Column {
   puffs: Puff[];
   t: number;
+}
+
+/**
+ * R94 — handle for one column: dynamic strength (damage-state smoke,
+ * fire escalation). `update()` reads each puff's height/baseScale/speed
+ * live, so setStrength takes effect on the next frame without
+ * re-creating puffs.
+ */
+export interface SmokeHandle {
+  /** Rescale the column (0.4 faint .. 1.2+ heavy). Must be > 0. */
+  setStrength(strength: number): void;
 }
 
 let _smokeTex: THREE.Texture | null = null;
@@ -55,9 +71,13 @@ export class SmokeColumns {
 
   /**
    * Start one smoke column at (x, y, z). `strength` scales puff size + speed
-   * (0.4 faint ember .. 1.2 heavy blaze).
+   * (0.4 faint ember .. 1.2 heavy blaze). Returns a handle to rescale the
+   * column live (R94).
    */
-  addColumn(x: number, y: number, z: number, strength = 1): void {
+  addColumn(x: number, y: number, z: number, strength = 1): SmokeHandle {
+    if (!(strength > 0) || !Number.isFinite(strength)) {
+      throw new Error('SmokeColumns.addColumn: strength must be finite and > 0');
+    }
     const puffs: Puff[] = [];
     const driftDir = Math.random() * Math.PI * 2;
     for (let i = 0; i < PUFFS_PER_COL; i++) {
@@ -72,15 +92,21 @@ export class SmokeColumns {
       sprite.position.set(x, y, z);
       sprite.scale.setScalar(0.8);
       this.group.add(sprite);
+      const fSpeed = 0.09 + Math.random() * 0.07;
+      const fHeight = 5 + Math.random() * 4;
+      const fScale = 1.1 + Math.random() * 0.8;
       puffs.push({
         sprite,
         mat,
         phase: i / PUFFS_PER_COL,
-        speed: (0.09 + Math.random() * 0.07) * strength,
+        speed: fSpeed * strength,
         drift: Math.random() * 0.5,
         baseY: y,
-        height: (5 + Math.random() * 4) * strength,
-        baseScale: (1.1 + Math.random() * 0.8) * strength,
+        height: fHeight * strength,
+        baseScale: fScale * strength,
+        fSpeed,
+        fHeight,
+        fScale,
       });
       // spread the initial puff positions along the column
       const k = i / PUFFS_PER_COL;
@@ -89,7 +115,23 @@ export class SmokeColumns {
     }
     // tweak each puff's drift direction for a natural sway
     for (const p of puffs) p.drift = driftDir;
-    this.cols.push({ puffs, t: Math.random() * 10 });
+    const col: Column = { puffs, t: Math.random() * 10 };
+    this.cols.push(col);
+    const apply = (s: number) => {
+      for (const p of col.puffs) {
+        p.speed = p.fSpeed * s;
+        p.height = p.fHeight * s;
+        p.baseScale = p.fScale * s;
+      }
+    };
+    return {
+      setStrength: (s: number) => {
+        if (!(s > 0) || !Number.isFinite(s)) {
+          throw new Error('SmokeHandle.setStrength: strength must be finite and > 0');
+        }
+        apply(s);
+      },
+    };
   }
 
   /** Per-frame: advance every puff along its rise/fade cycle. */

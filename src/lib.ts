@@ -115,6 +115,7 @@ export {
   nearestPoint,
   type XZ,
 } from './blocks/combat/Nearest';
+export type { SmokeHandle } from './blocks/fx/SmokeColumns';
 export {
   chainBlast,
   type ChainItem,
