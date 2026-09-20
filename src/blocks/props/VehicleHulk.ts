@@ -41,6 +41,12 @@ export interface PropHandles {
    * static — moving the group does NOT move physics.
    */
   group: THREE.Group;
+  /**
+   * R89 — the turret sub-group (vehicles with one), authored at a frozen
+   * random traverse. `rotation.y` is LOCAL to `group` (world yaw = group
+   * yaw + local yaw). Absent for props without a turret.
+   */
+  turret?: THREE.Group;
 }
 
 function snapYaw(rand: () => number): number {
@@ -205,7 +211,7 @@ export function placeTankHulk(
 
   // ONE low hull box ???everything above (turret, gun) is soft cover
   hitBox(b, 0, 0.85, 0, 1.5, 0.85, 2.9);
-  return { colliders: b.colliders, group: b.group };
+  return { colliders: b.colliders, group: b.group, turret: tg };
 }
 
 // ---------------------------------------------------------------------------

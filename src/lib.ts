@@ -104,6 +104,7 @@ export {
   type TintHandle,
 } from './blocks/props/GroupTint';
 export { pulse, bobY } from './blocks/fx/Motion';
+export { AimNode } from './blocks/props/AimNode';
 export {
   chainBlast,
   type ChainItem,
