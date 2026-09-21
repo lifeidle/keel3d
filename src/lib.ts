@@ -140,6 +140,10 @@ export {
   type DropResult,
 } from './blocks/loot/DropTable';
 export {
+  spreadDots,
+  type SpreadPoint,
+} from './blocks/ui/ClusteredDots';
+export {
   chainBlast,
   type ChainItem,
   type ChainResult,
